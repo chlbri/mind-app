@@ -1,12 +1,14 @@
 import * as v from 'valibot';
 import type { ObjectS } from './types';
+import { decomposeSchema } from './decomposeSchema';
 
 export const timestamps = <const T extends ObjectS>(schema: T) => {
+  const decomposed = decomposeSchema(schema);
   const out = v.pipe(
     v.intersect([
       schema,
       v.object({
-        timestamps: v.pipe(
+        __timestamps: v.pipe(
           v.object({
             createdAt: v.pipe(
               v.optional(
@@ -24,7 +26,10 @@ export const timestamps = <const T extends ObjectS>(schema: T) => {
                     v.date(
                       'Chaque date de mise à jour doit être une date valide',
                     ),
-                    v.any(),
+                    v.custom<v.InferInput<typeof decomposed>>(
+                      value => v.is(decomposed, value),
+                      `Chaque mise à jour doit correspondre au "flatten-schema" de l'entité`,
+                    ),
                   ),
 
                   'Les mises à jour doivent être un tableau de dates',
@@ -80,17 +85,6 @@ export const timestamps = <const T extends ObjectS>(schema: T) => {
               'Toutes les dates de mise à jour doivent être postérieures à la date de création',
             ),
 
-            ['updatedsAt'],
-          ),
-
-          v.forward(
-            v.partialCheck([['updatedsAt']], ({ updatedsAt }) => {
-              const values: any[] = Array.from(updatedsAt.values());
-
-              return values.every(
-                value => v.safeParse(schema, value).success,
-              );
-            }),
             ['updatedsAt'],
           ),
 

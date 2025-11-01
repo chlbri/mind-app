@@ -83,5 +83,5 @@ export const decomposeSchema = <const T extends ObjectS>(schema: T) => {
     });
   }
 
-  return v.strictObject(result as DecomposedOutput<T['entries']>)
+  return v.strictObject(result as DecomposedOutput<T['entries']>);
 };
