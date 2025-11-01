@@ -408,7 +408,7 @@ describe('#01 => decomposeSchema', () => {
         api: v.object({
           v1: v.object({
             endpoints: v.object({
-              users: v.optional(
+              users: v.nullable(
                 v.object({
                   get: v.string(),
                   post: v.string(),
@@ -416,7 +416,7 @@ describe('#01 => decomposeSchema', () => {
               ),
               posts: v.object({
                 get: v.string(),
-                delete: v.optional(v.string()),
+                delete: v.nullable(v.string()),
               }),
             }),
           }),
@@ -991,11 +991,11 @@ describe('#01 => decomposeSchema', () => {
       }
     });
 
-    it('#14 => should validate deeply nested non-empty object with all optional fields filled', () => {
+    it('#14 => should validate deeply nested non-empty object with all nullable fields filled', () => {
       const schema = v.object({
         project: v.object({
           metadata: v.object({
-            tags: v.optional(
+            tags: v.nullable(
               v.object({
                 category: v.string(),
                 priority: v.number(),

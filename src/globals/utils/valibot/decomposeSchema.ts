@@ -54,11 +54,6 @@ export const decomposeSchema = <const T extends ObjectS>(schema: T) => {
           return { isObject: true, objectSchema: schemaToExtract };
         }
 
-        // Vérifier si c'est un schéma enveloppé (optional, nullable, etc.)
-        if (schemaToExtract.schema) {
-          return extractObjectSchema(schemaToExtract.schema);
-        }
-
         // Vérifier pour wrapped (autre forme d'enveloppe)
         if (schemaToExtract.wrapped) {
           return extractObjectSchema(schemaToExtract.wrapped);
