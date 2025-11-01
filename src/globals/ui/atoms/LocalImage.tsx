@@ -7,7 +7,6 @@ import {
   type Component,
 } from 'solid-js';
 import { cn } from '~cn/utils';
-import type { AssetPath } from '~types';
 import { useRessource } from '../signals';
 import type { OmitPropsOf } from '../types';
 
@@ -16,15 +15,14 @@ import type { OmitPropsOf } from '../types';
  * Persiste pendant toute la durée de vie de la session
  */
 
-interface ImageProps
-  extends OmitPropsOf<
-    'img',
-    'src' | 'alt' | 'onload' | 'on:load' | 'onLoad'
-  > {
+type ImageProps<T extends string = string> = OmitPropsOf<
+  'img',
+  'src' | 'alt' | 'onload' | 'on:load' | 'onLoad'
+> & {
   /**
    * Source de l'image - doit être un chemin d'asset valide
    */
-  src: AssetPath;
+  src: T;
 
   /**
    * Texte alternatif pour l'image
@@ -47,7 +45,7 @@ interface ImageProps
    * @default false
    */
   disableCache?: boolean;
-}
+};
 
 const _LocalImage: Component<Omit<ImageProps, 'disableCache'>> = props => {
   const [local, rest] = splitProps(props, [
@@ -184,7 +182,9 @@ const _LocalImage: Component<Omit<ImageProps, 'disableCache'>> = props => {
  * />
  * ```
  */
-export const LocalImage: Component<ImageProps> = props => {
+export function LocalImage<T extends string = string>(
+  props: ImageProps<T>,
+) {
   if (props.disableCache) {
     const [, rest] = splitProps(props, [
       'fallback',
@@ -196,4 +196,4 @@ export const LocalImage: Component<ImageProps> = props => {
   }
 
   return <_LocalImage {...props} />;
-};
+}
