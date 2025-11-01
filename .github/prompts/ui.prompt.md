@@ -28,11 +28,11 @@ performants.
 src/
 ├── features/               # Fonctionnalités métier (COMMENCER ICI)
 │   └── [feature-name]/    # Une fonctionnalité spécifique
-│       ├── front/         # Code frontend de la feature
-│       │   ├── components/    # Composants spécifiques à la feature
-│       │   ├── signals/       # État local à la feature
-│       │   └── utils/         # Utilitaires frontend de la feature
-│       └── back/          # Code backend de la feature (optionnel)
+│       ├── schemas/       # Schémas de validation Valibot de la feature
+│       ├── utils/         # Utilitaires et helpers spécifiques de la feature
+│       └── ui/            # Code frontend de la feature
+│           ├── components/    # Composants spécifiques à la feature
+│           └── signals/       # État local réactif de la feature
 │
 └── globals/ui/            # Composants partagés (APRÈS réutilisation)
     ├── cn/                # ⚠️ NE PAS MODIFIER - Géré par shadcn-solid CLI
@@ -57,10 +57,11 @@ src/
 
 ### 🎯 Règles d'organisation
 
-1. **TOUJOURS commencer dans `src/features/[feature-name]/front/`**
-   - Créez d'abord vos composants dans `front/components/`
-   - Créez des signaux locaux dans `front/signals/`
-   - Les utilitaires frontend dans `front/utils/`
+1. **TOUJOURS commencer dans `src/features/[feature-name]/ui/`**
+   - Créez d'abord vos composants dans `ui/components/`
+   - Créez des signaux locaux dans `ui/signals/`
+   - Les schémas de validation dans `schemas/`
+   - Les utilitaires dans `utils/`
 
 2. **Migration vers `globals/` uniquement si réutilisé**
    - Si un composant est utilisé dans 2+ features/routes → déplacer vers
@@ -315,7 +316,7 @@ Les composants seront automatiquement créés dans
 ### Composant dans une feature (POINT DE DÉPART)
 
 **1. Créer d'abord dans :
-`src/features/[feature-name]/front/components/[Nom].tsx`**
+`src/features/[feature-name]/ui/components/[Nom].tsx`**
 
 ```tsx
 import type { Component } from 'solid-js';
@@ -423,7 +424,7 @@ export default StatsCard;
 ### Signal local à une feature (POINT DE DÉPART)
 
 **1. Créer d'abord dans :
-`src/features/[feature-name]/front/signals/[nom].ts`**
+`src/features/[feature-name]/ui/signals/[nom].ts`**
 
 ```tsx
 // src/features/authentication/front/signals/auth.ts
@@ -702,14 +703,15 @@ const HeavyComponent = lazy(() => import('./HeavyComponent'));
 
    ```
    src/features/[feature-name]/
-   ├── front/
-   │   ├── components/
-   │   │   └── MonComposant.tsx    ← Commencer ici
-   │   ├── signals/
-   │   │   └── monSignal.ts         ← État local
-   │   └── utils/
-   │       └── helpers.ts           ← Utilitaires frontend
-   └── back/                        ← Code backend (optionnel)
+   ├── schemas/
+   │   └── monSchema.ts           ← Schémas Valibot
+   ├── utils/
+   │   └── helpers.ts             ← Utilitaires métier
+   └── ui/
+       ├── components/
+       │   └── MonComposant.tsx    ← Commencer ici
+       └── signals/
+           └── monSignal.ts         ← État local réactif
    ```
 
 3. **Développer et tester** dans le contexte de la feature
@@ -717,6 +719,8 @@ const HeavyComponent = lazy(() => import('./HeavyComponent'));
 4. **Si réutilisation nécessaire** (2+ features/routes)
    - Déplacer vers `src/globals/ui/molecules/` ou `organisms/`
    - Déplacer les signaux vers `src/globals/ui/signals/`
+   - Déplacer les schémas réutilisables vers un répertoire partagé si
+     nécessaire
    - Mettre à jour les imports
 
 5. **Pour composants primitifs** (button, input, card, etc.)
@@ -751,8 +755,9 @@ seront prêts à l'emploi avec :
 
 **Note importante** :
 
-- ✅ **TOUJOURS** commencer dans `src/features/[feature-name]/front/`
-- ✅ Composants dans `front/components/`, signaux dans `front/signals/`
+- ✅ **TOUJOURS** commencer dans `src/features/[feature-name]/ui/`
+- ✅ Composants dans `ui/components/`, signaux dans `ui/signals/`
+- ✅ Schémas dans `schemas/`, utilitaires dans `utils/`
 - ✅ Migrer vers `globals/` **uniquement** si réutilisé
 - ❌ **JAMAIS** créer/modifier manuellement dans `cn/components/ui/`
 - ✅ Utiliser **Valibot** pour la validation

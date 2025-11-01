@@ -1,10 +1,12 @@
 # Test Generator Prompt
 
-Ce prompt aide à générer des tests unitaires et d'intégration pour le projet.
+Ce prompt aide à générer des tests unitaires et d'intégration pour le
+projet.
 
 ## Context
 
 Le projet utilise:
+
 - **Framework de test**: Vitest
 - **Bibliothèque de test**: @solidjs/testing-library
 - **Assertions**: expect de Vitest
@@ -53,10 +55,10 @@ describe('Button', () => {
   it('calls onClick when clicked', async () => {
     const handleClick = vi.fn();
     render(() => <Button onClick={handleClick}>Click</Button>);
-    
+
     const button = screen.getByRole('button');
     await userEvent.click(button);
-    
+
     expect(handleClick).toHaveBeenCalledTimes(1);
   });
 
@@ -114,9 +116,9 @@ describe('useAuth signal', () => {
     createRoot(dispose => {
       const auth = useAuth();
       const user = { id: '1', name: 'Test User' };
-      
+
       auth.login(user);
-      
+
       expect(auth.user()).toEqual(user);
       expect(auth.isAuthenticated()).toBe(true);
       dispose();
@@ -153,6 +155,28 @@ describe('Button accessibility', () => {
 - [ ] Tests d'accessibilité pour les composants UI
 - [ ] Tests des cas limites et erreurs
 - [ ] Coverage > 80% pour les fonctions critiques
+- [ ] **Numérotation des describe et tests** : Tous les tests et describe
+      doivent être numérotés
+  - La numérotation est scopée au describe parent
+  - Format describe: `describe('# 01 => section name', () => { ... })`
+  - Format test: `it('# 01 => should do something', () => { ... })`
+  - The "diese" character and the number are glued with no space
+  - Chaque describe redémarre la numérotation à 01
+  - Exemple:
+
+    ```typescript
+    describe('# 01 => Feature A', () => {
+      it('# 01 => should work', () => {});
+      it('# 02 => should handle error', () => {});
+
+      describe('# 03 => Sub Feature', () => {
+        it('# 01 => should do sub work', () => {});
+        it('# 02 => should handle sub error', () => {});
+      });
+    });
+
+    // the "diese" character and the number are glued with no space
+    ```
 
 ## Commandes utiles
 
@@ -172,7 +196,8 @@ pnpm test UserCard.test.tsx
 
 ## Task
 
-Quand ce prompt est invoqué, génère des tests complets pour le fichier ou composant spécifié par l'utilisateur en suivant:
+Quand ce prompt est invoqué, génère des tests complets pour le fichier ou
+composant spécifié par l'utilisateur en suivant:
 
 1. **Analyser** le code source pour identifier ce qui doit être testé
 2. **Créer** un fichier de test avec le nom `[filename].test.ts(x)`
@@ -188,11 +213,13 @@ Quand ce prompt est invoqué, génère des tests complets pour le fichier ou com
 ## Output attendu
 
 Afficher uniquement:
+
 1. Le chemin du fichier de test créé
 2. Le nombre de tests générés
 3. Un résumé des cas couverts
 
 Format:
+
 ```
 ✅ Tests créés: src/features/auth/front/components/LoginForm.test.tsx
 📊 12 tests générés
