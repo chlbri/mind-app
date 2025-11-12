@@ -4,6 +4,7 @@
  */
 
 import * as v from 'valibot';
+import { create } from '~/globals/utils';
 
 /**
  * Schéma complet et aplati pour un élément du mindmap
@@ -196,3 +197,6 @@ export const ElementSchema = v.pipe(
     ),
   }),
 );
+
+export const createElement = create(ElementSchema, 'typed');
+export const createElements = create(v.array(ElementSchema), 'typed');

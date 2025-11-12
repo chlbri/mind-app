@@ -1,8 +1,6 @@
 import { createSignal, onMount, onCleanup } from 'solid-js';
 import { createFileRoute } from '@tanstack/solid-router';
-import type { InferOutput } from 'valibot';
-import type { ElementSchema } from '~/features/mindmap/schemas/element';
-import type { LinkSchema } from '~/features/mindmap/schemas/link';
+
 import Element from '~/features/mindmap/ui/components/Element/Element';
 import Link from '~/features/mindmap/ui/components/Link/Link';
 import {
@@ -10,519 +8,11 @@ import {
   handleCanvasMouseMove,
 } from '~/features/mindmap/ui/components/examples';
 import {
-  CollapseAnimationManager,
   drawRipple,
   getPulseScale,
   getGlowIntensity,
 } from '~/features/mindmap/ui/animations';
-
-// Palettes de couleurs pour mindmap
-const COLORS = {
-  center: { bg: '#FF6B6B', border: '#C92A2A', text: '#FFFFFF' },
-  level1: [
-    { bg: '#4ECDC4', border: '#1ABC9C', text: '#FFFFFF' },
-    { bg: '#45B7D1', border: '#3498DB', text: '#FFFFFF' },
-    { bg: '#FFA07A', border: '#FF7F50', text: '#FFFFFF' },
-    { bg: '#98D8C8', border: '#6BCF7F', text: '#FFFFFF' },
-  ],
-  level2: { bg: '#F7DC6F', border: '#F39C12', text: '#333333' },
-};
-
-// Données de démonstration - Mindmap réaliste
-const DEMO_ELEMENTS: InferOutput<typeof ElementSchema>[] = [
-  // Nœud central
-  {
-    id: 'center',
-    title: 'PROJET 2025',
-    description: 'Thème central',
-    x: 500,
-    y: 200,
-    width: 140,
-    height: 80,
-    fontFamily: 'Arial',
-    fontWeight: 700,
-    fontSize: 14,
-    lineHeight: 1.4,
-    letterSpacing: 0.5,
-    locked: false,
-    expanded: true,
-    backgroundColor: COLORS.center.bg,
-    borderColor: COLORS.center.border,
-    textColor: COLORS.center.text,
-    borderRadius: 20,
-    borderWidth: 3,
-    childrenIds: ['branch1', 'branch2', 'branch3', 'branch4'],
-  },
-  // Branches principales gauche
-  {
-    id: 'branch1',
-    title: 'Phase 1\nPlanification',
-    description: 'Branche 1',
-    x: 150,
-    y: 80,
-    width: 120,
-    height: 90,
-    fontFamily: 'Arial',
-    fontWeight: 600,
-    fontSize: 12,
-    lineHeight: 1.4,
-    letterSpacing: 0,
-    locked: false,
-    expanded: true,
-    backgroundColor: COLORS.level1[0].bg,
-    borderColor: COLORS.level1[0].border,
-    textColor: COLORS.level1[0].text,
-    borderRadius: 15,
-    borderWidth: 2,
-    childrenIds: ['b1-1', 'b1-2'],
-  },
-  {
-    id: 'branch2',
-    title: 'Phase 2\nDéveloppement',
-    description: 'Branche 2',
-    x: 150,
-    y: 250,
-    width: 120,
-    height: 90,
-    fontFamily: 'Arial',
-    fontWeight: 600,
-    fontSize: 12,
-    lineHeight: 1.4,
-    letterSpacing: 0,
-    locked: false,
-    expanded: true,
-    backgroundColor: COLORS.level1[1].bg,
-    borderColor: COLORS.level1[1].border,
-    textColor: COLORS.level1[1].text,
-    borderRadius: 15,
-    borderWidth: 2,
-    childrenIds: ['b2-1', 'b2-2', 'b2-3'],
-  },
-  // Branches principales droite
-  {
-    id: 'branch3',
-    title: 'Phase 3\nTest & QA',
-    description: 'Branche 3',
-    x: 850,
-    y: 80,
-    width: 120,
-    height: 90,
-    fontFamily: 'Arial',
-    fontWeight: 600,
-    fontSize: 12,
-    lineHeight: 1.4,
-    letterSpacing: 0,
-    locked: false,
-    expanded: true,
-    backgroundColor: COLORS.level1[2].bg,
-    borderColor: COLORS.level1[2].border,
-    textColor: COLORS.level1[2].text,
-    borderRadius: 15,
-    borderWidth: 2,
-    childrenIds: ['b3-1', 'b3-2'],
-  },
-  {
-    id: 'branch4',
-    title: 'Phase 4\nLancement',
-    description: 'Branche 4',
-    x: 850,
-    y: 250,
-    width: 120,
-    height: 90,
-    fontFamily: 'Arial',
-    fontWeight: 600,
-    fontSize: 12,
-    lineHeight: 1.4,
-    letterSpacing: 0,
-    locked: false,
-    expanded: true,
-    backgroundColor: COLORS.level1[3].bg,
-    borderColor: COLORS.level1[3].border,
-    textColor: COLORS.level1[3].text,
-    borderRadius: 15,
-    borderWidth: 2,
-    childrenIds: ['b4-1', 'b4-2'],
-  },
-  // Sous-éléments branche 1
-  {
-    id: 'b1-1',
-    title: 'Analyse',
-    description: 'Sous-élément',
-    x: 30,
-    y: 30,
-    width: 100,
-    height: 60,
-    fontFamily: 'Arial',
-    fontWeight: 500,
-    fontSize: 11,
-    lineHeight: 1.3,
-    letterSpacing: 0,
-    locked: false,
-    expanded: true,
-    backgroundColor: COLORS.level2.bg,
-    borderColor: COLORS.level2.border,
-    textColor: COLORS.level2.text,
-    borderRadius: 10,
-    borderWidth: 1.5,
-    childrenIds: [],
-  },
-  {
-    id: 'b1-2',
-    title: 'Design',
-    description: 'Sous-élément',
-    x: 30,
-    y: 110,
-    width: 100,
-    height: 60,
-    fontFamily: 'Arial',
-    fontWeight: 500,
-    fontSize: 11,
-    lineHeight: 1.3,
-    letterSpacing: 0,
-    locked: false,
-    expanded: true,
-    backgroundColor: COLORS.level2.bg,
-    borderColor: COLORS.level2.border,
-    textColor: COLORS.level2.text,
-    borderRadius: 10,
-    borderWidth: 1.5,
-    childrenIds: [],
-  },
-  // Sous-éléments branche 2
-  {
-    id: 'b2-1',
-    title: 'Frontend',
-    description: 'Sous-élément',
-    x: 30,
-    y: 200,
-    width: 100,
-    height: 60,
-    fontFamily: 'Arial',
-    fontWeight: 500,
-    fontSize: 11,
-    lineHeight: 1.3,
-    letterSpacing: 0,
-    locked: false,
-    expanded: true,
-    backgroundColor: COLORS.level2.bg,
-    borderColor: COLORS.level2.border,
-    textColor: COLORS.level2.text,
-    borderRadius: 10,
-    borderWidth: 1.5,
-    childrenIds: [],
-  },
-  {
-    id: 'b2-2',
-    title: 'Backend',
-    description: 'Sous-élément',
-    x: 30,
-    y: 280,
-    width: 100,
-    height: 60,
-    fontFamily: 'Arial',
-    fontWeight: 500,
-    fontSize: 11,
-    lineHeight: 1.3,
-    letterSpacing: 0,
-    locked: false,
-    expanded: true,
-    backgroundColor: COLORS.level2.bg,
-    borderColor: COLORS.level2.border,
-    textColor: COLORS.level2.text,
-    borderRadius: 10,
-    borderWidth: 1.5,
-    childrenIds: [],
-  },
-  {
-    id: 'b2-3',
-    title: 'API',
-    description: 'Sous-élément',
-    x: 30,
-    y: 360,
-    width: 100,
-    height: 60,
-    fontFamily: 'Arial',
-    fontWeight: 500,
-    fontSize: 11,
-    lineHeight: 1.3,
-    letterSpacing: 0,
-    locked: false,
-    expanded: true,
-    backgroundColor: COLORS.level2.bg,
-    borderColor: COLORS.level2.border,
-    textColor: COLORS.level2.text,
-    borderRadius: 10,
-    borderWidth: 1.5,
-    childrenIds: [],
-  },
-  // Sous-éléments branche 3
-  {
-    id: 'b3-1',
-    title: 'Tests UnitUI',
-    description: 'Sous-élément',
-    x: 970,
-    y: 30,
-    width: 100,
-    height: 60,
-    fontFamily: 'Arial',
-    fontWeight: 500,
-    fontSize: 11,
-    lineHeight: 1.3,
-    letterSpacing: 0,
-    locked: false,
-    expanded: true,
-    backgroundColor: COLORS.level2.bg,
-    borderColor: COLORS.level2.border,
-    textColor: COLORS.level2.text,
-    borderRadius: 10,
-    borderWidth: 1.5,
-    childrenIds: [],
-  },
-  {
-    id: 'b3-2',
-    title: 'Intégration',
-    description: 'Sous-élément',
-    x: 970,
-    y: 110,
-    width: 100,
-    height: 60,
-    fontFamily: 'Arial',
-    fontWeight: 500,
-    fontSize: 11,
-    lineHeight: 1.3,
-    letterSpacing: 0,
-    locked: false,
-    expanded: true,
-    backgroundColor: COLORS.level2.bg,
-    borderColor: COLORS.level2.border,
-    textColor: COLORS.level2.text,
-    borderRadius: 10,
-    borderWidth: 1.5,
-    childrenIds: [],
-  },
-  // Sous-éléments branche 4
-  {
-    id: 'b4-1',
-    title: 'Déploiement',
-    description: 'Sous-élément',
-    x: 970,
-    y: 200,
-    width: 100,
-    height: 60,
-    fontFamily: 'Arial',
-    fontWeight: 500,
-    fontSize: 11,
-    lineHeight: 1.3,
-    letterSpacing: 0,
-    locked: false,
-    expanded: true,
-    backgroundColor: COLORS.level2.bg,
-    borderColor: COLORS.level2.border,
-    textColor: COLORS.level2.text,
-    borderRadius: 10,
-    borderWidth: 1.5,
-    childrenIds: [],
-  },
-  {
-    id: 'b4-2',
-    title: 'Support',
-    description: 'Sous-élément',
-    x: 970,
-    y: 280,
-    width: 100,
-    height: 60,
-    fontFamily: 'Arial',
-    fontWeight: 500,
-    fontSize: 11,
-    lineHeight: 1.3,
-    letterSpacing: 0,
-    locked: false,
-    expanded: true,
-    backgroundColor: COLORS.level2.bg,
-    borderColor: COLORS.level2.border,
-    textColor: COLORS.level2.text,
-    borderRadius: 10,
-    borderWidth: 1.5,
-    childrenIds: [],
-  },
-];
-
-const DEMO_LINKS: InferOutput<typeof LinkSchema>[] = [
-  // Liens du centre vers les branches principales
-  {
-    id: 'link-center-b1',
-    sourceId: 'center',
-    targetId: 'branch1',
-    type: 'parent-child',
-    bidirectional: false,
-    color: '#60A5FA',
-    strokeWidth: 3,
-    strokeStyle: 'solid',
-    curvature: 60,
-    showLabel: false,
-    labelPosition: 'middle',
-  },
-  {
-    id: 'link-center-b2',
-    sourceId: 'center',
-    targetId: 'branch2',
-    type: 'parent-child',
-    bidirectional: false,
-    color: '#60A5FA',
-    strokeWidth: 3,
-    strokeStyle: 'solid',
-    curvature: 60,
-    showLabel: false,
-    labelPosition: 'middle',
-  },
-  {
-    id: 'link-center-b3',
-    sourceId: 'center',
-    targetId: 'branch3',
-    type: 'parent-child',
-    bidirectional: false,
-    color: '#60A5FA',
-    strokeWidth: 3,
-    strokeStyle: 'solid',
-    curvature: 60,
-    showLabel: false,
-    labelPosition: 'middle',
-  },
-  {
-    id: 'link-center-b4',
-    sourceId: 'center',
-    targetId: 'branch4',
-    type: 'parent-child',
-    bidirectional: false,
-    color: '#60A5FA',
-    strokeWidth: 3,
-    strokeStyle: 'solid',
-    curvature: 60,
-    showLabel: false,
-    labelPosition: 'middle',
-  },
-  // Liens branche 1 vers sous-éléments
-  {
-    id: 'link-b1-1',
-    sourceId: 'branch1',
-    targetId: 'b1-1',
-    type: 'parent-child',
-    bidirectional: false,
-    color: '#60A5FA',
-    strokeWidth: 2.5,
-    strokeStyle: 'solid',
-    curvature: 40,
-    showLabel: false,
-    labelPosition: 'middle',
-  },
-  {
-    id: 'link-b1-2',
-    sourceId: 'branch1',
-    targetId: 'b1-2',
-    type: 'parent-child',
-    bidirectional: false,
-    color: '#60A5FA',
-    strokeWidth: 2.5,
-    strokeStyle: 'solid',
-    curvature: 40,
-    showLabel: false,
-    labelPosition: 'middle',
-  },
-  // Liens branche 2 vers sous-éléments
-  {
-    id: 'link-b2-1',
-    sourceId: 'branch2',
-    targetId: 'b2-1',
-    type: 'parent-child',
-    bidirectional: false,
-    color: '#60A5FA',
-    strokeWidth: 2.5,
-    strokeStyle: 'solid',
-    curvature: 40,
-    showLabel: false,
-    labelPosition: 'middle',
-  },
-  {
-    id: 'link-b2-2',
-    sourceId: 'branch2',
-    targetId: 'b2-2',
-    type: 'parent-child',
-    bidirectional: false,
-    color: '#60A5FA',
-    strokeWidth: 2.5,
-    strokeStyle: 'solid',
-    curvature: 40,
-    showLabel: false,
-    labelPosition: 'middle',
-  },
-  {
-    id: 'link-b2-3',
-    sourceId: 'branch2',
-    targetId: 'b2-3',
-    type: 'parent-child',
-    bidirectional: false,
-    color: '#60A5FA',
-    strokeWidth: 2.5,
-    strokeStyle: 'solid',
-    curvature: 40,
-    showLabel: false,
-    labelPosition: 'middle',
-  },
-  // Liens branche 3 vers sous-éléments
-  {
-    id: 'link-b3-1',
-    sourceId: 'branch3',
-    targetId: 'b3-1',
-    type: 'parent-child',
-    bidirectional: false,
-    color: '#60A5FA',
-    strokeWidth: 2.5,
-    strokeStyle: 'solid',
-    curvature: 40,
-    showLabel: false,
-    labelPosition: 'middle',
-  },
-  {
-    id: 'link-b3-2',
-    sourceId: 'branch3',
-    targetId: 'b3-2',
-    type: 'parent-child',
-    bidirectional: false,
-    color: '#60A5FA',
-    strokeWidth: 2.5,
-    strokeStyle: 'solid',
-    curvature: 40,
-    showLabel: false,
-    labelPosition: 'middle',
-  },
-  // Liens branche 4 vers sous-éléments
-  {
-    id: 'link-b4-1',
-    sourceId: 'branch4',
-    targetId: 'b4-1',
-    type: 'parent-child',
-    bidirectional: false,
-    color: '#60A5FA',
-    strokeWidth: 2.5,
-    strokeStyle: 'solid',
-    curvature: 40,
-    showLabel: false,
-    labelPosition: 'middle',
-  },
-  {
-    id: 'link-b4-2',
-    sourceId: 'branch4',
-    targetId: 'b4-2',
-    type: 'parent-child',
-    bidirectional: false,
-    color: '#60A5FA',
-    strokeWidth: 2.5,
-    strokeStyle: 'solid',
-    curvature: 40,
-    showLabel: false,
-    labelPosition: 'middle',
-  },
-];
+import { DEMO_ELEMENTS, DEMO_LINKS } from './mindmap-demo.data';
 
 export const Route = createFileRoute('/mindmap-demo')({
   component: () => {
@@ -537,7 +27,7 @@ export const Route = createFileRoute('/mindmap-demo')({
     const [collapsedNodes, setCollapsedNodes] = createSignal<Set<string>>(
       new Set(),
     );
-    const [editingId, setEditingId] = createSignal<string | null>(null);
+    const [, setEditingId] = createSignal<string | null>(null);
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [clickRipples, setClickRipples] = createSignal<
       Array<{
@@ -562,7 +52,6 @@ export const Route = createFileRoute('/mindmap-demo')({
     const [panStart, setPanStart] = createSignal({ x: 0, y: 0 });
 
     // Gestionnaire d'animations
-    const animationManager = new CollapseAnimationManager();
 
     // Filtrer les éléments visibles selon l'état de repliement
     const getVisibleElements = () => {
@@ -975,8 +464,6 @@ export const Route = createFileRoute('/mindmap-demo')({
             );
 
             if (distance <= radius + 5) {
-              const isCurrentlyCollapsed = collapsedNodes().has(elem.id);
-
               setClickRipples(prev => [
                 ...prev,
                 {
@@ -985,12 +472,6 @@ export const Route = createFileRoute('/mindmap-demo')({
                   startTime: Date.now(),
                 },
               ]);
-
-              if (elem.childrenIds) {
-                elem.childrenIds.forEach(childId => {
-                  animationManager.start(childId, !isCurrentlyCollapsed);
-                });
-              }
 
               setCollapsedNodes(prev => {
                 const newSet = new Set(prev);
@@ -1192,7 +673,7 @@ export const Route = createFileRoute('/mindmap-demo')({
               </label>
             </div>
 
-            {selectedId() && (
+            {/* {selectedId() && (
               <div class='flex gap-2 items-center px-3 py-2 bg-blue-50 border border-blue-200 rounded-md'>
                 <span class='font-semibold text-gray-700'>
                   Sélectionné :
@@ -1220,7 +701,7 @@ export const Route = createFileRoute('/mindmap-demo')({
                   Édition en cours...
                 </span>
               </div>
-            )}
+            )} */}
           </div>
 
           <div class='flex gap-2'>
@@ -1332,6 +813,8 @@ export const Route = createFileRoute('/mindmap-demo')({
           </div>
         </div>
 
+        {/* #region Footer */}
+
         <div class='bg-blue-50 border-l-4 border-blue-500 p-4 rounded'>
           <h3 class='font-semibold text-blue-900 mb-2'>
             Fonctionnalités interactives :
@@ -1377,6 +860,8 @@ export const Route = createFileRoute('/mindmap-demo')({
             </li>
           </ul>
         </div>
+
+        {/* #endregion Footer */}
       </div>
     );
   },

@@ -5,6 +5,7 @@
  */
 
 import * as v from 'valibot';
+import { create } from '~/globals/utils';
 
 /**
  * Schéma complet et aplati pour une Link
@@ -120,3 +121,7 @@ export const LinkSchema = v.object({
     v.description('Position du label sur la ligne (start, middle, end)'),
   ),
 });
+
+export const createLink = create(LinkSchema, 'typed');
+
+export const createLinks = create(v.array(LinkSchema), 'typed');

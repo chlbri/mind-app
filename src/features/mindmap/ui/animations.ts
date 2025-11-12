@@ -172,13 +172,6 @@ export class CollapseAnimationManager {
     const scale = this.getScale(id);
     return scale;
   }
-
-  /**
-   * Vérifie si une animation est en cours
-   */
-  isAnimating(id: string): boolean {
-    return this.collapsing.has(id);
-  }
 }
 
 /**
