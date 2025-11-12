@@ -1,4 +1,3 @@
-import * as v from 'valibot';
 /**
  * Exemples d'utilisation des composants Element et Link
  * pour rendu Canvas 2D et 3D

@@ -6,11 +6,12 @@ import {
   getGlowIntensity,
   getPulseScale,
 } from '~/features/mindmap/ui/animations';
-import { Element, Link } from '~/features/mindmap/ui/components';
 import {
+  Element,
   handleCanvasMouseMove,
+  Link,
   renderCanvas2D,
-} from '~/features/mindmap/ui/components/examples';
+} from '~/features/mindmap/ui/components';
 import { DEMO_ELEMENTS, DEMO_LINKS } from './mindmap-demo.data';
 
 export const Route = createFileRoute('/mindmap-demo')({
