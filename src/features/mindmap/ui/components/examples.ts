@@ -1,3 +1,4 @@
+import * as v from 'valibot';
 /**
  * Exemples d'utilisation des composants Element et Link
  * pour rendu Canvas 2D et 3D
@@ -267,7 +268,7 @@ export const handleCanvasDoubleClick = (
  * Survol pour afficher le curseur de lien
  */
 export const handleCanvasMouseMove = (
-  event: MouseEvent,
+  event: Pick<MouseEvent, 'clientX' | 'clientY'>,
   canvas: HTMLCanvasElement,
   elements: any[],
   links: any[],
@@ -293,70 +294,4 @@ export const handleCanvasMouseMove = (
   }
 
   canvas.style.cursor = 'default';
-};
-
-// ============================================================================
-// 4. OPTIMISATION POUR GRANDES QUANTITÉS
-// ============================================================================
-
-/**
- * Culling spatial pour ne rendr que les éléments visibles
- */
-export const getCullList = (
-  elements: any[],
-  links: any[],
-  viewportX: number,
-  viewportY: number,
-  viewportWidth: number,
-  viewportHeight: number,
-  padding: number = 50,
-) => {
-  const cullElements = elements.filter(elementComponent => {
-    const elem = elementComponent.element;
-    return (
-      elem.x + elem.width > viewportX - padding &&
-      elem.x < viewportX + viewportWidth + padding &&
-      elem.y + elem.height > viewportY - padding &&
-      elem.y < viewportY + viewportHeight + padding
-    );
-  });
-
-  const cullLinks = links.filter(linkComponent => {
-    const sourcePoint = linkComponent.utils.getSourcePoint();
-    const targetPoint = linkComponent.utils.getTargetPoint();
-
-    const minX = Math.min(sourcePoint.x, targetPoint.x);
-    const maxX = Math.max(sourcePoint.x, targetPoint.x);
-    const minY = Math.min(sourcePoint.y, targetPoint.y);
-    const maxY = Math.max(sourcePoint.y, targetPoint.y);
-
-    return (
-      maxX > viewportX - padding &&
-      minX < viewportX + viewportWidth + padding &&
-      maxY > viewportY - padding &&
-      minY < viewportY + viewportHeight + padding
-    );
-  });
-
-  return { cullElements, cullLinks };
-};
-
-/**
- * Utiliser un OffscreenCanvas pour les rendus en arrière-plan
- */
-export const renderToOffscreenCanvas = (
-  elements: any[],
-  links: any[],
-  width: number,
-  height: number,
-) => {
-  const offscreenCanvas = new OffscreenCanvas(width, height);
-  const ctx = offscreenCanvas.getContext('2d');
-
-  if (!ctx) return null;
-
-  // Rendu comme d'habitude
-  renderCanvas2D(offscreenCanvas as any, elements, links);
-
-  return offscreenCanvas;
 };

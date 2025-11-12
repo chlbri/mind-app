@@ -423,7 +423,7 @@ export const Route = createFileRoute('/mindmap-demo')({
         }
 
         handleCanvasMouseMove(
-          { clientX: x, clientY: y } as MouseEvent,
+          { clientX: x, clientY: y },
           canvasRef,
           elemComps,
           linkComps,
@@ -603,7 +603,7 @@ export const Route = createFileRoute('/mindmap-demo')({
       canvasRef.addEventListener('dblclick', handleDoubleClick);
       canvasRef.addEventListener('wheel', handleWheel, { passive: false });
 
-      onCleanup(() => {
+      return onCleanup(() => {
         canvasRef?.removeEventListener('mousedown', handleMouseDown);
         canvasRef?.removeEventListener('mousemove', handleMouseMove);
         canvasRef?.removeEventListener('mouseup', handleMouseUp);
@@ -812,56 +812,6 @@ export const Route = createFileRoute('/mindmap-demo')({
             </ul>
           </div>
         </div>
-
-        {/* #region Footer */}
-
-        <div class='bg-blue-50 border-l-4 border-blue-500 p-4 rounded'>
-          <h3 class='font-semibold text-blue-900 mb-2'>
-            Fonctionnalités interactives :
-          </h3>
-          <ul class='text-sm text-blue-800 space-y-1'>
-            <li>
-              ✓ <strong>Drag & Drop des éléments</strong> : Cliquez et
-              faites glisser n'importe quel nœud pour le repositionner
-              librement
-            </li>
-            <li>
-              ✓ <strong>Pan du canvas</strong> : Cliquez sur le fond et
-              faites glisser pour naviguer sur toute la carte (utile avec
-              zoom élevé)
-            </li>
-            <li>
-              ✓ <strong>Replier/Déplier</strong> : Cliquez sur le bouton
-              près d'un nœud avec des enfants pour basculer leur visibilité
-            </li>
-            <li>
-              ✓ <strong>Indicateurs visuels</strong> : Cercles verts (-)
-              pour déplier, rouges (+) pour replier
-            </li>
-            <li>
-              ✓ <strong>Effet de survol</strong> : Bordure pointillée bleue
-              sur le nœud survolé
-            </li>
-            <li>
-              ✓ <strong>Sélection avec glow</strong> : Effet lumineux sur
-              le nœud sélectionné
-            </li>
-            <li>
-              ✓ <strong>Mode Focus</strong> : Assombrit le reste de la
-              carte pour se concentrer
-            </li>
-            <li>
-              ✓ <strong>Édition</strong> : Double-cliquez pour modifier le
-              titre d'un nœud
-            </li>
-            <li>
-              ✓ <strong>Zoom avancé</strong> : Utilisez Ctrl+molette pour
-              un zoom précis, molette seule pour un zoom graduel
-            </li>
-          </ul>
-        </div>
-
-        {/* #endregion Footer */}
       </div>
     );
   },
