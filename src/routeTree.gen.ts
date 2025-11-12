@@ -9,15 +9,10 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as MindmapDemoRouteImport } from './routes/mindmap-demo'
 import { Route as CountingRouteImport } from './routes/counting'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as DemoIndexRouteImport } from './routes/demo/index'
 
-const MindmapDemoRoute = MindmapDemoRouteImport.update({
-  id: '/mindmap-demo',
-  path: '/mindmap-demo',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const CountingRoute = CountingRouteImport.update({
   id: '/counting',
   path: '/counting',
@@ -28,46 +23,44 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DemoIndexRoute = DemoIndexRouteImport.update({
+  id: '/demo/',
+  path: '/demo/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/counting': typeof CountingRoute
-  '/mindmap-demo': typeof MindmapDemoRoute
+  '/demo': typeof DemoIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/counting': typeof CountingRoute
-  '/mindmap-demo': typeof MindmapDemoRoute
+  '/demo': typeof DemoIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/counting': typeof CountingRoute
-  '/mindmap-demo': typeof MindmapDemoRoute
+  '/demo/': typeof DemoIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/counting' | '/mindmap-demo'
+  fullPaths: '/' | '/counting' | '/demo'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/counting' | '/mindmap-demo'
-  id: '__root__' | '/' | '/counting' | '/mindmap-demo'
+  to: '/' | '/counting' | '/demo'
+  id: '__root__' | '/' | '/counting' | '/demo/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   CountingRoute: typeof CountingRoute
-  MindmapDemoRoute: typeof MindmapDemoRoute
+  DemoIndexRoute: typeof DemoIndexRoute
 }
 
 declare module '@tanstack/solid-router' {
   interface FileRoutesByPath {
-    '/mindmap-demo': {
-      id: '/mindmap-demo'
-      path: '/mindmap-demo'
-      fullPath: '/mindmap-demo'
-      preLoaderRoute: typeof MindmapDemoRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/counting': {
       id: '/counting'
       path: '/counting'
@@ -82,13 +75,20 @@ declare module '@tanstack/solid-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/demo/': {
+      id: '/demo/'
+      path: '/demo'
+      fullPath: '/demo'
+      preLoaderRoute: typeof DemoIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   CountingRoute: CountingRoute,
-  MindmapDemoRoute: MindmapDemoRoute,
+  DemoIndexRoute: DemoIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

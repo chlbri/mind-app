@@ -12,7 +12,12 @@ type Args = {
 
 export const formatLabel1 = (to: string) => {
   const step1 = to.charAt(1).toUpperCase() + to.slice(2);
-  const out = step1 === '' ? 'Home' : step1;
+  const out =
+    step1 === '' || step1 === '/'
+      ? 'Home'
+      : step1.endsWith('/')
+        ? step1.slice(0, -1)
+        : step1;
   return out;
 };
 

@@ -12,9 +12,9 @@ import {
   Link,
   renderCanvas2D,
 } from '~/features/mindmap/ui/components';
-import { DEMO_ELEMENTS, DEMO_LINKS } from './mindmap-demo.data';
+import { DEMO_ELEMENTS, DEMO_LINKS } from './-data';
 
-export const Route = createFileRoute('/mindmap-demo')({
+export const Route = createFileRoute('/demo/')({
   component: () => {
     let canvasRef: HTMLCanvasElement | undefined;
     const [selectedId, setSelectedId] = createSignal<string | null>(null);
