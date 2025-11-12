@@ -1,17 +1,16 @@
-import { createSignal, onMount, onCleanup } from 'solid-js';
 import { createFileRoute } from '@tanstack/solid-router';
+import { createSignal, onCleanup, onMount } from 'solid-js';
 
-import Element from '~/features/mindmap/ui/components/Element/Element';
-import Link from '~/features/mindmap/ui/components/Link/Link';
-import {
-  renderCanvas2D,
-  handleCanvasMouseMove,
-} from '~/features/mindmap/ui/components/examples';
 import {
   drawRipple,
-  getPulseScale,
   getGlowIntensity,
+  getPulseScale,
 } from '~/features/mindmap/ui/animations';
+import { Element, Link } from '~/features/mindmap/ui/components';
+import {
+  handleCanvasMouseMove,
+  renderCanvas2D,
+} from '~/features/mindmap/ui/components/examples';
 import { DEMO_ELEMENTS, DEMO_LINKS } from './mindmap-demo.data';
 
 export const Route = createFileRoute('/mindmap-demo')({

@@ -5,7 +5,7 @@ import type { LinkSchema } from '~/features/mindmap/schemas/link';
  * Props pour le composant Link
  * Contient toutes les données métier et visuelles d'une relation entre deux nœuds
  */
-export interface LinkProps {
+export type LinkProps = {
   /** Données du lien validées par Valibot */
   link: InferOutput<typeof LinkSchema>;
   /** Position X du nœud source */
@@ -30,7 +30,7 @@ export interface LinkProps {
   onEditLabel?: (id: string) => void;
   /** Classes CSS additionnelles */
   class?: string;
-}
+};
 
 /**
  * Types de courbes supportées pour le rendu Canvas
@@ -133,7 +133,7 @@ export type CurveType = 'quadratic' | 'cubic' | 'arc' | 'straight';
  * scene.add(line);
  * ```
  */
-const Link = (props: LinkProps) => {
+export const Link = (props: LinkProps) => {
   /**
    * Récupère le centre d'un nœud
    */
@@ -456,5 +456,3 @@ const Link = (props: LinkProps) => {
     utils,
   };
 };
-
-export default Link;

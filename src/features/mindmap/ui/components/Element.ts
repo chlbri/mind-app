@@ -5,7 +5,7 @@ import type { ElementSchema } from '~/features/mindmap/schemas/element';
  * Props pour le composant Element
  * Contient toutes les données métier et visuelles d'un nœud du mindmap
  */
-export interface ElementProps {
+export type ElementProps = {
   /** Données de l'élément validées par Valibot */
   element: InferOutput<typeof ElementSchema>;
   /** Callback optionnel lors du clic sur l'élément */
@@ -14,7 +14,7 @@ export interface ElementProps {
   onDoubleClick?: (id: string) => void;
   /** Classes CSS additionnelles */
   class?: string;
-}
+};
 
 /**
  * Composant Element pour rendu Canvas
@@ -73,7 +73,7 @@ export interface ElementProps {
  * };
  * ```
  */
-const Element = (props: ElementProps) => {
+export const Element = (props: ElementProps) => {
   /**
    * Gestionnaire du clic sur l'élément
    * À utiliser dans le rendu Canvas pour détecter les interactions
