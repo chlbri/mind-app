@@ -12,8 +12,6 @@ export type ElementProps = {
   onClick?: (id: string) => void;
   /** Callback optionnel lors du double-clic (édition) */
   onDoubleClick?: (id: string) => void;
-  /** Classes CSS additionnelles */
-  class?: string;
 };
 
 /**

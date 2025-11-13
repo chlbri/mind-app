@@ -71,13 +71,13 @@ export const ElementSchema = v.pipe(
 
     // Dimensions
     width: v.pipe(
-      v.optional(v.number('La largeur doit être un nombre'), 100),
+      v.optional(v.number('La largeur doit être un nombre'), 80),
       v.minValue(16, 'La largeur minimale est 16px'),
       v.description("Largeur de l'élément en pixels"),
     ),
 
     height: v.pipe(
-      v.optional(v.number('La hauteur doit être un nombre'), 20),
+      v.optional(v.number('La hauteur doit être un nombre'), 40),
       v.minValue(16, 'La hauteur minimale est 16px'),
       v.description("Hauteur de l'élément en pixels"),
     ),
@@ -157,6 +157,11 @@ export const ElementSchema = v.pipe(
       v.description('Épaisseur de la bordure en pixels'),
     ),
   }),
+  v.transform(value => ({
+    ...value,
+    width: value.width + 5,
+    height: value.height + 5,
+  })),
 );
 
 export const createElement = create(ElementSchema, 'typed');

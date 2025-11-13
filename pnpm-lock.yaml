@@ -53,6 +53,9 @@ importers:
       color:
         specifier: ^5.0.2
         version: 5.0.2
+      konva:
+        specifier: ^10.0.9
+        version: 10.0.9
       lucide-solid:
         specifier: ^0.553.0
         version: 0.553.0(solid-js@1.9.10)
@@ -2856,6 +2859,9 @@ packages:
 
   knitwork@1.2.0:
     resolution: {integrity: sha512-xYSH7AvuQ6nXkq42x0v5S8/Iry+cfulBz/DJQzhIyESdLD7425jXsPy4vn5cCXU+HhRN2kVw51Vd1K6/By4BQg==}
+
+  konva@10.0.9:
+    resolution: {integrity: sha512-AEqV0XqfE0ouHjcSo/IVAXZUK4jB/r18OlUoIzPFEx/59Vb95Yq1S4Ch5QuDDEXJT21SEpOMb89zSpEpsQWzWg==}
 
   lazystream@1.0.1:
     resolution: {integrity: sha512-b94GiNHQNy6JNTrt5w6zNyffMrNkXZb3KTkCZJb2V1xaEGCk093vkZ2jk3tpaeP33/OiXC+WvK9AxUebnf5nbw==}
@@ -7250,6 +7256,8 @@ snapshots:
   klona@2.0.6: {}
 
   knitwork@1.2.0: {}
+
+  konva@10.0.9: {}
 
   lazystream@1.0.1:
     dependencies:
