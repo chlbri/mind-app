@@ -56,29 +56,19 @@ export const renderCanvas2D = (
     ctx.shadowOffsetX = 0;
     ctx.shadowOffsetY = 0;
 
-    // Tracer une flèche si le lien n'est pas bidirectionnel
-    if (!path.bidirectional) {
-      const arrowSize = 10;
-      const angle = Math.atan2(
-        path.endY - path.controlY2,
-        path.endX - path.controlX2,
-      );
+    // Dessiner des points aux deux extrémités
+    const dotRadius = 5;
 
-      // Pointe de flèche
-      ctx.fillStyle = path.color;
-      ctx.beginPath();
-      ctx.moveTo(path.endX, path.endY);
-      ctx.lineTo(
-        path.endX - arrowSize * Math.cos(angle - Math.PI / 6),
-        path.endY - arrowSize * Math.sin(angle - Math.PI / 6),
-      );
-      ctx.lineTo(
-        path.endX - arrowSize * Math.cos(angle + Math.PI / 6),
-        path.endY - arrowSize * Math.sin(angle + Math.PI / 6),
-      );
-      ctx.closePath();
-      ctx.fill();
-    }
+    // Point de départ (source)
+    ctx.fillStyle = path.color;
+    ctx.beginPath();
+    ctx.arc(path.startX, path.startY, dotRadius, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Point d'arrivée (target)
+    ctx.beginPath();
+    ctx.arc(path.endX, path.endY, dotRadius, 0, Math.PI * 2);
+    ctx.fill();
 
     // Afficher le label si nécessaire
     if (path.showLabel && path.label) {

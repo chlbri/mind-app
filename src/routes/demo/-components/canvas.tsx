@@ -250,6 +250,21 @@ export const createCanvas = ({ elements, links }: CanvasProps) => {
             path.endY,
           );
           ctx.stroke();
+
+          // Dessiner des points aux deux extrémités avec glow
+          const dotRadius = 5;
+          ctx.fillStyle = '#3B82F6';
+
+          // Point de départ (source)
+          ctx.beginPath();
+          ctx.arc(path.startX, path.startY, dotRadius, 0, Math.PI * 2);
+          ctx.fill();
+
+          // Point d'arrivée (target)
+          ctx.beginPath();
+          ctx.arc(path.endX, path.endY, dotRadius, 0, Math.PI * 2);
+          ctx.fill();
+
           ctx.shadowBlur = 0;
         }
       }
@@ -429,6 +444,27 @@ export const createCanvas = ({ elements, links }: CanvasProps) => {
                   path.endY,
                 );
                 ctx.stroke();
+
+                // Dessiner des points aux deux extrémités avec glow
+                const dotRadius = 5;
+                ctx.fillStyle = '#3B82F6';
+
+                // Point de départ (source)
+                ctx.beginPath();
+                ctx.arc(
+                  path.startX,
+                  path.startY,
+                  dotRadius,
+                  0,
+                  Math.PI * 2,
+                );
+                ctx.fill();
+
+                // Point d'arrivée (target)
+                ctx.beginPath();
+                ctx.arc(path.endX, path.endY, dotRadius, 0, Math.PI * 2);
+                ctx.fill();
+
                 ctx.shadowBlur = 0;
               }
             }
