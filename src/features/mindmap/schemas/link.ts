@@ -6,6 +6,7 @@
 
 import * as v from 'valibot';
 import { create } from '~/globals/utils';
+import { ColorSchema, ID_SCHEMA } from './core';
 
 /**
  * Schéma complet et aplati pour une Link
@@ -13,11 +14,7 @@ import { create } from '~/globals/utils';
  */
 export const LinkSchema = v.object({
   // Identifiants
-  id: v.pipe(
-    v.string("L'ID doit être une chaîne"),
-    v.nanoid("L'ID ne peut pas être vide"),
-    v.description('Identifiant unique de la relation'),
-  ),
+  id: ID_SCHEMA,
 
   sourceId: v.pipe(
     v.string("L'ID source doit être une chaîne"),
@@ -65,15 +62,7 @@ export const LinkSchema = v.object({
   ),
 
   // Propriétés visuelles - Couleur et style du trait
-  color: v.pipe(
-    v.optional(v.string('La couleur doit être une chaîne'), '#000000'),
-    v.regex(
-      /^#[0-9A-Fa-f]{6}$|^#[0-9A-Fa-f]{8}$/,
-      'Format de couleur invalide (hex requis)',
-    ),
-
-    v.description('Couleur de la ligne en format hexadécimal'),
-  ),
+  color: ColorSchema,
 
   strokeWidth: v.pipe(
     v.optional(v.number("L'épaisseur du trait doit être un nombre"), 2),

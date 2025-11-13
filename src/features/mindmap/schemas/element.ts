@@ -5,6 +5,7 @@
 
 import * as v from 'valibot';
 import { create } from '~/globals/utils';
+import { ColorSchema, ID_SCHEMA } from './core';
 
 /**
  * Schéma complet et aplati pour un élément du mindmap
@@ -13,11 +14,7 @@ import { create } from '~/globals/utils';
 export const ElementSchema = v.pipe(
   v.object({
     // Identifiants et hiérarchie
-    id: v.pipe(
-      v.string("L'ID doit être une chaîne"),
-      v.nanoid("L'ID doit être un nanoid valide"),
-      v.description("Identifiant unique de l'élément"),
-    ),
+    id: ID_SCHEMA,
 
     parentId: v.pipe(
       v.optional(v.string('Le parent ID doit être une chaîne')),
@@ -135,45 +132,9 @@ export const ElementSchema = v.pipe(
     ),
 
     // Propriétés visuelles
-    backgroundColor: v.pipe(
-      v.optional(
-        v.string('La couleur de fond doit être une chaîne'),
-        '#FFFFFF',
-      ),
-      v.regex(
-        /^#[0-9A-Fa-f]{6}$|^#[0-9A-Fa-f]{8}$/,
-        'Format de couleur invalide (hex requis)',
-      ),
-      v.description('Couleur de fond en format hexadécimal'),
-    ),
-
-    borderColor: v.pipe(
-      v.optional(
-        v.string('La couleur de bordure doit être une chaîne'),
-        '#000000',
-      ),
-
-      v.regex(
-        /^#[0-9A-Fa-f]{6}$|^#[0-9A-Fa-f]{8}$/,
-        'Format de couleur invalide (hex requis)',
-      ),
-
-      v.description('Couleur de bordure en format hexadécimal'),
-    ),
-
-    textColor: v.pipe(
-      v.optional(
-        v.string('La couleur du texte doit être une chaîne'),
-        '#000000',
-      ),
-
-      v.regex(
-        /^#[0-9A-Fa-f]{6}$|^#[0-9A-Fa-f]{8}$/,
-        'Format de couleur invalide (hex requis)',
-      ),
-
-      v.description('Couleur du texte en format hexadécimal'),
-    ),
+    backgroundColor: ColorSchema,
+    borderColor: ColorSchema,
+    textColor: ColorSchema,
 
     borderRadius: v.pipe(
       v.optional(v.number('La bordure arrondie doit être un nombre'), 5),

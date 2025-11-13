@@ -1,12 +1,11 @@
 import { createFileRoute } from '@tanstack/solid-router';
 
 import { DEMO_ELEMENTS, DEMO_LINKS } from './-data';
-import { useCanvas } from './-hooks/canvas';
+import { createCanvas } from './-hooks/canvas';
 
 export const Route = createFileRoute('/demo/')({
   component: () => {
     const {
-      canvasRef,
       elements,
       visibleElements,
       linkComponents,
@@ -15,7 +14,8 @@ export const Route = createFileRoute('/demo/')({
       zoom,
       setZoom,
       setPanOffset,
-    } = useCanvas({
+      Canvas,
+    } = createCanvas({
       elements: DEMO_ELEMENTS,
       links: DEMO_LINKS,
     });
@@ -81,13 +81,7 @@ export const Route = createFileRoute('/demo/')({
           </div>
         </div>
 
-        <canvas
-          ref={canvasRef}
-          width={1200}
-          height={600}
-          class='w-full border-2 border-gray-300 rounded-lg bg-white cursor-grab active:cursor-grabbing'
-          style='max-width: 100%; height: auto;'
-        />
+        <Canvas />
 
         <div class='grid grid-cols-2 gap-4 text-sm text-gray-600'>
           <div class='flex flex-col gap-2'>
