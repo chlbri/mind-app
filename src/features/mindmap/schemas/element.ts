@@ -157,6 +157,7 @@ export const ElementSchema = v.pipe(
       v.description('Épaisseur de la bordure en pixels'),
     ),
   }),
+
   v.transform(value => ({
     ...value,
     width: value.width + 5,

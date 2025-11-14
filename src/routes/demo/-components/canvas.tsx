@@ -110,16 +110,20 @@ export const createCanvas = ({ elements, links }: CanvasProps) => {
         const sourceElem = _elements().find(e => e.id === link.sourceId)!;
         const targetElem = _elements().find(e => e.id === link.targetId)!;
 
+        const ctx = canvasRef()?.getContext('2d');
+        const srcWidth = ctx!.measureText(sourceElem.title).width + 5;
+        const targetWidth = ctx!.measureText(targetElem.title).width + 5;
+
         return Link({
           link,
           sourceX: sourceElem.x,
           sourceY: sourceElem.y,
-          sourceWidth: sourceElem.width,
-          sourceHeight: sourceElem.height,
+          sourceWidth: srcWidth,
+          sourceHeight: sourceElem.fontSize + 20,
           targetX: targetElem.x,
           targetY: targetElem.y,
-          targetWidth: targetElem.width,
-          targetHeight: targetElem.height,
+          targetWidth: targetWidth,
+          targetHeight: targetElem.fontSize + 20,
           onClick: id => {
             console.log('Cliqué sur le lien:', id);
             setSelectedId(id);
@@ -139,7 +143,7 @@ export const createCanvas = ({ elements, links }: CanvasProps) => {
       animationTime += 0.016; // ~60fps
 
       // Nettoyer et configurer le canvas
-      ctx.fillStyle = '#F9FAFB';
+      ctx.fillStyle = '#FFF';
       ctx.fillRect(0, 0, canvasRef()!.width, canvasRef()!.height);
 
       // Appliquer les transformations (zoom et pan)
@@ -169,8 +173,12 @@ export const createCanvas = ({ elements, links }: CanvasProps) => {
         const elem = elemComp.element;
         if (elem.childrenIds && elem.childrenIds.length > 0) {
           const isCollapsed = collapsedNodes().has(elem.id);
-          const indicatorX = elem.x + elem.width + 5;
-          const indicatorY = elem.y + elem.height / 2;
+
+          ctx.font = `${elem.fontWeight} ${elem.fontSize}px ${elem.fontFamily}`;
+          const width = ctx.measureText(elem.title).width + 20;
+          const height = elem.fontSize + 20;
+          const indicatorX = elem.x + width + 5;
+          const indicatorY = elem.y + height / 2;
 
           // Effet de pulsation sur l'indicateur si survolé
           const isHovered = hoveredId() === elem.id;
@@ -222,13 +230,11 @@ export const createCanvas = ({ elements, links }: CanvasProps) => {
           ctx.shadowColor = '#3B82F6';
           ctx.shadowBlur = glowIntensity;
           ctx.strokeStyle = '#3B82F6';
-          ctx.lineWidth = 3;
-          ctx.strokeRect(
-            elem.x - 5,
-            elem.y - 5,
-            elem.width + 10,
-            elem.height + 10,
-          );
+          ctx.lineWidth = 2;
+          ctx.font = `${elem.fontWeight} ${elem.fontSize}px ${elem.fontFamily}`;
+          const width = ctx.measureText(elem.title).width + 30;
+          const height = elem.fontSize + 30;
+          ctx.strokeRect(elem.x - 5, elem.y - 5, width, height);
           ctx.shadowBlur = 0;
         }
 
@@ -280,12 +286,11 @@ export const createCanvas = ({ elements, links }: CanvasProps) => {
           ctx.strokeStyle = '#60A5FA';
           ctx.lineWidth = 2;
           ctx.setLineDash([5, 5]);
-          ctx.strokeRect(
-            elem.x - 3,
-            elem.y - 3,
-            elem.width + 6,
-            elem.height + 6,
-          );
+
+          ctx.font = `${elem.fontWeight} ${elem.fontSize}px ${elem.fontFamily}`;
+          const width = ctx.measureText(elem.title).width + 26;
+          const height = elem.fontSize + 26;
+          ctx.strokeRect(elem.x - 3, elem.y - 3, width, height);
           ctx.setLineDash([]);
         }
       }
@@ -592,15 +597,15 @@ export const createCanvas = ({ elements, links }: CanvasProps) => {
           setDraggedElementId(null);
           setIsPanning(false);
         }}
-        onClick={event => {
-          const { currentTarget } = event;
+        onClick={({ currentTarget, clientX, clientY }) => {
           const rect = currentTarget.getBoundingClientRect();
           const scaleX = currentTarget.width / rect.width;
           const scaleY = currentTarget.height / rect.height;
           const pan = panOffset();
-          const x =
-            ((event.clientX - rect.left) * scaleX - pan.x) / zoom();
-          const y = ((event.clientY - rect.top) * scaleY - pan.y) / zoom();
+          const x = ((clientX - rect.left) * scaleX - pan.x) / zoom();
+          const y = ((clientY - rect.top) * scaleY - pan.y) / zoom();
+          const ctx = currentTarget.getContext('2d');
+          if (!ctx) return;
 
           const elemComps = elementComponents();
           const linkComps = linkComponents();
@@ -608,8 +613,12 @@ export const createCanvas = ({ elements, links }: CanvasProps) => {
           for (const elemComp of elemComps) {
             const elem = elemComp.element;
             if (elem.childrenIds && elem.childrenIds.length > 0) {
-              const indicatorX = elem.x + elem.width + 5;
-              const indicatorY = elem.y + elem.height / 2;
+              ctx.font = `${elem.fontWeight} ${elem.fontSize}px ${elem.fontFamily}`;
+              const width = ctx.measureText(elem.title).width + 20;
+              const height = elem.fontSize + 20;
+
+              const indicatorX = elem.x + width + 5;
+              const indicatorY = elem.y + height / 2;
               const distance = Math.sqrt(
                 Math.pow(x - indicatorX, 2) + Math.pow(y - indicatorY, 2),
               );

@@ -86,11 +86,14 @@ export const renderCanvas2D = (
     // Fond
     ctx.fillStyle = element.backgroundColor;
     ctx.beginPath();
+    ctx.font = `${element.fontWeight} ${element.fontSize}px ${element.fontFamily}`;
+    const width = ctx.measureText(element.title).width + 20;
+    const height = element.fontSize + 20;
     ctx.roundRect(
       element.x,
       element.y,
-      element.width,
-      element.height,
+      width,
+      height,
       element.borderRadius,
     );
     ctx.fill();
@@ -102,14 +105,13 @@ export const renderCanvas2D = (
 
     // Texte
     ctx.fillStyle = element.textColor;
-    ctx.font = `${element.fontWeight} ${element.fontSize}px ${element.fontFamily}`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
 
-    const centerX = element.x + element.width / 2;
-    const centerY = element.y + element.height / 2;
+    const centerX = element.x + width / 2;
+    const centerY = element.y + height / 2;
 
-    ctx.fillText(element.title, centerX, centerY);
+    ctx.fillText(element.title, centerX, centerY, element.width);
   });
 };
 
@@ -162,7 +164,7 @@ export const renderCanvas3D = (
 
   // Créer les liens en tant que courbes 3D
   links.forEach(linkComponent => {
-    const path = linkComponent.utils.getPath('cubic');
+    const path = linkComponent.utils.getPath('quadratic');
 
     // Créer une courbe de Bézier cubique
     const curve = new THREE.CubicBezierCurve3(

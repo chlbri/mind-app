@@ -15,7 +15,7 @@ export default defineConfig({
     }),
     tanstackStart({}),
     nitroV2Plugin({}),
-    viteSolid({ ssr: true }),
+    viteSolid({ ssr: true }) as any,
     tailwindcss(),
   ],
 });

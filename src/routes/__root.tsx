@@ -1,13 +1,13 @@
 /// <reference types="vite/client" />
 
-import seo from '~seo';
 import {
   createRootRoute,
-  Outlet,
   HeadContent,
+  Outlet,
   Scripts,
 } from '@tanstack/solid-router';
 import { TanStackRouterDevtools } from '@tanstack/solid-router-devtools';
+import seo from '~seo';
 import appCss from '~styles/app.css?url';
 import HeadLinks from '~ui/organisms/HeadLinks';
 

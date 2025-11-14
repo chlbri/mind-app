@@ -1,7 +1,7 @@
 import { createFileRoute } from '@tanstack/solid-router';
 
-import { DEMO_ELEMENTS, DEMO_LINKS } from './-data';
 import { createCanvas } from './-components';
+import { DEMO_ELEMENTS, DEMO_LINKS } from './-data';
 
 export const Route = createFileRoute('/demo/')({
   component: () => {
