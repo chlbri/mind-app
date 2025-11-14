@@ -3,6 +3,7 @@ import { createSignal } from 'solid-js';
 import { SolidFlow } from 'solid-flow';
 
 export const Route = createFileRoute('/demo/solid-flow')({
+  ssr: 'data-only',
   component: () => {
     const initialNodes = [
       {
