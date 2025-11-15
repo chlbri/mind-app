@@ -1,6 +1,6 @@
 import { createFileRoute } from '@tanstack/solid-router';
 import { createSignal } from 'solid-js';
-import { SolidFlow } from 'solid-flow';
+import { FlowChart } from '~/features/flow/ui/components';
 
 export const Route = createFileRoute('/demo/solid-flow')({
   ssr: 'data-only',
@@ -32,6 +32,20 @@ export const Route = createFileRoute('/demo/solid-flow')({
           add: true,
         },
       },
+      {
+        id: 'node-3',
+        position: { x: 350, y: 300 },
+        data: {
+          label: 'Node with label 2',
+          content: <p>This is a node with Alfred a label</p>,
+        },
+        inputs: 1,
+        outputs: 1,
+        actions: {
+          delete: true,
+          add: true,
+        },
+      },
     ];
 
     const initialEdges = [
@@ -48,7 +62,7 @@ export const Route = createFileRoute('/demo/solid-flow')({
     const [edges, setEdges] = createSignal(initialEdges);
     return (
       <div class='w-full'>
-        <SolidFlow
+        <FlowChart
           nodes={nodes()}
           edges={edges()}
           onNodesChange={newNodes => {
