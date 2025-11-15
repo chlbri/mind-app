@@ -40,7 +40,8 @@ const EdgesBoard: Component<Props> = (props: Props) => {
   });
 
   createEffect(() => {
-    if (selected() !== 'null' && props.newEdge !== null) setSelected('null');
+    if (selected() !== 'null' && props.newEdge !== null)
+      setSelected('null');
   });
 
   return (

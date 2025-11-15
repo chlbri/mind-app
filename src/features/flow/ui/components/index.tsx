@@ -342,7 +342,7 @@ export const FlowChart: Component<Props> = (props: Props) => {
     props.onNodesChange(newNodes);
   };
 
-  const   handleOnNodeAddChild = (nodeId: string) => {
+  const handleOnNodeAddChild = (nodeId: string) => {
     const parentNode = props.nodes.find(node => node.id === nodeId);
     if (!parentNode) return;
 
