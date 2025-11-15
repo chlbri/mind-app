@@ -1,11 +1,15 @@
 import { createFileRoute } from '@tanstack/solid-router';
 import { createSignal } from 'solid-js';
-import { FlowChart } from '~/features/flow/ui/components';
+import {
+  FlowChart,
+  NodeProps,
+  type EdgeProps,
+} from '~/features/flow/ui/components';
 
 export const Route = createFileRoute('/demo/solid-flow')({
   ssr: 'data-only',
   component: () => {
-    const initialNodes = [
+    const initialNodes: NodeProps[] = [
       {
         id: 'node-1',
         position: { x: 50, y: 100 },
@@ -14,9 +18,6 @@ export const Route = createFileRoute('/demo/solid-flow')({
         },
         inputs: 0,
         outputs: 1,
-        actions: {
-          delete: true,
-        },
       },
       {
         id: 'node-2',
@@ -27,10 +28,6 @@ export const Route = createFileRoute('/demo/solid-flow')({
         },
         inputs: 1,
         outputs: 1,
-        actions: {
-          delete: true,
-          add: true,
-        },
       },
       {
         id: 'node-3',
@@ -41,16 +38,12 @@ export const Route = createFileRoute('/demo/solid-flow')({
         },
         inputs: 1,
         outputs: 1,
-        actions: {
-          delete: true,
-          add: true,
-        },
       },
     ];
 
-    const initialEdges = [
+    const initialEdges: EdgeProps[] = [
       {
-        id: 'edge_node-1:0_node-2:0',
+        id: 'node-1:node-2',
         sourceNode: 'node-1',
         sourceOutput: 0,
         targetNode: 'node-2',
@@ -65,12 +58,8 @@ export const Route = createFileRoute('/demo/solid-flow')({
         <FlowChart
           nodes={nodes()}
           edges={edges()}
-          onNodesChange={newNodes => {
-            setNodes(newNodes);
-          }}
-          onEdgesChange={newEdges => {
-            setEdges(newEdges);
-          }}
+          onNodesChange={setNodes}
+          onEdgesChange={setEdges}
         />
       </div>
     );

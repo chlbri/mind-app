@@ -1,4 +1,9 @@
-import { Component, createEffect, createSignal, onCleanup } from 'solid-js';
+import {
+  Component,
+  createEffect,
+  createSignal,
+  onCleanup,
+} from 'solid-js';
 import styles from './styles.module.css';
 
 interface Props {
@@ -11,7 +16,10 @@ interface Props {
 }
 
 const EdgeComponent: Component<Props> = (props: Props) => {
-  const [middlePoint, setMiddlePoint] = createSignal<{ x: number; y: number }>({
+  const [middlePoint, setMiddlePoint] = createSignal<{
+    x: number;
+    y: number;
+  }>({
     x: props.position.x0 + (props.position.x1 - props.position.x0) / 2,
     y: props.position.y0 + (props.position.y1 - props.position.y0) / 2,
   });
@@ -27,6 +35,7 @@ const EdgeComponent: Component<Props> = (props: Props) => {
     });
   });
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   function clickOutside(el: any, accessor: any) {
     const onClick = (e: any) => {
       if (!el.contains(e.target)) {
@@ -48,8 +57,8 @@ const EdgeComponent: Component<Props> = (props: Props) => {
           props.isNew
             ? styles.edgeNew
             : props.selected
-            ? styles.edgeSelected
-            : styles.edge
+              ? styles.edgeSelected
+              : styles.edge
         }
         d={`M ${props.position.x0} ${props.position.y0} C ${
           props.position.x0 +

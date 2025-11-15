@@ -48,7 +48,6 @@ export interface NodeProps {
   data: { label?: string; content: any };
   inputs: number;
   outputs: number;
-  actions?: { delete: boolean };
 }
 
 export interface EdgeProps {
@@ -331,7 +330,7 @@ export const FlowChart: Component<Props> = (props: Props) => {
     });
   }
 
-  function handleOnNodeDelete(nodeId: string) {
+  const handleOnNodeDelete = (nodeId: string) => {
     const newNodes = props.nodes.filter(
       (node: NodeProps) => node.id !== nodeId,
     );
@@ -341,7 +340,41 @@ export const FlowChart: Component<Props> = (props: Props) => {
     );
     props.onEdgesChange(newEdges);
     props.onNodesChange(newNodes);
-  }
+  };
+
+  const   handleOnNodeAddChild = (nodeId: string) => {
+    const parentNode = props.nodes.find(node => node.id === nodeId);
+    if (!parentNode) return;
+
+    const newNodeId = `node_${Date.now()}`;
+    const newNode: NodeProps = {
+      id: newNodeId,
+      position: {
+        x: parentNode.position.x + 265,
+        y: parentNode.position.y,
+      },
+      data: {
+        content: '<Nouveau nœud>',
+      },
+      inputs: 1,
+      outputs: 1,
+    };
+
+    const newEdge: EdgeProps = {
+      id: getEdgeId(nodeId, 0, newNodeId, 0),
+      sourceNode: nodeId,
+      targetNode: newNodeId,
+      sourceOutput: 0,
+      targetInput: 0,
+    };
+
+    const newNodes = [...props.nodes, newNode];
+    const newEdges = [...props.edges, newEdge];
+
+    props.onEdgesChange(newEdges);
+    props.onNodesChange(newNodes);
+    return newNodeId;
+  };
 
   function handleOnOutputMouseDown(
     nodeIndex: number,
@@ -520,6 +553,7 @@ export const FlowChart: Component<Props> = (props: Props) => {
             onNodePress={handleOnNodePress}
             onNodeMove={handleOnNodeMove}
             onNodeDelete={handleOnNodeDelete}
+            onNodeAddChild={handleOnNodeAddChild}
             onOutputMouseDown={handleOnOutputMouseDown}
             onInputMouseUp={handleOnInputMouseUp}
             onMouseUp={handleOnMouseUp}
