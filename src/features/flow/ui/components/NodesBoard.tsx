@@ -92,7 +92,7 @@ const NodesBoard: Component<Props> = (props: Props) => {
                 ...prev,
                 [node.id]: { width, height },
               }));
-              
+
               props.measureNodes?.(measures());
             }}
             onMouseDown={event =>
