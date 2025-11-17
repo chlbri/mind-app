@@ -19,13 +19,13 @@ interface Props {
   onNodePress: (x: number, y: number) => void;
   onNodeMove: (nodeIndex: number, x: number, y: number) => void;
   onNodeDelete: (nodeId: string) => void;
-  onNodeAddSibling?: (nodeId: string) => string | undefined;
-  onNodeAddChild?: (nodeId: string) => string | undefined;
+  onNodeAddSibling: (nodeId: string) => string | undefined;
+  onNodeAddChild: (nodeId: string) => string | undefined;
   onOutputMouseDown: (nodeIndex: number, outputIndex: number) => void;
   onInputMouseUp: (nodeIndex: number, inputIndex: number) => void;
   onMouseUp: () => void;
   onMouseMove: (x: number, y: number) => void;
-  measureNodes?: (
+  measureNodes: (
     value: Record<
       string,
       {
@@ -36,7 +36,7 @@ interface Props {
   ) => void;
 }
 
-const NodesBoard: Component<Props> = (props: Props) => {
+const NodesBoard: Component<Props> = props => {
   const [grabbing, setGrabbing] = createSignal<number | null>(null);
   const [selected, setSelected] = createSignal<number>();
   const [measures, setMeasures] = createSignal<
@@ -89,7 +89,7 @@ const NodesBoard: Component<Props> = (props: Props) => {
                 [node.id]: { width, height },
               }));
 
-              props.measureNodes?.(measures());
+              props.measureNodes(measures());
             }}
             onMouseDown={event =>
               handleOnMouseDownNode(index(), event.x, event.y)
@@ -146,13 +146,13 @@ const NodesBoard: Component<Props> = (props: Props) => {
               props.onNodeDelete(node.id);
             }}
             onClickAddSibling={() => {
-              const out = props.onNodeAddSibling?.(node.id);
+              const out = props.onNodeAddSibling(node.id);
               const index = props.nodes.findIndex(n => n.id === out);
               setSelected(index);
               return out;
             }}
             onClickAddChild={() => {
-              const out = props.onNodeAddChild?.(node.id);
+              const out = props.onNodeAddChild(node.id);
               const index = props.nodes.findIndex(n => n.id === out);
               setSelected(index);
               return out;

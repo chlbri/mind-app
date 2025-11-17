@@ -32,12 +32,12 @@ type Props = PropsOf<'div', 'onMouseDown'> & {
     outputs: { offset: { x: number; y: number } }[],
   ) => void;
   onMeasure: (width: number, height: number) => void;
-  onMouseDownOutput?: (outputIndex: number) => void;
-  onMouseUpInput?: (inputIndex: number) => void;
+  onMouseDownOutput: (outputIndex: number) => void;
+  onMouseUpInput: (inputIndex: number) => void;
   onClickOutside: () => void;
-  onClickDelete?: () => void;
-  onClickAddSibling?: () => void;
-  onClickAddChild?: () => void;
+  onClickDelete: () => void;
+  onClickAddSibling: () => void;
+  onClickAddChild: () => void;
 };
 
 const NodeComponent: Component<Props> = (props: Props) => {
@@ -165,7 +165,7 @@ const NodeComponent: Component<Props> = (props: Props) => {
                 }}
                 onMouseUp={event => {
                   event.stopPropagation();
-                  props.onMouseUpInput?.(index);
+                  props.onMouseUpInput(index);
                 }}
               ></div>
             )}
@@ -188,8 +188,7 @@ const NodeComponent: Component<Props> = (props: Props) => {
                 style='pointer-events: all;'
                 onMouseDown={event => {
                   event.stopPropagation();
-                  if (props.onMouseDownOutput)
-                    props.onMouseDownOutput(index);
+                  props.onMouseDownOutput(index);
                 }}
               ></div>
             )}

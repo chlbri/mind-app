@@ -2,6 +2,7 @@ import { Component, createEffect, createSignal } from 'solid-js';
 import { createStore, produce } from 'solid-js/store';
 import EdgesBoard from './EdgesBoard';
 import NodesBoard from './NodesBoard';
+import { MultiText } from '~/globals/ui/molecules';
 
 interface Vector {
   x0: number;
@@ -54,7 +55,7 @@ export interface EdgeProps {
 
 interface Props {
   config?: {
-    nodes: NodeProps[];
+    nodes?: NodeProps[];
     edges?: EdgeProps[];
   };
   onNodeAdded?: (node: NodeProps) => void;
@@ -149,13 +150,37 @@ const getInitialNodes = (nodes: NodeProps[], edges: EdgeProps[]) => {
 };
 
 const PARENT_CHILD_GAP_WIDTH = 75;
+const DEFAULT_NODES: NodeProps[] = [
+  {
+    id: 'node-1',
+    position: { x: 350, y: 100 },
+    data: {
+      label: 'Root node',
+      content: (
+        <MultiText
+          texts={['This is a ', 'red node', ' with a label']}
+          props={{
+            1: {
+              class: 'text-red-400 font-semibold text-lg',
+            },
+          }}
+        />
+      ),
+    },
+    inputs: 0,
+    outputs: 1,
+  },
+];
 
 export const FlowChart: Component<Props> = props => {
   // Internal state management
   const [measures, setMeasures] = createSignal<
     Record<string, { width: number; height: number }>
   >({});
-  const [nodes, setNodes] = createSignal(props.config?.nodes ?? []);
+  const [nodes, setNodes] = createSignal(
+    props.config?.nodes ?? DEFAULT_NODES,
+  );
+
   const [edges, setEdges] = createSignal(props.config?.edges ?? []);
 
   // EDGES
