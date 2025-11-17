@@ -150,29 +150,30 @@ const getInitialNodes = (nodes: NodeProps[], edges: EdgeProps[]) => {
 };
 
 const PARENT_CHILD_GAP_WIDTH = 75;
-const DEFAULT_NODES: NodeProps[] = [
-  {
-    id: 'node-1',
-    position: { x: 350, y: 100 },
-    data: {
-      label: 'Root node',
-      content: (
-        <MultiText
-          texts={['This is a ', 'red node', ' with a label']}
-          props={{
-            1: {
-              class: 'text-red-400 font-semibold text-lg',
-            },
-          }}
-        />
-      ),
-    },
-    inputs: 0,
-    outputs: 1,
-  },
-];
 
 export const FlowChart: Component<Props> = props => {
+  const DEFAULT_NODES: NodeProps[] = [
+    {
+      id: 'node-1',
+      position: { x: 350, y: 100 },
+      data: {
+        label: 'Root node',
+        content: (
+          <MultiText
+            texts={['This is a ', 'red node', ' with a label']}
+            props={{
+              1: {
+                class: 'text-red-400 font-semibold text-lg',
+              },
+            }}
+          />
+        ),
+      },
+      inputs: 0,
+      outputs: 1,
+    },
+  ];
+
   // Internal state management
   const [measures, setMeasures] = createSignal<
     Record<string, { width: number; height: number }>
