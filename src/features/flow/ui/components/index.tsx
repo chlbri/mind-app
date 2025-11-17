@@ -376,6 +376,46 @@ export const FlowChart: Component<Props> = (props: Props) => {
     return newNodeId;
   };
 
+  const handleOnNodeAddSibling = (nodeId: string) => {
+    const edgeParent = props.edges.find(
+      edge => edge.targetNode === nodeId,
+    );
+    if (!edgeParent) return;
+
+    const parentNodeId = edgeParent.sourceNode;
+    const parentNode = props.nodes.find(node => node.id === parentNodeId);
+    if (!parentNode) return;
+
+    const newNodeId = `node_${Date.now()}`;
+    const newNode: NodeProps = {
+      id: newNodeId,
+      position: {
+        x: parentNode.position.x + 265,
+        y: parentNode.position.y + 100,
+      },
+      data: {
+        content: '<Nouveau nœud>',
+      },
+      inputs: 1,
+      outputs: 1,
+    };
+
+    const newEdge: EdgeProps = {
+      id: getEdgeId(parentNodeId, 0, newNodeId, 0),
+      sourceNode: parentNodeId,
+      targetNode: newNodeId,
+      sourceOutput: 0,
+      targetInput: 0,
+    };
+
+    const newNodes = [...props.nodes, newNode];
+    const newEdges = [...props.edges, newEdge];
+
+    props.onEdgesChange(newEdges);
+    props.onNodesChange(newNodes);
+    return newNodeId;
+  };
+
   function handleOnOutputMouseDown(
     nodeIndex: number,
     outputIndex: number,
@@ -554,6 +594,7 @@ export const FlowChart: Component<Props> = (props: Props) => {
             onNodeMove={handleOnNodeMove}
             onNodeDelete={handleOnNodeDelete}
             onNodeAddChild={handleOnNodeAddChild}
+            onNodeAddSibling={handleOnNodeAddSibling}
             onOutputMouseDown={handleOnOutputMouseDown}
             onInputMouseUp={handleOnInputMouseUp}
             onMouseUp={handleOnMouseUp}

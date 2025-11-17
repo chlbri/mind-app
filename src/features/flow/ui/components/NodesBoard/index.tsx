@@ -136,7 +136,10 @@ const NodesBoard: Component<Props> = (props: Props) => {
               props.onNodeDelete(node.id);
             }}
             onClickAddSibling={() => {
-              props.onNodeAddSibling?.(node.id);
+              const out = props.onNodeAddSibling?.(node.id);
+              const index = props.nodes.findIndex(n => n.id === out);
+              setSelected(index);
+              return out;
             }}
             onClickAddChild={() => {
               const out = props.onNodeAddChild?.(node.id);

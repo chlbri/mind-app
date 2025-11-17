@@ -5,6 +5,7 @@ import {
   NodeProps,
   type EdgeProps,
 } from '~/features/flow/ui/components';
+import { MultiText } from '~/globals/ui/molecules';
 
 export const Route = createFileRoute('/demo/solid-flow')({
   ssr: 'data-only',
@@ -12,47 +13,27 @@ export const Route = createFileRoute('/demo/solid-flow')({
     const initialNodes: NodeProps[] = [
       {
         id: 'node-1',
-        position: { x: 50, y: 100 },
+        position: { x: 350, y: 100 },
         data: {
-          content: <p>This is a simple node</p>,
+          label: 'Root node',
+          content: (
+            <MultiText
+              texts={['This is a ', 'node', ' with a label']}
+              props={{
+                1: {
+                  class: 'text-red-400',
+                },
+              }}
+            />
+          ),
         },
         inputs: 0,
         outputs: 1,
       },
-      {
-        id: 'node-2',
-        position: { x: 350, y: 100 },
-        data: {
-          label: 'Node with label',
-          content: <p>This is a node with a label</p>,
-        },
-        inputs: 1,
-        outputs: 1,
-      },
-      {
-        id: 'node-3',
-        position: { x: 350, y: 300 },
-        data: {
-          label: 'Node with label 2',
-          content: <p>This is a node with Alfred a label</p>,
-        },
-        inputs: 1,
-        outputs: 1,
-      },
-    ];
-
-    const initialEdges: EdgeProps[] = [
-      {
-        id: 'node-1:node-2',
-        sourceNode: 'node-1',
-        sourceOutput: 0,
-        targetNode: 'node-2',
-        targetInput: 0,
-      },
     ];
 
     const [nodes, setNodes] = createSignal(initialNodes);
-    const [edges, setEdges] = createSignal(initialEdges);
+    const [edges, setEdges] = createSignal<EdgeProps[]>([]);
     return (
       <div class='w-full'>
         <FlowChart
