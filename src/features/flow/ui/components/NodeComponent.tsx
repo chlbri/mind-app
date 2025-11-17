@@ -7,6 +7,7 @@ import {
   onMount,
   Show,
 } from 'solid-js';
+import type { PropsOf } from '~ui/types';
 
 declare module 'solid-js' {
   namespace JSX {
@@ -17,7 +18,8 @@ declare module 'solid-js' {
   }
 }
 
-interface Props {
+type Props = PropsOf<'div', 'onMouseDown'> & {
+  id: string;
   x: number;
   y: number;
   selected: boolean;
@@ -30,14 +32,13 @@ interface Props {
     outputs: { offset: { x: number; y: number } }[],
   ) => void;
   onMeasure: (width: number, height: number) => void;
-  onMouseDown?: (event: any) => void;
   onMouseDownOutput?: (outputIndex: number) => void;
   onMouseUpInput?: (inputIndex: number) => void;
   onClickOutside: () => void;
   onClickDelete?: () => void;
   onClickAddSibling?: () => void;
   onClickAddChild?: () => void;
-}
+};
 
 const NodeComponent: Component<Props> = (props: Props) => {
   const inputRefs = [...Array(props.inputs)];
@@ -185,7 +186,7 @@ const NodeComponent: Component<Props> = (props: Props) => {
                 }}
                 class='cursor-crosshair bg-[#e38b29] w-3 h-3 rounded-full my-3 shadow-[1px_1px_11px_-6px_rgba(0,0,0,0.75)]'
                 style='pointer-events: all;'
-                onMouseDown={(event: any) => {
+                onMouseDown={event => {
                   event.stopPropagation();
                   if (props.onMouseDownOutput)
                     props.onMouseDownOutput(index);

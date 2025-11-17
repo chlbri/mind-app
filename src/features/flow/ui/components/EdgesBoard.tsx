@@ -17,35 +17,36 @@ interface EdgesActive {
 }
 
 interface Props {
-  newEdge: {
-    position: Vector;
-    sourceNode: number;
-    sourceOutput: number;
-  } | null;
+  newEdge:
+    | {
+        position: Vector;
+        sourceNode: number;
+        sourceOutput: number;
+      }
+    | undefined;
   edgesActives: EdgesActive;
   edgesPositions: EdgesPositions;
   onDeleteEdge: (edgeId: string) => void;
 }
 
-const EdgesBoard: Component<Props> = (props: Props) => {
+const EdgesBoard: Component<Props> = props => {
   const [ids, setIds] = createSignal<string[]>([]);
-  const [selected, setSelected] = createSignal<string>('null');
+  const [selected, setSelected] = createSignal<string>();
 
   createEffect(() => {
     const newIds = Object.keys(props.edgesActives).filter(
-      (elem: string) => props.edgesActives[elem],
+      elem => props.edgesActives[elem],
     );
     setIds(newIds);
   });
 
   createEffect(() => {
-    if (selected() !== 'null' && props.newEdge !== null)
-      setSelected('null');
+    if (selected() && props.newEdge) setSelected();
   });
 
   return (
     <svg class='pointer-events-none absolute top-0 w-full h-full'>
-      {props.newEdge !== null && (
+      {props.newEdge && (
         <EdgeComponent
           selected={false}
           isNew={true}
@@ -80,7 +81,7 @@ const EdgesBoard: Component<Props> = (props: Props) => {
                   setSelected(edgeId);
                 }}
                 onClickOutside={() => {
-                  if (selected() === edgeId) setSelected('null');
+                  if (selected() === edgeId) setSelected();
                 }}
               />
             );

@@ -36,3 +36,8 @@ export type PiC<
 > = PickComponent<T, K>;
 
 export type RootLink = JSX.HTMLElementTags['link'];
+
+export type Ref<T extends HTMLElement> =
+  | T
+  | ((el: T | undefined) => void)
+  | undefined;

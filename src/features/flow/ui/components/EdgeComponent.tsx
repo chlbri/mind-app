@@ -15,11 +15,8 @@ interface Props {
   onClickOutside: () => void;
 }
 
-const EdgeComponent: Component<Props> = (props: Props) => {
-  const [middlePoint, setMiddlePoint] = createSignal<{
-    x: number;
-    y: number;
-  }>({
+const EdgeComponent: Component<Props> = props => {
+  const [middlePoint, setMiddlePoint] = createSignal({
     x: props.position.x0 + (props.position.x1 - props.position.x0) / 2,
     y: props.position.y0 + (props.position.y1 - props.position.y0) / 2,
   });
@@ -46,7 +43,7 @@ const EdgeComponent: Component<Props> = (props: Props) => {
     onCleanup(() => document.body.removeEventListener('click', onClick));
   }
 
-  function calculateOffset(value: number): number {
+  function calculateOffset(value: number) {
     return (value * 100) / 200;
   }
 

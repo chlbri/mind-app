@@ -44,22 +44,6 @@ const NodesBoard: Component<Props> = (props: Props) => {
   >({});
   const [ref, setRef] = createSignal<HTMLDivElement>();
 
-  function handleOnMouseMoveScene(event: any) {
-    const _ref = ref()!;
-    const x = event.x - _ref.getBoundingClientRect()?.x;
-    const y = event.y - _ref.getBoundingClientRect().y;
-    if (grabbing() !== null) {
-      props.onNodeMove(grabbing() || 0, x, y);
-    }
-    props.onMouseMove(x, y);
-  }
-
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  function handleOnMouseUpScene(_: any) {
-    setGrabbing(null);
-    props.onMouseUp();
-  }
-
   function handleOnMouseDownNode(index: number, x: number, y: number) {
     const _ref = ref()!;
     setGrabbing(index);
@@ -74,12 +58,24 @@ const NodesBoard: Component<Props> = (props: Props) => {
     <div
       ref={setRef}
       class='w-full h-full relative'
-      onMouseMove={handleOnMouseMoveScene}
-      onMouseUp={handleOnMouseUpScene}
+      onMouseMove={event => {
+        const _ref = ref()!;
+        const x = event.x - _ref.getBoundingClientRect()?.x;
+        const y = event.y - _ref.getBoundingClientRect().y;
+        if (grabbing() !== null) {
+          props.onNodeMove(grabbing() || 0, x, y);
+        }
+        props.onMouseMove(x, y);
+      }}
+      onMouseUp={() => {
+        setGrabbing(null);
+        props.onMouseUp();
+      }}
     >
       <For each={props.nodes}>
         {(node, index) => (
           <NodeComponent
+            id={node.id}
             x={props.nodesPositions[index()].x}
             y={props.nodesPositions[index()].y}
             selected={selected() === index()}
