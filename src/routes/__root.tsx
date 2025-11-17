@@ -21,8 +21,8 @@ export const Route = createRootRoute({
         content: 'width=device-width, initial-scale=1',
       },
       ...seo({
-        title: 'Web animations | by @chlbri',
-        description: `A beautifull library of web animations`,
+        title: 'Mind Map | by @chlbri',
+        description: `A beautiful mind mapping tool to organize your thoughts and ideas.`,
       }),
     ],
   }),
