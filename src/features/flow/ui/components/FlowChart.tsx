@@ -166,8 +166,13 @@ function getInitialNodes(
   return { initNodesPositions, initNodesData, initNodesOffsets };
 }
 
+const PARENT_CHILD_GAP_WIDTH = 75;
+
 export const FlowChart: Component<Props> = (props: Props) => {
   // Internal state management
+  const [measures, setMeasures] = createSignal<
+    Record<string, { width: number; height: number }>
+  >({});
   const [nodes, setNodes] = createSignal<NodeProps[]>(
     props.config?.nodes ?? [],
   );
@@ -358,10 +363,14 @@ export const FlowChart: Component<Props> = (props: Props) => {
     if (!parentNode) return;
 
     const newNodeId = `node_${Date.now()}`;
+    const rightOffset =
+      parentNode.position.x +
+      measures()[nodeId].width +
+      PARENT_CHILD_GAP_WIDTH;
     const newNode: NodeProps = {
       id: newNodeId,
       position: {
-        x: parentNode.position.x + 265,
+        x: rightOffset,
         y: parentNode.position.y,
       },
       data: {
@@ -396,10 +405,14 @@ export const FlowChart: Component<Props> = (props: Props) => {
     if (!parentNode) return;
 
     const newNodeId = `node_${Date.now()}`;
+    const rightOffset =
+      parentNode.position.x +
+      measures()[parentNodeId].width +
+      PARENT_CHILD_GAP_WIDTH;
     const newNode: NodeProps = {
       id: newNodeId,
       position: {
-        x: parentNode.position.x + 265,
+        x: rightOffset,
         y: parentNode.position.y + 100,
       },
       data: {
@@ -622,6 +635,7 @@ export const FlowChart: Component<Props> = (props: Props) => {
             onInputMouseUp={handleOnInputMouseUp}
             onMouseUp={handleOnMouseUp}
             onMouseMove={handleOnMouseMove}
+            measureNodes={setMeasures}
           />
           <EdgesBoard
             newEdge={newEdge()}

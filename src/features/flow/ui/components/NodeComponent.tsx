@@ -1,5 +1,12 @@
 /* eslint-disable @typescript-eslint/no-namespace */
-import { Component, For, onCleanup, onMount, Show } from 'solid-js';
+import {
+  Component,
+  createSignal,
+  For,
+  onCleanup,
+  onMount,
+  Show,
+} from 'solid-js';
 
 declare module 'solid-js' {
   namespace JSX {
@@ -11,7 +18,6 @@ declare module 'solid-js' {
 }
 
 interface Props {
-  ref?: any;
   x: number;
   y: number;
   selected: boolean;
@@ -23,6 +29,7 @@ interface Props {
     inputs: { offset: { x: number; y: number } }[],
     outputs: { offset: { x: number; y: number } }[],
   ) => void;
+  onMeasure: (width: number, height: number) => void;
   onMouseDown?: (event: any) => void;
   onMouseDownOutput?: (outputIndex: number) => void;
   onMouseUpInput?: (inputIndex: number) => void;
@@ -35,6 +42,7 @@ interface Props {
 const NodeComponent: Component<Props> = (props: Props) => {
   const inputRefs = [...Array(props.inputs)];
   const outputRefs = [...Array(props.outputs)];
+  const [ref, setRef] = createSignal<HTMLDivElement>();
 
   onMount(() => {
     const inputs: { offset: { x: number; y: number } }[] = [];
@@ -57,6 +65,11 @@ const NodeComponent: Component<Props> = (props: Props) => {
       });
     }
     props.onNodeMount(inputs, outputs);
+
+    const rect = ref()?.getBoundingClientRect();
+    if (rect) {
+      props.onMeasure(rect.width, rect.height);
+    }
   });
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -72,7 +85,7 @@ const NodeComponent: Component<Props> = (props: Props) => {
 
   return (
     <div
-      ref={props.ref}
+      ref={setRef}
       class='flex flex-col absolute cursor-grab bg-white rounded-md shadow-[1px_1px_11px_-6px_rgba(0,0,0,0.75)] select-none transition-[border,box-shadow] duration-200 ease-in-out hover:shadow-[2px_2px_12px_-6px_rgba(0,0,0,0.75)]'
       classList={{
         'border border-[#e38c29] z-[100]': props.selected,
@@ -146,10 +159,10 @@ const NodeComponent: Component<Props> = (props: Props) => {
                 }}
                 class='cursor-default bg-[#e38b29] w-3 h-3 rounded-full my-3 shadow-[1px_1px_11px_-6px_rgba(0,0,0,0.75)]'
                 style='pointer-events: all;'
-                onMouseDown={(event: any) => {
+                onMouseDown={event => {
                   event.stopPropagation();
                 }}
-                onMouseUp={(event: any) => {
+                onMouseUp={event => {
                   event.stopPropagation();
                   props.onMouseUpInput?.(index);
                 }}
