@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/solid-router';
-import { FlowChart } from '~/features/flow/ui/components';
+import { FlowChart } from '~/features/flow/ui/components/FlowChart';
 import { MultiText } from '~/globals/ui/molecules';
 
 export const Route = createFileRoute('/demo/solid-flow')({

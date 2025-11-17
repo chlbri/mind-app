@@ -1,5 +1,5 @@
 import { Accessor, Component, createSignal, For } from 'solid-js';
-import NodeComponent from '../NodeComponent';
+import NodeComponent from './NodeComponent';
 
 interface NodeProps {
   id: string;
