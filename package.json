@@ -36,7 +36,6 @@
     "@bemedev/i18n": "^0.5.2",
     "@bemedev/pipe": "^0.1.0",
     "@bemedev/sleep": "^0.1.2",
-    "@dschz/solid-flow": "^0.1.4",
     "@kobalte/core": "^0.13.11",
     "@solid-primitives/intersection-observer": "^2.2.2",
     "@solid-primitives/storage": "^4.3.3",

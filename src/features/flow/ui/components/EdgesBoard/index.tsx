@@ -1,6 +1,5 @@
 import { Component, createEffect, createSignal, For } from 'solid-js';
 import EdgeComponent from '../EdgeComponent';
-import styles from './styles.module.css';
 
 interface Vector {
   x0: number;
@@ -45,7 +44,7 @@ const EdgesBoard: Component<Props> = (props: Props) => {
   });
 
   return (
-    <svg class={styles.main}>
+    <svg class='pointer-events-none absolute top-0 w-full h-full'>
       {props.newEdge !== null && (
         <EdgeComponent
           selected={false}

@@ -1,14 +1,5 @@
 /* eslint-disable @typescript-eslint/no-namespace */
-import {
-  Accessor,
-  Component,
-  For,
-  onCleanup,
-  onMount,
-  Show,
-} from 'solid-js';
-import styles from './styles.module.css';
-import { cn } from '~/globals/ui/cn/utils';
+import { Component, For, onCleanup, onMount, Show } from 'solid-js';
 
 declare module 'solid-js' {
   namespace JSX {
@@ -25,7 +16,7 @@ interface Props {
   y: number;
   selected: boolean;
   label?: string;
-  content: any;
+  content?: any;
   inputs: number;
   outputs: number;
   onNodeMount: (
@@ -82,29 +73,29 @@ const NodeComponent: Component<Props> = (props: Props) => {
   return (
     <div
       ref={props.ref}
-      class='relative'
+      class='flex flex-col absolute cursor-grab bg-white rounded-md shadow-[1px_1px_11px_-6px_rgba(0,0,0,0.75)] select-none transition-[border,box-shadow] duration-200 ease-in-out hover:shadow-[2px_2px_12px_-6px_rgba(0,0,0,0.75)]'
+      classList={{
+        'border border-[#e38c29] z-[100]': props.selected,
+        'border border-[#e6d4be] z-[1]': !props.selected,
+      }}
       style={{ transform: `translate(${props.x}px, ${props.y}px)` }}
       onMouseDown={props.onMouseDown}
       use:clickOutside={props.onClickOutside}
-      classList={{
-        [styles.nodeSelected]: props.selected,
-        [styles.node]: !props.selected,
-      }}
     >
       <div
+        class='pointer-events-none absolute flex items-center justify-end -top-[30px] right-0 transition-all duration-200 ease-in-out space-x-2'
         classList={{
-          [styles.actions]: props.selected,
-          [styles.actionsHidden]: !props.selected,
+          'w-full opacity-100': props.selected,
+          'w-0 -right-3 opacity-0 overflow-hidden': !props.selected,
         }}
-        class='flex space-x-2'
       >
         <svg
-          class={styles.delete}
+          class='w-6 h-6 fill-[#a11111] rounded-full cursor-pointer opacity-100 transition-all duration-200 ease-in-out'
           onClick={props.onClickDelete}
           fill='currentColor'
           stroke-width={2}
           viewBox='4 4 16 16'
-          style='overflow: visible;'
+          style='overflow: visible; pointer-events: all;'
         >
           <path d='M12 4c-4.419 0-8 3.582-8 8s3.581 8 8 8 8-3.582 8-8-3.581-8-8-8zm3.707 10.293a.999.999 0 11-1.414 1.414L12 13.414l-2.293 2.293a.997.997 0 01-1.414 0 .999.999 0 010-1.414L10.586 12 8.293 9.707a.999.999 0 111.414-1.414L12 10.586l2.293-2.293a.999.999 0 111.414 1.414L13.414 12l2.293 2.293z' />
         </svg>
@@ -135,54 +126,62 @@ const NodeComponent: Component<Props> = (props: Props) => {
           <path d='M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z' />
         </svg>
       </div>
-      {props.label && (
-        <span class={cn(styles.nodeLabel, 'select-none')}>
-          {props.label}
-        </span>
-      )}
-      <div class={cn(styles.nodeContent, 'select-none')}>
-        {props.content}
-      </div>
-      {props.inputs > 0 && (
-        <div class={styles.nodeInputs}>
+      <Show when={props.label} keyed>
+        {label => (
+          <span class='p-3 border-b border-[#f0f0f0] select-none'>
+            {label}
+          </span>
+        )}
+      </Show>
+      <Show when={props.content} keyed>
+        {content => <div class='p-3 select-none'>{content}</div>}
+      </Show>
+      <Show when={props.inputs > 0}>
+        <div class='pointer-events-none cursor-default -z-[3] absolute top-0 -left-[18px] flex flex-col my-3'>
           <For each={[...Array(props.inputs).keys()]}>
-            {(item: number, index: Accessor<number>) => (
+            {index => (
               <div
-                ref={(ref: any) => {
-                  inputRefs[index()] = ref;
+                ref={ref => {
+                  inputRefs[index] = ref;
                 }}
-                class={styles.nodeInput}
+                class='cursor-default bg-[#e38b29] w-3 h-3 rounded-full my-3 shadow-[1px_1px_11px_-6px_rgba(0,0,0,0.75)]'
+                style='pointer-events: all;'
                 onMouseDown={(event: any) => {
                   event.stopPropagation();
                 }}
                 onMouseUp={(event: any) => {
                   event.stopPropagation();
-                  props.onMouseUpInput?.(index());
+                  props.onMouseUpInput?.(index);
                 }}
               ></div>
             )}
           </For>
         </div>
-      )}
-      {props.outputs > 0 && (
-        <div id='outputs' class={styles.nodeOutputs}>
+      </Show>
+
+      <Show when={props.outputs > 0}>
+        <div
+          id='outputs'
+          class='pointer-events-none -z-[3] absolute top-0 -right-[18px] flex flex-col my-3'
+        >
           <For each={[...Array(props.outputs).keys()]}>
-            {(item: number, index: Accessor<number>) => (
+            {index => (
               <div
                 ref={(ref: any) => {
-                  outputRefs[index()] = ref;
+                  outputRefs[index] = ref;
                 }}
-                class={styles.nodeOutput}
+                class='cursor-crosshair bg-[#e38b29] w-3 h-3 rounded-full my-3 shadow-[1px_1px_11px_-6px_rgba(0,0,0,0.75)]'
+                style='pointer-events: all;'
                 onMouseDown={(event: any) => {
                   event.stopPropagation();
                   if (props.onMouseDownOutput)
-                    props.onMouseDownOutput(index());
+                    props.onMouseDownOutput(index);
                 }}
               ></div>
             )}
           </For>
         </div>
-      )}
+      </Show>
     </div>
   );
 };

@@ -1,6 +1,5 @@
 import { Accessor, Component, createSignal, For } from 'solid-js';
 import NodeComponent from '../NodeComponent';
-import styles from './styles.module.css';
 
 interface NodeProps {
   id: string;
@@ -61,7 +60,7 @@ const NodesBoard: Component<Props> = (props: Props) => {
   return (
     <div
       ref={scene}
-      class={styles.main}
+      class='w-full h-full relative'
       onMouseMove={handleOnMouseMoveScene}
       onMouseUp={handleOnMouseUpScene}
     >

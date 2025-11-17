@@ -2,7 +2,6 @@ import { Component, createEffect, createSignal } from 'solid-js';
 import { createStore, produce } from 'solid-js/store';
 import EdgesBoard from './EdgesBoard';
 import NodesBoard from './NodesBoard';
-import styles from './styles.module.css';
 
 interface Position {
   x: number;
@@ -59,10 +58,14 @@ export interface EdgeProps {
 }
 
 interface Props {
-  nodes: NodeProps[];
-  edges: EdgeProps[];
-  onNodesChange: (newNodes: NodeProps[]) => void;
-  onEdgesChange: (newEdges: EdgeProps[]) => void;
+  config?: {
+    nodes: NodeProps[];
+    edges?: EdgeProps[];
+  };
+  onNodeAdded?: (node: NodeProps) => void;
+  onNodeDeleted?: (nodeId: string) => void;
+  onEdgeAdded?: (edge: EdgeProps) => void;
+  onEdgeDeleted?: (edgeId: string) => void;
 }
 
 function getEdgeId(
@@ -164,9 +167,17 @@ function getInitialNodes(
 }
 
 export const FlowChart: Component<Props> = (props: Props) => {
+  // Internal state management
+  const [nodes, setNodes] = createSignal<NodeProps[]>(
+    props.config?.nodes ?? [],
+  );
+  const [edges, setEdges] = createSignal<EdgeProps[]>(
+    props.config?.edges ?? [],
+  );
+
   // EDGES
   const { initEdgesNodes, initEdgesPositions, initEdgesActives } =
-    getInitialEdges(props.nodes);
+    getInitialEdges(nodes());
   const [edgesNodes, setEdgesNodes] =
     createSignal<EdgesNodes>(initEdgesNodes);
   const [edgesPositions, setEdgesPositions] =
@@ -176,7 +187,7 @@ export const FlowChart: Component<Props> = (props: Props) => {
 
   // NODES
   const { initNodesPositions, initNodesData, initNodesOffsets } =
-    getInitialNodes(props.nodes, props.edges);
+    getInitialNodes(nodes(), edges());
   const [nodesPositions, setNodesPositions] =
     createSignal<Position[]>(initNodesPositions);
   const [nodesData, setNodesData] = createStore<NodeData[]>(initNodesData);
@@ -196,17 +207,17 @@ export const FlowChart: Component<Props> = (props: Props) => {
   } | null>(null);
 
   createEffect(() => {
-    const nextNodesLength = props.nodes.length;
+    const nextNodesLength = nodes().length;
     const prevNodesLength = nodesData.length;
 
     if (nextNodesLength !== prevNodesLength) {
       const { initEdgesNodes, initEdgesPositions, initEdgesActives } =
-        getInitialEdges(props.nodes);
+        getInitialEdges(nodes());
       setEdgesNodes(initEdgesNodes);
       setEdgesPositions(initEdgesPositions);
       setEdgesActives(initEdgesActives);
       const { initNodesPositions, initNodesData, initNodesOffsets } =
-        getInitialNodes(props.nodes, props.edges);
+        getInitialNodes(nodes(), edges());
       setNodesPositions(initNodesPositions);
       setNodesData(initNodesData);
       setNodesOffsets(initNodesOffsets);
@@ -331,19 +342,19 @@ export const FlowChart: Component<Props> = (props: Props) => {
   }
 
   const handleOnNodeDelete = (nodeId: string) => {
-    const newNodes = props.nodes.filter(
-      (node: NodeProps) => node.id !== nodeId,
+    setEdges(curr =>
+      curr.filter(
+        ({ sourceNode, targetNode }) =>
+          sourceNode !== nodeId && targetNode !== nodeId,
+      ),
     );
-    const newEdges = props.edges.filter(
-      (edge: EdgeProps) =>
-        edge.sourceNode !== nodeId && edge.targetNode !== nodeId,
-    );
-    props.onEdgesChange(newEdges);
-    props.onNodesChange(newNodes);
+
+    setNodes(curr => curr.filter(({ id }) => id !== nodeId));
+    props.onNodeDeleted?.(nodeId);
   };
 
   const handleOnNodeAddChild = (nodeId: string) => {
-    const parentNode = props.nodes.find(node => node.id === nodeId);
+    const parentNode = nodes().find(node => node.id === nodeId);
     if (!parentNode) return;
 
     const newNodeId = `node_${Date.now()}`;
@@ -368,22 +379,20 @@ export const FlowChart: Component<Props> = (props: Props) => {
       targetInput: 0,
     };
 
-    const newNodes = [...props.nodes, newNode];
-    const newEdges = [...props.edges, newEdge];
+    setEdges(curr => [...curr, newEdge]);
+    setNodes(curr => [...curr, newNode]);
+    props.onNodeAdded?.(newNode);
+    props.onEdgeAdded?.(newEdge);
 
-    props.onEdgesChange(newEdges);
-    props.onNodesChange(newNodes);
     return newNodeId;
   };
 
   const handleOnNodeAddSibling = (nodeId: string) => {
-    const edgeParent = props.edges.find(
-      edge => edge.targetNode === nodeId,
-    );
+    const edgeParent = edges().find(edge => edge.targetNode === nodeId);
     if (!edgeParent) return;
 
     const parentNodeId = edgeParent.sourceNode;
-    const parentNode = props.nodes.find(node => node.id === parentNodeId);
+    const parentNode = nodes().find(node => node.id === parentNodeId);
     if (!parentNode) return;
 
     const newNodeId = `node_${Date.now()}`;
@@ -408,11 +417,11 @@ export const FlowChart: Component<Props> = (props: Props) => {
       targetInput: 0,
     };
 
-    const newNodes = [...props.nodes, newNode];
-    const newEdges = [...props.edges, newEdge];
+    setEdges(curr => [...curr, newEdge]);
+    setNodes(curr => [...curr, newNode]);
+    props.onNodeAdded?.(newNode);
+    props.onEdgeAdded?.(newEdge);
 
-    props.onEdgesChange(newEdges);
-    props.onNodesChange(newNodes);
     return newNodeId;
   };
 
@@ -511,7 +520,11 @@ export const FlowChart: Component<Props> = (props: Props) => {
           });
         }
       }
-      props.onEdgesChange(activeEdges);
+      setEdges(activeEdges);
+      if (props.onEdgeAdded && activeEdges.length > edges().length) {
+        const newEdge = activeEdges[activeEdges.length - 1];
+        props.onEdgeAdded(newEdge);
+      }
     }
     setNewEdge(null);
   }
@@ -576,15 +589,25 @@ export const FlowChart: Component<Props> = (props: Props) => {
         });
       }
     }
-    props.onEdgesChange(activeEdges);
+    setEdges(activeEdges);
+    if (props.onEdgeDeleted && activeEdges.length < edges().length) {
+      const deletedEdgeId = edges().find(
+        e => !activeEdges.some(ae => ae.id === e.id),
+      )?.id;
+      if (deletedEdgeId) props.onEdgeDeleted(deletedEdgeId);
+    }
   }
 
   return (
-    <div class={styles.main}>
-      <div class={styles.wrapper}>
+    <div class='relative w-full h-full overflow-hidden'>
+      <div class='w-full h-full overflow-scroll'>
         <div
-          class={styles.content}
-          style={{ cursor: newEdge() !== null ? 'crosshair' : 'inherit' }}
+          class='relative h-[150vh] w-[2160px] bg-white bg-[length:30px_30px]'
+          style={{
+            cursor: newEdge() !== null ? 'crosshair' : 'inherit',
+            'background-image':
+              'radial-gradient(circle, #b8b8b8bf 1px, rgba(0, 0, 0, 0) 1px)',
+          }}
         >
           <NodesBoard
             nodesPositions={nodesPositions()}
