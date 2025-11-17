@@ -1,5 +1,14 @@
 /* eslint-disable @typescript-eslint/no-namespace */
-import { Component, For, onCleanup, onMount, Show } from 'solid-js';
+import {
+  Component,
+  For,
+  onCleanup,
+  onMount,
+  Show,
+  Accessor,
+  Setter,
+  createEffect,
+} from 'solid-js';
 
 declare module 'solid-js' {
   namespace JSX {
@@ -19,6 +28,16 @@ interface Props {
   content?: any;
   inputs: number;
   outputs: number;
+  dimensions?: {
+    x: Accessor<number>;
+    setX: Setter<number>;
+    y: Accessor<number>;
+    setY: Setter<number>;
+    width: Accessor<number>;
+    setWidth: Setter<number>;
+    height: Accessor<number>;
+    setHeight: Setter<number>;
+  };
   onNodeMount: (
     inputs: { offset: { x: number; y: number } }[],
     outputs: { offset: { x: number; y: number } }[],
@@ -35,6 +54,17 @@ interface Props {
 const NodeComponent: Component<Props> = (props: Props) => {
   const inputRefs = [...Array(props.inputs)];
   const outputRefs = [...Array(props.outputs)];
+  let nodeRef: HTMLDivElement | undefined;
+
+  const updateDimensions = () => {
+    if (props.dimensions && nodeRef) {
+      const rect = nodeRef.getBoundingClientRect();
+      props.dimensions.setX(rect.x);
+      props.dimensions.setY(rect.y);
+      props.dimensions.setWidth(rect.width);
+      props.dimensions.setHeight(rect.height);
+    }
+  };
 
   onMount(() => {
     const inputs: { offset: { x: number; y: number } }[] = [];
@@ -57,6 +87,16 @@ const NodeComponent: Component<Props> = (props: Props) => {
       });
     }
     props.onNodeMount(inputs, outputs);
+    updateDimensions();
+  });
+
+  createEffect(() => {
+    // Update dimensions when position changes
+    const _x = props.x;
+    const _y = props.y;
+    void _x;
+    void _y;
+    updateDimensions();
   });
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -72,7 +112,16 @@ const NodeComponent: Component<Props> = (props: Props) => {
 
   return (
     <div
-      ref={props.ref}
+      ref={el => {
+        nodeRef = el;
+        if (props.ref) {
+          if (typeof props.ref === 'function') {
+            props.ref(el);
+          } else {
+            props.ref = el;
+          }
+        }
+      }}
       class='flex flex-col absolute cursor-grab bg-white rounded-md shadow-[1px_1px_11px_-6px_rgba(0,0,0,0.75)] select-none transition-[border,box-shadow] duration-200 ease-in-out hover:shadow-[2px_2px_12px_-6px_rgba(0,0,0,0.75)]'
       classList={{
         'border border-[#e38c29] z-[100]': props.selected,
