@@ -12,7 +12,6 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as CountingRouteImport } from './routes/counting'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as DemoIndexRouteImport } from './routes/demo/index'
-import { Route as DemoSolidFlowRouteImport } from './routes/demo/solid-flow'
 
 const CountingRoute = CountingRouteImport.update({
   id: '/counting',
@@ -29,43 +28,34 @@ const DemoIndexRoute = DemoIndexRouteImport.update({
   path: '/demo/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const DemoSolidFlowRoute = DemoSolidFlowRouteImport.update({
-  id: '/demo/solid-flow',
-  path: '/demo/solid-flow',
-  getParentRoute: () => rootRouteImport,
-} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/counting': typeof CountingRoute
-  '/demo/solid-flow': typeof DemoSolidFlowRoute
   '/demo': typeof DemoIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/counting': typeof CountingRoute
-  '/demo/solid-flow': typeof DemoSolidFlowRoute
   '/demo': typeof DemoIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/counting': typeof CountingRoute
-  '/demo/solid-flow': typeof DemoSolidFlowRoute
   '/demo/': typeof DemoIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/counting' | '/demo/solid-flow' | '/demo'
+  fullPaths: '/' | '/counting' | '/demo'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/counting' | '/demo/solid-flow' | '/demo'
-  id: '__root__' | '/' | '/counting' | '/demo/solid-flow' | '/demo/'
+  to: '/' | '/counting' | '/demo'
+  id: '__root__' | '/' | '/counting' | '/demo/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   CountingRoute: typeof CountingRoute
-  DemoSolidFlowRoute: typeof DemoSolidFlowRoute
   DemoIndexRoute: typeof DemoIndexRoute
 }
 
@@ -92,20 +82,12 @@ declare module '@tanstack/solid-router' {
       preLoaderRoute: typeof DemoIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/demo/solid-flow': {
-      id: '/demo/solid-flow'
-      path: '/demo/solid-flow'
-      fullPath: '/demo/solid-flow'
-      preLoaderRoute: typeof DemoSolidFlowRouteImport
-      parentRoute: typeof rootRouteImport
-    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   CountingRoute: CountingRoute,
-  DemoSolidFlowRoute: DemoSolidFlowRoute,
   DemoIndexRoute: DemoIndexRoute,
 }
 export const routeTree = rootRouteImport
