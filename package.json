@@ -80,7 +80,7 @@
     "@vitest/coverage-istanbul": "^4.0.8",
     "combinate": "^1.1.11",
     "eslint": "^9.39.1",
-    "glob": "^11.0.3",
+    "glob": "^11.1.0",
     "globals": "^16.5.0",
     "husky": "^9.1.7",
     "onchange": "^7.1.0",
