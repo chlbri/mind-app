@@ -108,7 +108,7 @@ const getInitialNodes = (nodes: NodeProps[], edges: EdgeProps[]) => {
   const initNodesData = nodes.map(node => {
     return {
       edgesIn: edges
-        .map((edge: EdgeProps) => {
+        .map(edge => {
           if (edge.targetNode === node.id)
             return getEdgeId(
               edge.sourceNode,
@@ -120,7 +120,7 @@ const getInitialNodes = (nodes: NodeProps[], edges: EdgeProps[]) => {
         })
         .filter((elem: string) => elem !== 'null'),
       edgesOut: edges
-        .map((edge: EdgeProps) => {
+        .map(edge => {
           if (edge.sourceNode === node.id)
             return getEdgeId(
               edge.sourceNode,
@@ -246,21 +246,13 @@ export const FlowChart: Component<Props> = props => {
             nodes={nodesData}
             onNodeMount={values => {
               setNodesOffsets(
-                produce(
-                  (
-                    nodesOffsets: {
-                      inputs: { offset: { x: number; y: number } }[];
-                      outputs: { offset: { x: number; y: number } }[];
-                    }[],
-                  ) => {
-                    nodesOffsets[values.nodeIndex].inputs = values.inputs;
-                    nodesOffsets[values.nodeIndex].outputs =
-                      values.outputs;
-                  },
-                ),
+                produce(offsets => {
+                  offsets[values.nodeIndex].inputs = values.inputs;
+                  offsets[values.nodeIndex].outputs = values.outputs;
+                }),
               );
 
-              setEdgesActives((prev: EdgesActive) => {
+              setEdgesActives(prev => {
                 const next = { ...prev };
                 nodesData[values.nodeIndex].edgesIn.map(
                   (edgeId: string) => {
@@ -275,40 +267,36 @@ export const FlowChart: Component<Props> = props => {
                 return next;
               });
 
-              setEdgesPositions((prev: EdgesPositions) => {
+              setEdgesPositions(prev => {
                 const next = { ...prev };
-                nodesData[values.nodeIndex].edgesIn.map(
-                  (edgeId: string) => {
-                    next[edgeId] = {
-                      x0: prev[edgeId]?.x0 || 0,
-                      y0: prev[edgeId]?.y0 || 0,
-                      x1:
-                        nodesPositions()[values.nodeIndex].x +
-                        values.inputs[edgesNodes()[edgeId].inputIndex]
-                          .offset.x,
-                      y1:
-                        nodesPositions()[values.nodeIndex].y +
-                        values.inputs[edgesNodes()[edgeId].inputIndex]
-                          .offset.y,
-                    };
-                  },
-                );
-                nodesData[values.nodeIndex].edgesOut.map(
-                  (edgeId: string) => {
-                    next[edgeId] = {
-                      x0:
-                        nodesPositions()[values.nodeIndex].x +
-                        values.outputs[edgesNodes()[edgeId].outputIndex]
-                          .offset.x,
-                      y0:
-                        nodesPositions()[values.nodeIndex].y +
-                        values.outputs[edgesNodes()[edgeId].outputIndex]
-                          .offset.y,
-                      x1: prev[edgeId]?.x1 || 0,
-                      y1: prev[edgeId]?.y1 || 0,
-                    };
-                  },
-                );
+                nodesData[values.nodeIndex].edgesIn.map(edgeId => {
+                  next[edgeId] = {
+                    x0: prev[edgeId]?.x0 || 0,
+                    y0: prev[edgeId]?.y0 || 0,
+                    x1:
+                      nodesPositions()[values.nodeIndex].x +
+                      values.inputs[edgesNodes()[edgeId].inputIndex].offset
+                        .x,
+                    y1:
+                      nodesPositions()[values.nodeIndex].y +
+                      values.inputs[edgesNodes()[edgeId].inputIndex].offset
+                        .y,
+                  };
+                });
+                nodesData[values.nodeIndex].edgesOut.map(edgeId => {
+                  next[edgeId] = {
+                    x0:
+                      nodesPositions()[values.nodeIndex].x +
+                      values.outputs[edgesNodes()[edgeId].outputIndex]
+                        .offset.x,
+                    y0:
+                      nodesPositions()[values.nodeIndex].y +
+                      values.outputs[edgesNodes()[edgeId].outputIndex]
+                        .offset.y,
+                    x1: prev[edgeId]?.x1 || 0,
+                    y1: prev[edgeId]?.y1 || 0,
+                  };
+                });
                 return next;
               });
             }}
