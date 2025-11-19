@@ -1,73 +1,75 @@
-import {
-  createSignal,
-  onCleanup,
-  onMount,
-  Show,
-  type Component,
-} from 'solid-js';
+import { createSignal, onMount, Show, type Component } from 'solid-js';
+import { onClickOutside } from 'solidjs-use';
 import { service } from '../../services/main';
 
-type Props = {
+export type NodeProps = {
   id: string;
   x: number;
   y: number;
-  selected: boolean;
-  label?: string;
+  label: string;
   content?: any;
   input: boolean;
 };
 
-const clickOutside = (el: any, accessor: any) => {
-  const onClick = (e: any) => {
-    if (!el.contains(e.target)) {
-      accessor()?.();
-    }
-  };
-  document.body.addEventListener('click', onClick);
-  onCleanup(() => document.body.removeEventListener('click', onClick));
-};
-
-// eslint-disable-next-line @typescript-eslint/no-unused-expressions
-clickOutside;
-
-export const Node: Component<Props> = props => {
+export const Node: Component<NodeProps> = props => {
   const [ref, setRef] = createSignal<HTMLDivElement>();
   const [inputRef, setInputRef] = createSignal<HTMLDivElement>();
   const [outputRef, setOutputRef] = createSignal<HTMLDivElement>();
   const from = service.select('context.edge');
+  const selected = service.context(({ nodes }) => {
+    return !!nodes.find(value => value.id === props.id)?.selected;
+  });
 
   onMount(() => {
+    const rect = ref()?.getBoundingClientRect();
+
+    if (!rect) return;
+    const width = rect.width;
+    const height = rect.height;
+
+    const inputRect = inputRef()?.getBoundingClientRect();
+    let input = {};
+
+    if (inputRect) {
+      input = {
+        x: inputRect.x,
+        y: inputRect.y,
+      };
+    }
+
+    const outputRect = outputRef()?.getBoundingClientRect();
+    if (!outputRect) return;
+    const output = {
+      x: outputRect.x,
+      y: outputRect.y,
+    };
+
     service.send({
       type: 'MOUNT',
       payload: {
         id: props.id,
-        width: ref()!.getBoundingClientRect().width,
-        height: ref()!.getBoundingClientRect().height,
-        input: {
-          x: inputRef()!.getBoundingClientRect().x,
-          y: inputRef()!.getBoundingClientRect().y,
-        },
-        output: {
-          x: outputRef()!.getBoundingClientRect().x,
-          y: outputRef()!.getBoundingClientRect().y,
-        },
+        width,
+        height,
+        input,
+        output,
       },
     });
   });
 
+  onClickOutside(ref, () => service.send('DESELECT'));
+
   return (
     <div
       ref={setRef}
-      class='flex flex-col absolute cursor-grab bg-white rounded-md shadow-[1px_1px_11px_-6px_rgba(0,0,0,0.75)] select-none transition-[border,box-shadow] duration-200 ease-in-out hover:shadow-[2px_2px_12px_-6px_rgba(0,0,0,0.75)]'
+      class='flex flex-col relative w-fit h-min cursor-grab bg-white rounded-md shadow-[1px_1px_11px_-6px_rgba(0,0,0,0.75)] select-none transition-[border,box-shadow] duration-200 ease-in-out hover:shadow-[2px_2px_12px_-6px_rgba(0,0,0,0.75)]'
       classList={{
-        'border border-[#e38c29] z-[100]': props.selected,
-        'border border-[#e6d4be] z-[1]': !props.selected,
+        'border border-[#e38c29] z-[100]': selected(),
+        'border border-[#e6d4be] z-[1]': !selected(),
       }}
       style={{ transform: `translate(${props.x}px, ${props.y}px)` }}
-      use:clickOutside={() => service.send('DESELECT')}
       onMouseDown={() =>
         service.send({
-          type: 'SELECT_NODE',
+          type: 'SELECT',
           payload: props.id,
         })
       }
@@ -75,8 +77,8 @@ export const Node: Component<Props> = props => {
       <div
         class='pointer-events-none absolute flex items-center justify-end -top-[30px] right-0 transition-all duration-200 ease-in-out space-x-2'
         classList={{
-          'w-full opacity-100': props.selected,
-          'w-0 -right-3 opacity-0 overflow-hidden': !props.selected,
+          'w-full opacity-100': selected(),
+          'w-0 -right-3 opacity-0 overflow-hidden': !selected(),
         }}
       >
         <svg
@@ -142,34 +144,31 @@ export const Node: Component<Props> = props => {
         {content => <div class='p-3 select-none'>{content}</div>}
       </Show>
       <Show when={props.input}>
-        <div class='pointer-events-none cursor-default -z-[3] absolute top-0 -left-[18px] flex flex-col my-3'>
-          <div
-            ref={setInputRef}
-            class='cursor-default bg-[#e38b29] w-3 h-3 rounded-full my-3 shadow-[1px_1px_11px_-6px_rgba(0,0,0,0.75)]'
-            style='pointer-events: all;'
-            onMouseDown={event => {
-              event.stopPropagation();
-            }}
-            onMouseUp={event => {
-              event.stopPropagation();
-              const _from = from();
-              if (!_from) return;
+        <div
+          ref={setInputRef}
+          class='cursor-default bg-[#e38b29] size-3 rounded-full shadow-[1px_1px_11px_-6px_rgba(0,0,0,0.75)] absolute top-8 -left-5'
+          style='pointer-events: all;'
+          onMouseDown={event => {
+            event.stopPropagation();
+          }}
+          onMouseUp={event => {
+            event.stopPropagation();
+            const _from = from();
+            if (!_from) return;
 
-              service.send({
-                type: 'ADD_EDGE',
-                payload: {
-                  from: _from,
-                  to: props.id,
-                },
-              });
-            }}
-          ></div>
-        </div>
+            service.send({
+              type: 'ADD_EDGE',
+              payload: {
+                from: _from,
+                to: props.id,
+              },
+            });
+          }}
+        ></div>
       </Show>
       <div
         ref={setOutputRef}
-        class='cursor-crosshair bg-[#e38b29] w-3 h-3 rounded-full my-3 shadow-[1px_1px_11px_-6px_rgba(0,0,0,0.75)]'
-        style='pointer-events: all;'
+        class='cursor-crosshair bg-[#e38b29] size-3 rounded-full shadow-[1px_1px_11px_-6px_rgba(0,0,0,0.75)] pointer-events-all -z-[3] absolute top-8 -right-5'
         onMouseDown={event => {
           event.stopPropagation();
           service.send({

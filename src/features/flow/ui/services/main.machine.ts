@@ -1,6 +1,7 @@
 import { createMachine, typings } from '@bemedev/app-ts';
 import { SCHEMAS } from './main.machine.gen';
 import {
+  EDGE_RADIUS,
   INTIAL_NODE,
   PARENT_CHILD_GAP_WIDTH,
   SIBLING_GAP_HEIGHT,
@@ -18,6 +19,7 @@ export const machine = createMachine(
             target: '/preparation',
           },
         },
+        // always: '/preparation',
       },
 
       preparation: {
@@ -63,6 +65,10 @@ export const machine = createMachine(
                 actions: ['startEdge'],
               },
 
+              END_EDGE: {
+                actions: ['endEdge'],
+              },
+
               ADD_EDGE: {
                 guards: 'edgeStarted',
                 actions: ['addEdge', 'notifyEdgeAdded'],
@@ -72,30 +78,12 @@ export const machine = createMachine(
                 actions: ['deleteEdge', 'notifyEdgeDeleted'],
               },
 
-              SELECT_NODE: {
-                actions: [
-                  'selectNode',
-                  {
-                    name: 'decorationNode',
-                    description:
-                      'UI, add a decoration to the selected component',
-                  },
-                ],
+              SELECT: {
+                actions: ['select'],
               },
 
               DESELECT: {
                 actions: ['deselect'],
-              },
-
-              SELECT_EDGE: {
-                actions: [
-                  'selectEdge',
-                  {
-                    name: 'decorationEdge',
-                    description:
-                      'UI, add a decoration to the selected edge',
-                  },
-                ],
               },
             },
           },
@@ -109,10 +97,10 @@ export const machine = createMachine(
         id: 'string',
         width: 'number',
         height: 'number',
-        input: {
+        input: typings.partial({
           x: 'number',
           y: 'number',
-        },
+        }),
         output: {
           x: 'number',
           y: 'number',
@@ -126,15 +114,20 @@ export const machine = createMachine(
         nodes: [
           {
             id: 'string',
-            position: {
-              x: 'number',
-              y: 'number',
-            },
-            data: {
-              label: 'string',
-              content: 'primitive',
-            },
+            x: 'number',
+            y: 'number',
+
+            label: 'string',
+            content: 'primitive',
           },
+          typings.custom<{
+            id: string;
+            x: number;
+            y: number;
+
+            label: string;
+            content?: any;
+          }>(),
         ],
         edges: [
           {
@@ -154,11 +147,11 @@ export const machine = createMachine(
         from: 'string',
         to: 'string',
       },
-      SELECT_NODE: 'string',
-      SELECT_EDGE: 'string',
+      SELECT: 'string',
       DESELECT: 'primitive',
 
       START_EDGE: 'string',
+      END_EDGE: 'primitive',
     },
     pContext: {
       mount: typings.custom<
@@ -186,12 +179,12 @@ export const machine = createMachine(
           to: 'string',
           active: 'boolean',
           selected: 'boolean',
-          position: typings.partial({
+          position: {
             x0: 'number',
             y0: 'number',
             x1: 'number',
             y1: 'number',
-          }),
+          },
         },
       ],
       nodes: [
@@ -202,10 +195,9 @@ export const machine = createMachine(
             y: 'number',
           },
           selected: 'boolean',
-          data: {
-            label: 'string',
-            content: 'primitive',
-          },
+          label: 'string',
+          content: 'primitive',
+          input: 'boolean',
         },
       ],
     },
@@ -236,10 +228,20 @@ export const machine = createMachine(
 
     addChild: batch(
       assign('context.edges', {
-        ADD_CHILD: ({ context: { edges, nodes }, payload: from }) => {
+        ADD_CHILD: ({
+          context: { edges, nodes },
+          payload: from,
+          pContext: { mount },
+        }) => {
           const len = edges.length;
           const to = `node-${nodes.length}`;
           const id = `#${len}=(${from})->(${to})`;
+
+          const output = mount[from].output;
+          const input = {
+            x: output.x + PARENT_CHILD_GAP_WIDTH - 26 + EDGE_RADIUS,
+            y: output.y,
+          };
 
           const newEdge = {
             id,
@@ -248,10 +250,10 @@ export const machine = createMachine(
             active: false,
             selected: false,
             position: {
-              x0: 0,
-              y0: 0,
-              x1: 0,
-              y1: 0,
+              x0: output.x,
+              y0: output.y,
+              x1: input.x,
+              y1: input.y,
             },
           };
 
@@ -266,24 +268,28 @@ export const machine = createMachine(
         }) => {
           const from = nodes.find(n => n.id === payload)!;
           const width = mount[payload].width;
+          const height = mount[payload].height;
 
           const x = from.position.x + width + PARENT_CHILD_GAP_WIDTH;
-          const y = from.position.y;
+          const y = from.position.y - height;
 
           const newNode = {
             id: `node-${nodes.length}`,
             position: { x, y },
             selected: true,
-            data: {
-              label: `Node ${nodes.length}`,
-              data: {
-                label: `Node ${nodes.length}`,
-                content: `This is node ${nodes.length}`,
-              },
-            },
+            label: `Node ${nodes.length}`,
+            content: `This is node ${nodes.length}`,
+            input: true,
           };
 
-          return [...nodes, newNode];
+          const out = nodes.map(node => ({
+            ...node,
+            selected: false,
+          }));
+
+          out.push(newNode);
+
+          return out;
         },
       }),
     ),
@@ -330,13 +336,8 @@ export const machine = createMachine(
             id: `node-${nodes.length}`,
             position: { x, y },
             selected: true,
-            data: {
-              label: `Node ${nodes.length}`,
-              data: {
-                label: `Node ${nodes.length}`,
-                content: `This is node ${nodes.length}`,
-              },
-            },
+            label: `Node ${nodes.length}`,
+            content: `This is node ${nodes.length}`,
           };
 
           return [...nodes, newNode];
@@ -433,25 +434,27 @@ export const machine = createMachine(
       }),
     ),
 
-    selectEdge: assign('context.edges', {
-      SELECT_EDGE: ({ context: { edges }, payload }) =>
-        edges.map(edge => ({
-          ...edge,
-          selected: edge.id === payload,
-        })),
-    }),
-
-    selectNode: assign('context.nodes', {
-      SELECT_NODE: ({ context: { nodes }, payload }) =>
-        nodes.map(node => ({
-          ...node,
-          selected: node.id === payload,
-        })),
-    }),
+    select: batch(
+      assign('context.edges', {
+        SELECT: ({ context: { edges }, payload }) =>
+          edges.map(edge => ({
+            ...edge,
+            selected: edge.id === payload,
+          })),
+      }),
+      assign('context.nodes', {
+        SELECT: ({ context: { nodes }, payload }) =>
+          nodes.map(node => ({
+            ...node,
+            selected: node.id === payload,
+          })),
+      }),
+    ),
 
     startEdge: assign('context.edge', {
       START_EDGE: ({ payload }) => payload,
     }),
+
     endEdge: assign('context.edge', rinitFn),
   },
   predicates: {

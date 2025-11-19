@@ -59,9 +59,9 @@ const NodesBoard: Component<Props> = props => {
       ref={setRef}
       class='w-full h-full relative'
       onMouseMove={event => {
-        const _ref = ref()!;
-        const x = event.x - _ref.getBoundingClientRect()?.x;
-        const y = event.y - _ref.getBoundingClientRect().y;
+        const rect = ref()!.getBoundingClientRect();
+        const x = event.x - rect.x;
+        const y = event.y - rect.y;
         const _grabbing = grabbing();
         if (_grabbing !== undefined) {
           props.onNodeMove(_grabbing, x, y);
@@ -133,26 +133,26 @@ const NodesBoard: Component<Props> = props => {
                 }),
               });
             }}
-            onMouseDownOutput={outputIndex =>
+            onMouseDownO={outputIndex =>
               props.onOutputMouseDown(index(), outputIndex)
             }
-            onMouseUpInput={inputIndex =>
+            onMouseUpI={inputIndex =>
               props.onInputMouseUp(index(), inputIndex)
             }
             onClickOutside={() => {
               if (index() === selected()) setSelected();
             }}
-            onClickDelete={() => {
+            onDelete={() => {
               setSelected();
               props.onNodeDelete(node.id);
             }}
-            onClickAddSibling={() => {
+            onAddSibling={() => {
               const out = props.onNodeAddSibling(node.id);
               const index = props.nodes.findIndex(n => n.id === out);
               setSelected(index);
               return out;
             }}
-            onClickAddChild={() => {
+            onAddChild={() => {
               const out = props.onNodeAddChild(node.id);
               const index = props.nodes.findIndex(n => n.id === out);
               setSelected(index);
