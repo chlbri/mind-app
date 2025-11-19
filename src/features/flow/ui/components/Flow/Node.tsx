@@ -1,86 +1,59 @@
-/* eslint-disable @typescript-eslint/no-namespace */
 import {
-  Component,
   createSignal,
-  For,
   onCleanup,
   onMount,
   Show,
+  type Component,
 } from 'solid-js';
-import type { PropsOf } from '~ui/types';
+import { service } from '../../services/main';
 
-declare module 'solid-js' {
-  namespace JSX {
-    interface Directives {
-      // use:model
-      clickOutside: () => void;
-    }
-  }
-}
-
-type Props = PropsOf<'div', 'onMouseDown'> & {
+type Props = {
   id: string;
   x: number;
   y: number;
   selected: boolean;
   label?: string;
   content?: any;
-  inputs: number;
-  outputs: number;
-  onNodeMount: (
-    inputs: { offset: { x: number; y: number } }[],
-    outputs: { offset: { x: number; y: number } }[],
-  ) => void;
-  onMeasure: (width: number, height: number) => void;
-  onMouseDownOutput: (outputIndex: number) => void;
-  onMouseUpInput: (inputIndex: number) => void;
-  onClickOutside: () => void;
-  onClickDelete: () => void;
-  onClickAddSibling: () => void;
-  onClickAddChild: () => void;
+  input: boolean;
 };
 
-const NodeComponent: Component<Props> = props => {
-  const inputRefs = [...Array(props.inputs)];
-  const outputRefs = [...Array(props.outputs)];
+const clickOutside = (el: any, accessor: any) => {
+  const onClick = (e: any) => {
+    if (!el.contains(e.target)) {
+      accessor()?.();
+    }
+  };
+  document.body.addEventListener('click', onClick);
+  onCleanup(() => document.body.removeEventListener('click', onClick));
+};
+
+// eslint-disable-next-line @typescript-eslint/no-unused-expressions
+clickOutside;
+
+export const Node: Component<Props> = props => {
   const [ref, setRef] = createSignal<HTMLDivElement>();
+  const [inputRef, setInputRef] = createSignal<HTMLDivElement>();
+  const [outputRef, setOutputRef] = createSignal<HTMLDivElement>();
+  const from = service.select('context.edge');
 
   onMount(() => {
-    const inputs: { offset: { x: number; y: number } }[] = [];
-    const outputs: { offset: { x: number; y: number } }[] = [];
-    for (let i = 0; i < inputRefs.length; i++) {
-      inputs.push({
-        offset: {
-          x: inputRefs[i].getBoundingClientRect().x,
-          y: inputRefs[i].getBoundingClientRect().y,
+    service.send({
+      type: 'MOUNT',
+      payload: {
+        id: props.id,
+        width: ref()!.getBoundingClientRect().width,
+        height: ref()!.getBoundingClientRect().height,
+        input: {
+          x: inputRef()!.getBoundingClientRect().x,
+          y: inputRef()!.getBoundingClientRect().y,
         },
-      });
-    }
-
-    for (let i = 0; i < outputRefs.length; i++) {
-      outputs.push({
-        offset: {
-          x: outputRefs[i].getBoundingClientRect().x,
-          y: outputRefs[i].getBoundingClientRect().y,
+        output: {
+          x: outputRef()!.getBoundingClientRect().x,
+          y: outputRef()!.getBoundingClientRect().y,
         },
-      });
-    }
-    props.onNodeMount(inputs, outputs);
-
-    const rect = ref()!.getBoundingClientRect();
-    props.onMeasure(rect.width, rect.height);
+      },
+    });
   });
-
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  function clickOutside(el: any, accessor: any) {
-    const onClick = (e: any) => {
-      if (!el.contains(e.target)) {
-        accessor()?.();
-      }
-    };
-    document.body.addEventListener('click', onClick);
-    onCleanup(() => document.body.removeEventListener('click', onClick));
-  }
 
   return (
     <div
@@ -91,8 +64,13 @@ const NodeComponent: Component<Props> = props => {
         'border border-[#e6d4be] z-[1]': !props.selected,
       }}
       style={{ transform: `translate(${props.x}px, ${props.y}px)` }}
-      onMouseDown={props.onMouseDown}
-      use:clickOutside={props.onClickOutside}
+      use:clickOutside={() => service.send('DESELECT')}
+      onMouseDown={() =>
+        service.send({
+          type: 'SELECT_NODE',
+          payload: props.id,
+        })
+      }
     >
       <div
         class='pointer-events-none absolute flex items-center justify-end -top-[30px] right-0 transition-all duration-200 ease-in-out space-x-2'
@@ -103,15 +81,20 @@ const NodeComponent: Component<Props> = props => {
       >
         <svg
           class='w-6 h-6 fill-[#a11111] rounded-full cursor-pointer opacity-100 transition-all duration-200 ease-in-out'
-          onClick={props.onClickDelete}
           fill='currentColor'
           stroke-width={2}
           viewBox='4 4 16 16'
           style='overflow: visible; pointer-events: all;'
+          onClick={() =>
+            service.send({
+              type: 'DELETE_NODE',
+              payload: props.id,
+            })
+          }
         >
           <path d='M12 4c-4.419 0-8 3.582-8 8s3.581 8 8 8 8-3.582 8-8-3.581-8-8-8zm3.707 10.293a.999.999 0 11-1.414 1.414L12 13.414l-2.293 2.293a.997.997 0 01-1.414 0 .999.999 0 010-1.414L10.586 12 8.293 9.707a.999.999 0 111.414-1.414L12 10.586l2.293-2.293a.999.999 0 111.414 1.414L13.414 12l2.293 2.293z' />
         </svg>
-        <Show when={props.inputs === 1}>
+        <Show when={props.input}>
           <svg
             class='size-6 bg-green-500 rounded-full p-0.5 hover:bg-green-600 font-bold text-center cursor-pointer overflow-visible'
             style='pointer-events: all; fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;'
@@ -119,7 +102,12 @@ const NodeComponent: Component<Props> = props => {
             preserveAspectRatio='xMaxYMax'
             xmlns='http://www.w3.org/2000/svg'
             fill='white'
-            onClick={props.onClickAddSibling}
+            onClick={() =>
+              service.send({
+                type: 'ADD_SIBLING',
+                payload: props.id,
+              })
+            }
           >
             <g id='Arrière-plan'>
               <path d='M467.40667,277.66696c-0.05948,-14.53055 5.75527,-22.95613 -8.62044,-20.90487c-112.55699,16.0607 -222.1609,112.14558 -245.06161,239.85765c-46.52056,259.43466 231.33083,443.06705 449.51209,316.97506c117.31668,-67.80002 160.95215,-190.43324 151.34416,-288.29849c-5.92276,-60.32819 -27.80273,-107.95668 -53.44246,-144.25469l59.39269,-42.05363c111.72214,156.309 73.11535,351.55635 -25.06953,459.45565c-184.18877,202.4124 -470.46624,145.52064 -592.95027,-32.92123c-156.18269,-227.53604 -27.15324,-543.64371 261.18883,-582.44416c5.0579,-0.68061 3.56556,-7.04079 3.56442,-8.58985c-0.05594,-76.3354 -0.11021,-76.7687 1.10909,-77.24589c2.06886,-0.80969 151.41433,118.4561 151.92482,118.95524c4.65592,4.55233 -0.99548,7.829 -29.07828,30.50907c-120.49369,97.31245 -120.4977,98.55675 -123.0691,97.87586c-0.43639,-0.11555 -0.80698,-0.31322 -0.74442,-66.91571Z' />
@@ -129,11 +117,16 @@ const NodeComponent: Component<Props> = props => {
         </Show>
         <svg
           class='size-6 bg-blue-500 text-white p-0.5 rounded-lg hover:bg-blue-600 font-bold text-center flex items-center justify-center cursor-pointer'
-          onClick={props.onClickAddChild}
           style='pointer-events: all;'
           viewBox='0 0 24 24'
           stroke='currentColor'
           stroke-width='2'
+          onClick={() =>
+            service.send({
+              type: 'ADD_CHILD',
+              payload: props.id,
+            })
+          }
         >
           <path d='M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z' />
         </svg>
@@ -148,53 +141,43 @@ const NodeComponent: Component<Props> = props => {
       <Show when={props.content} keyed>
         {content => <div class='p-3 select-none'>{content}</div>}
       </Show>
-      <Show when={props.inputs > 0}>
+      <Show when={props.input}>
         <div class='pointer-events-none cursor-default -z-[3] absolute top-0 -left-[18px] flex flex-col my-3'>
-          <For each={[...Array(props.inputs).keys()]}>
-            {index => (
-              <div
-                ref={ref => {
-                  inputRefs[index] = ref;
-                }}
-                class='cursor-default bg-[#e38b29] w-3 h-3 rounded-full my-3 shadow-[1px_1px_11px_-6px_rgba(0,0,0,0.75)]'
-                style='pointer-events: all;'
-                onMouseDown={event => {
-                  event.stopPropagation();
-                }}
-                onMouseUp={event => {
-                  event.stopPropagation();
-                  props.onMouseUpInput(index);
-                }}
-              ></div>
-            )}
-          </For>
-        </div>
-      </Show>
+          <div
+            ref={setInputRef}
+            class='cursor-default bg-[#e38b29] w-3 h-3 rounded-full my-3 shadow-[1px_1px_11px_-6px_rgba(0,0,0,0.75)]'
+            style='pointer-events: all;'
+            onMouseDown={event => {
+              event.stopPropagation();
+            }}
+            onMouseUp={event => {
+              event.stopPropagation();
+              const _from = from();
+              if (!_from) return;
 
-      <Show when={props.outputs > 0}>
-        <div
-          id='outputs'
-          class='pointer-events-none -z-[3] absolute top-0 -right-[18px] flex flex-col my-3'
-        >
-          <For each={[...Array(props.outputs).keys()]}>
-            {index => (
-              <div
-                ref={(ref: any) => {
-                  outputRefs[index] = ref;
-                }}
-                class='cursor-crosshair bg-[#e38b29] w-3 h-3 rounded-full my-3 shadow-[1px_1px_11px_-6px_rgba(0,0,0,0.75)]'
-                style='pointer-events: all;'
-                onMouseDown={event => {
-                  event.stopPropagation();
-                  props.onMouseDownOutput(index);
-                }}
-              ></div>
-            )}
-          </For>
+              service.send({
+                type: 'ADD_EDGE',
+                payload: {
+                  from: _from,
+                  to: props.id,
+                },
+              });
+            }}
+          ></div>
         </div>
       </Show>
+      <div
+        ref={setOutputRef}
+        class='cursor-crosshair bg-[#e38b29] w-3 h-3 rounded-full my-3 shadow-[1px_1px_11px_-6px_rgba(0,0,0,0.75)]'
+        style='pointer-events: all;'
+        onMouseDown={event => {
+          event.stopPropagation();
+          service.send({
+            type: 'START_EDGE',
+            payload: props.id,
+          });
+        }}
+      ></div>
     </div>
   );
 };
-
-export default NodeComponent;

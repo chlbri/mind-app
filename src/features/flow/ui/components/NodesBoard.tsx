@@ -37,7 +37,7 @@ interface Props {
 }
 
 const NodesBoard: Component<Props> = props => {
-  const [grabbing, setGrabbing] = createSignal<number | null>(null);
+  const [grabbing, setGrabbing] = createSignal<number>();
   const [selected, setSelected] = createSignal<number>();
   const [measures, setMeasures] = createSignal<
     Record<string, { width: number; height: number }>
@@ -62,13 +62,14 @@ const NodesBoard: Component<Props> = props => {
         const _ref = ref()!;
         const x = event.x - _ref.getBoundingClientRect()?.x;
         const y = event.y - _ref.getBoundingClientRect().y;
-        if (grabbing() !== null) {
-          props.onNodeMove(grabbing() || 0, x, y);
+        const _grabbing = grabbing();
+        if (_grabbing !== undefined) {
+          props.onNodeMove(_grabbing, x, y);
         }
         props.onMouseMove(x, y);
       }}
       onMouseUp={() => {
-        setGrabbing(null);
+        setGrabbing();
         props.onMouseUp();
       }}
     >

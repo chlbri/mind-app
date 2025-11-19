@@ -7,5 +7,9 @@ export const INTIAL_NODE = {
       'This is the root node. You can add child and sibling nodes using the buttons on the node.',
   },
   input: false,
-  output: true,
+  selected: false,
 };
+
+export const PARENT_CHILD_GAP_WIDTH = 75;
+
+export const SIBLING_GAP_HEIGHT = 100;
