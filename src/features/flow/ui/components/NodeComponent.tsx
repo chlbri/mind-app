@@ -21,10 +21,7 @@ type Props = PropsOf<'div', 'onMouseDown'> & {
   label?: string;
   content?: any;
   inputs: boolean;
-  onNodeMount: (
-    input: Point,
-    output: Point,
-  ) => void;
+  onNodeMount: (input: Point, output: Point) => void;
   onMeasure: (width: number, height: number) => void;
   onMouseDownO: () => void;
   onMouseUpI: () => void;
