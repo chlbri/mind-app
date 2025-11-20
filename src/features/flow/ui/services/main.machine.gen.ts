@@ -20,7 +20,7 @@
  * This file is auto-generated. Do not edit manually.
  */
    export type _AllPaths = {
-    machine: '/' | '/idle';
+    machine: '/' | '/idle' | '/initialization' | '/initialization/edges' | '/initialization/nodes' | '/working';
   }
    /**
    * 
@@ -51,8 +51,23 @@
         readonly idle: {
       readonly targets: Exclude<_AllPaths['machine'], '/idle'>;
     };
+   readonly initialization: {
+      readonly targets: Exclude<_AllPaths['machine'], '/initialization'>;
+      readonly states: {
+        readonly edges: {
+      readonly targets: Exclude<_AllPaths['machine'], '/initialization/edges'>;
+    };
+   readonly nodes: {
+      readonly targets: Exclude<_AllPaths['machine'], '/initialization/nodes'>;
+    };
       };
-      readonly initial: 'idle';
+      readonly initial: 'edges' | 'nodes';
+    };
+   readonly working: {
+      readonly targets: Exclude<_AllPaths['machine'], '/working'>;
+    };
+      };
+      readonly initial: 'idle' | 'initialization' | 'working';
     },
       },
    }

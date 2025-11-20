@@ -47,6 +47,7 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "color": "^5.0.3",
+    "dequal": "^2.0.3",
     "lucide-solid": "^0.554.0",
     "nitro": "3.0.1-alpha.1",
     "redaxios": "^0.5.1",

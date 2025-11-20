@@ -1,9 +1,20 @@
-import { Component, createEffect, createSignal } from 'solid-js';
+import {
+  Component,
+  createEffect,
+  createMemo,
+  createSignal,
+  onMount,
+} from 'solid-js';
 import { createStore, produce } from 'solid-js/store';
+import type {
+  Extremities,
+  NodeOffset,
+  Point,
+} from '../services/main.types';
 import EdgesBoard from './EdgesBoard';
+import { useFlowContext } from './FlowChart.context';
 import NodesBoard from './NodesBoard';
-import { MultiText } from '~/globals/ui/molecules';
-import type { Extremities, NodeOffset, Point } from './types';
+import { dequal } from 'dequal';
 
 interface Vector {
   x0: number;
@@ -35,7 +46,7 @@ interface EdgesActive {
 export interface NodeProps {
   id: string;
   position: Point;
-  data: { label?: string; content: any };
+  data: { label?: string; content: string };
   input: boolean;
 }
 
@@ -62,6 +73,7 @@ const getInitialEdges = (nodes: NodeProps[]) => {
   const initEdgesNodes: EdgesNodes = {};
   const initEdgesPositions: EdgesPositions = {};
   const initEdgesActives: EdgesActive = {};
+  const collectedIds = new Set<string>();
   for (let i = 0; i < nodes.length; i++) {
     for (let j = 0; j < nodes.length; j++) {
       if (i !== j) {
@@ -69,12 +81,17 @@ const getInitialEdges = (nodes: NodeProps[]) => {
         const nodeJ = nodes[j];
 
         const edgeId = buildEdgeId(nodeI.id, nodeJ.id);
+        const edgeId2 = buildEdgeId(nodeJ.id, nodeI.id);
+        if (collectedIds.has(edgeId2)) continue;
+        if (collectedIds.has(edgeId)) continue;
         initEdgesPositions[edgeId] = { x0: 0, y0: 0, x1: 0, y1: 0 };
         initEdgesActives[edgeId] = false;
         initEdgesNodes[edgeId] = {
           from: nodeI.id,
           to: nodeJ.id,
         };
+        collectedIds.add(edgeId2);
+        collectedIds.add(edgeId);
       }
     }
   }
@@ -121,20 +138,11 @@ const PARENT_CHILD_GAP_WIDTH = 75;
 export const FlowChart: Component<Props> = props => {
   const DEFAULT_NODES: NodeProps[] = [
     {
-      id: 'node-1',
+      id: 'node-0',
       position: { x: 350, y: 100 },
       data: {
         label: 'Root node',
-        content: (
-          <MultiText
-            texts={['This is a ', 'red node', ' with a label']}
-            props={{
-              1: {
-                class: 'text-red-400 font-semibold text-lg',
-              },
-            }}
-          />
-        ),
+        content: 'Somme text',
       },
       input: false,
     },
@@ -187,6 +195,28 @@ export const FlowChart: Component<Props> = props => {
     sourceOutput: number;
   }>();
 
+  const {
+    dimensions: [dimensions],
+    service,
+  } = useFlowContext();
+
+  service.send({
+    type: 'CONFIGURE',
+    payload: {
+      nodes: [
+        {
+          id: 'node-0',
+          position: { x: 350, y: 100 },
+          data: {
+            label: 'Root node',
+            content: 'Somme text',
+          },
+          input: false,
+        },
+      ],
+    },
+  });
+
   createEffect(() => {
     const nextNodesLength = nodes().length;
     const prevNodesLength = nodesData.length;
@@ -202,7 +232,75 @@ export const FlowChart: Component<Props> = props => {
       setNodesPositions(initNodesPositions);
       setNodesData(initNodesData);
       setNodesOffsets(initNodesOffsets);
+      // service.send('UPDATE');
     }
+
+    // console.log('dimensions updated:', dimensions());
+    console.log('updates', service.select('context.updates', dequal)());
+    // console.log('nodes', service.select('context.nodes')());
+    // console.log('value', service.value());
+  });
+
+  onMount(() => {
+    service.addOptions(({ assign, batch }) => ({
+      actions: {
+        addChildNode: batch(
+          assign('context.edges', {
+            ADD_CHILD: ({ payload: from, context: { nodes, edges } }) => {
+              const to = `node_${nodes.length}`;
+              const newEdge = {
+                id: buildEdgeId(from, to),
+                from,
+                to,
+              };
+
+              return [...edges, newEdge];
+            },
+          }),
+          assign('context.updates.edges.actives', {
+            ADD_CHILD: ({
+              context: {
+                updates: { edges },
+                nodes,
+              },
+              payload,
+            }) => {
+              const to = `node_${nodes.length}`;
+              return {
+                ...edges?.actives,
+                [buildEdgeId(payload, to)]: true,
+              };
+            },
+          }),
+          assign('context.nodes', {
+            ADD_CHILD: ({ payload, context: { nodes } }) => {
+              console.log('OKKK');
+              const parentNode = nodes.find(({ id }) => id === payload);
+              if (!parentNode) return nodes;
+              const newNodeId = `node_${nodes.length}`;
+              const width = createMemo(() => dimensions()[payload].width);
+              const rightOffset =
+                parentNode.position.x + width() + PARENT_CHILD_GAP_WIDTH;
+              const newNode = {
+                id: newNodeId,
+                position: {
+                  x: rightOffset,
+                  y: parentNode.position.y,
+                },
+                data: {
+                  content: '<Nouveau nœud>',
+                },
+                input: true,
+              };
+
+              console.log('OKKK');
+
+              return [...nodes, newNode];
+            },
+          }),
+        ),
+      },
+    }));
   });
 
   // EDGE HANDLERS
@@ -211,7 +309,7 @@ export const FlowChart: Component<Props> = props => {
     <div class='relative w-full h-full overflow-hidden'>
       <div class='w-full h-full overflow-scroll'>
         <div
-          class='relative h-[150vh] w-[2160px] bg-white bg-[length:30px_30px]'
+          class='relative h-[150vh] w-[2160px] bg-white bg-size-[30px_30px]'
           style={{
             cursor: newEdge() !== null ? 'crosshair' : 'inherit',
             'background-image':

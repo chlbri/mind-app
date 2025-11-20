@@ -1,6 +1,8 @@
-import { Component, createSignal, For } from 'solid-js';
+import { Component, createSignal, For, onMount } from 'solid-js';
+import { produce } from 'solid-js/store';
+import type { Point } from '../services/main.types';
+import { useFlowContext } from './FlowChart.context';
 import NodeComponent from './NodeComponent';
-import type { Point } from './types';
 
 interface NodeProps {
   id: string;
@@ -53,6 +55,37 @@ const NodesBoard: Component<Props> = props => {
       y - _ref.getBoundingClientRect().y - props.nodesPositions[index].y,
     );
   }
+  const {
+    dimensions: [, setDimensions],
+  } = useFlowContext();
+
+  onMount(() => {
+    const rect = ref()!.getBoundingClientRect();
+
+    setDimensions(
+      produce(data => {
+        for (const key in data) {
+          const dimension = data[key];
+          const index = props.nodes.findIndex(n => n.id === dimension.id);
+          if (index === -1) continue;
+
+          data[key] = {
+            ...dimension,
+            output: {
+              x: dimension.output.x - rect.x - props.nodesPositions[index].x + 6,
+              y: dimension.output.y - rect.y - props.nodesPositions[index].y + 6,
+            },
+            input: dimension.input
+              ? {
+                  x: dimension.input.x - rect.x - props.nodesPositions[index].x + 6,
+                  y: dimension.input.y - rect.y - props.nodesPositions[index].y + 6,
+                }
+              : undefined,
+          };
+        }
+      }),
+    );
+  });
 
   return (
     <div
@@ -82,7 +115,7 @@ const NodesBoard: Component<Props> = props => {
             selected={selected() === index()}
             label={node.data.label}
             content={node.data.content}
-            inputs={node.input}
+            input={node.input}
             onMeasure={(width, height) => {
               setMeasures(prev => ({
                 ...prev,

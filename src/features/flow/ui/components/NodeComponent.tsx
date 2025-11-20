@@ -1,8 +1,10 @@
 /* eslint-disable @typescript-eslint/no-namespace */
 import { Component, createSignal, onMount, Show } from 'solid-js';
+import { produce } from 'solid-js/store';
 import { clickOutside } from '~ui/directives';
 import type { PropsOf } from '~ui/types';
-import type { Point } from './types';
+import type { Point } from '../services/main.types';
+import { useFlowContext } from './FlowChart.context';
 
 declare module 'solid-js' {
   namespace JSX {
@@ -20,7 +22,7 @@ type Props = PropsOf<'div', 'onMouseDown'> & {
   selected: boolean;
   label?: string;
   content?: any;
-  inputs: boolean;
+  input: boolean;
   onNodeMount: (input: Point, output: Point) => void;
   onMeasure: (width: number, height: number) => void;
   onMouseDownO: () => void;
@@ -35,6 +37,9 @@ const NodeComponent: Component<Props> = props => {
   let inputRef: HTMLDivElement | undefined;
   let outputRef: HTMLDivElement | undefined;
   const [ref, setRef] = createSignal<HTMLDivElement>();
+  const {
+    dimensions: [, setDimensions],
+  } = useFlowContext();
 
   onMount(() => {
     const input = inputRef
@@ -55,6 +60,17 @@ const NodeComponent: Component<Props> = props => {
 
     const rect = ref()!.getBoundingClientRect();
     props.onMeasure(rect.width, rect.height);
+    setDimensions(
+      produce(data => {
+        data[props.id] = {
+          id: props.id,
+          width: rect.width,
+          height: rect.height,
+          output,
+          input: props.input ? input : undefined,
+        };
+      }),
+    );
   });
 
   // eslint-disable-next-line @typescript-eslint/no-unused-expressions
@@ -89,7 +105,7 @@ const NodeComponent: Component<Props> = props => {
         >
           <path d='M12 4c-4.419 0-8 3.582-8 8s3.581 8 8 8 8-3.582 8-8-3.581-8-8-8zm3.707 10.293a.999.999 0 11-1.414 1.414L12 13.414l-2.293 2.293a.997.997 0 01-1.414 0 .999.999 0 010-1.414L10.586 12 8.293 9.707a.999.999 0 111.414-1.414L12 10.586l2.293-2.293a.999.999 0 111.414 1.414L13.414 12l2.293 2.293z' />
         </svg>
-        <Show when={props.inputs}>
+        <Show when={props.input}>
           <svg
             class='size-6 bg-green-500 rounded-full p-0.5 hover:bg-green-600 font-bold text-center cursor-pointer overflow-visible'
             style='pointer-events: all; fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;'
@@ -107,7 +123,9 @@ const NodeComponent: Component<Props> = props => {
         </Show>
         <svg
           class='size-6 bg-blue-500 text-white p-0.5 rounded-lg hover:bg-blue-600 font-bold text-center flex items-center justify-center cursor-pointer'
-          onClick={props.onAddChild}
+          onClick={() => {
+            props.onAddChild();
+          }}
           style='pointer-events: all;'
           viewBox='0 0 24 24'
           stroke='currentColor'
@@ -126,7 +144,7 @@ const NodeComponent: Component<Props> = props => {
       <Show when={props.content} keyed>
         {content => <div class='p-3 select-none'>{content}</div>}
       </Show>
-      <Show when={props.inputs}>
+      <Show when={props.input}>
         <div class='pointer-events-none cursor-default -z-[3] absolute top-0 -left-[18px] flex flex-col my-3'>
           <div
             ref={inputRef}

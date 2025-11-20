@@ -1,18 +1,27 @@
-import { createContext, createSignal } from 'solid-js';
-import type { EdgeJSON, NodeJSON, Point } from './types';
+import { createContext, createSignal, useContext } from 'solid-js';
+import { buildService } from '../services/main';
+import type { Point } from '../services/main.types';
+import { dequal } from 'dequal/lite';
 
-type Dimensions = Point & {
+type Dimensions = {
   width: number;
   height: number;
+  id: string;
+  output: Point;
+  input?: Point;
 };
 
 export const FlowContext = createContext(
   {
-    dimensions: createSignal<Record<string, Dimensions>>({}),
-    nodes: createSignal<Record<string, NodeJSON>>({}),
-    edges: createSignal<Record<string, EdgeJSON>>({}),
+    dimensions: createSignal<Record<string, Dimensions>>(
+      {},
+      {
+        equals: dequal,
+      },
+    ),
+    service: buildService(),
   },
-  {
-    name: 'FlowContext',
-  },
+  { name: 'FlowContext' },
 );
+
+export const useFlowContext = () => useContext(FlowContext);
