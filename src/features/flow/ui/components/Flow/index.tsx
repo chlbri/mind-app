@@ -1,4 +1,10 @@
-import { createSignal, For, onMount, type Component } from 'solid-js';
+import {
+  createEffect,
+  createSignal,
+  For,
+  onMount,
+  type Component,
+} from 'solid-js';
 import { service } from '../../services/main';
 import { EDGE_RADIUS } from '../../services/main.data';
 import { Edge, type EdgeProps } from './Edge';
@@ -20,6 +26,10 @@ export const FlowChart: Component<Props> = props => {
     payload: {
       ...props.config,
     },
+  });
+
+  createEffect(() => {
+    console.log('value', '=>', service.value());
   });
 
   onMount(() => {

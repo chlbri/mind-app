@@ -29,26 +29,41 @@ export const machine = createMachine(
       },
 
       working: {
-        initial: 'mounting',
-
+        type: 'parallel',
         states: {
           mounting: {
-            tags: ['busy'],
-            always: {
-              actions: [
-                'mount',
-                {
-                  name: 'updateMount',
-                  description:
-                    'Update after getting board dimensions, will be given by the view',
+            initial: 'idle',
+            states: {
+              idle: {
+                on: { MOUNT: '/working/mounting/mounting' },
+              },
+              mounting: {
+                always: {
+                  actions: [
+                    'mount',
+                    {
+                      name: 'updateMount',
+                      description:
+                        'Update after getting board dimensions, will be given by the view',
+                    },
+                  ],
+                  target: '/working/mounting/idle',
                 },
-              ],
-              target: '/working/idle',
+              },
             },
           },
-          idle: {
+          base: {
             on: {
-              MOUNT: '/working/mounting',
+              MOUNT: {
+                actions: [
+                  'mount',
+                  {
+                    name: 'updateMount',
+                    description:
+                      'Update after getting board dimensions, will be given by the view',
+                  },
+                ],
+              },
               ADD_CHILD: {
                 actions: ['addChild', 'notifyNodeAdded'],
               },

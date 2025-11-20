@@ -20,7 +20,7 @@
  * This file is auto-generated. Do not edit manually.
  */
    export type _AllPaths = {
-    machine: '/' | '/idle' | '/preparation' | '/working' | '/working/mounting' | '/working/idle';
+    machine: '/' | '/idle' | '/preparation' | '/working' | '/working/mounting' | '/working/mounting/idle' | '/working/mounting/mounting' | '/working/base';
   }
    /**
    * 
@@ -59,12 +59,20 @@
       readonly states: {
         readonly mounting: {
       readonly targets: Exclude<_AllPaths['machine'], '/working/mounting'>;
+      readonly states: {
+        readonly idle: {
+      readonly targets: Exclude<_AllPaths['machine'], '/working/mounting/idle'>;
     };
-   readonly idle: {
-      readonly targets: Exclude<_AllPaths['machine'], '/working/idle'>;
+   readonly mounting: {
+      readonly targets: Exclude<_AllPaths['machine'], '/working/mounting/mounting'>;
     };
       };
-      readonly initial: 'mounting' | 'idle';
+      readonly initial: 'idle' | 'mounting';
+    };
+   readonly base: {
+      readonly targets: Exclude<_AllPaths['machine'], '/working/base'>;
+    };
+      };
     };
       };
       readonly initial: 'idle' | 'preparation' | 'working';
