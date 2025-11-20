@@ -1,11 +1,11 @@
 import { Component, createSignal, For } from 'solid-js';
 import NodeComponent from './NodeComponent';
+import type { Point } from './types';
 
 interface NodeProps {
   id: string;
   data: { label?: string; content: any };
-  inputs: number;
-  outputs: number;
+  input: boolean;
 }
 
 interface Props {
@@ -13,8 +13,8 @@ interface Props {
   nodes: NodeProps[];
   onNodeMount: (values: {
     nodeIndex: number;
-    inputs: { offset: { x: number; y: number } }[];
-    outputs: { offset: { x: number; y: number } }[];
+    input: Point;
+    output: Point;
   }) => void;
   onNodePress: (x: number, y: number) => void;
   onNodeMove: (nodeIndex: number, x: number, y: number) => void;
@@ -82,8 +82,7 @@ const NodesBoard: Component<Props> = props => {
             selected={selected() === index()}
             label={node.data.label}
             content={node.data.content}
-            inputs={node.inputs}
-            outputs={node.outputs}
+            inputs={node.input}
             onMeasure={(width, height) => {
               setMeasures(prev => ({
                 ...prev,
@@ -95,50 +94,38 @@ const NodesBoard: Component<Props> = props => {
             onMouseDown={event =>
               handleOnMouseDownNode(index(), event.x, event.y)
             }
-            onNodeMount={(inputs, outputs) => {
+            onNodeMount={(input, output) => {
               const _ref = ref()!;
               return props.onNodeMount({
                 nodeIndex: index(),
-                inputs: inputs.map(values => {
-                  return {
-                    offset: {
-                      x:
-                        values.offset.x -
-                        _ref.getBoundingClientRect().x -
-                        props.nodesPositions[index()].x +
-                        6,
-                      y:
-                        values.offset.y -
-                        _ref.getBoundingClientRect().y -
-                        props.nodesPositions[index()].y +
-                        6,
-                    },
-                  };
-                }),
-                outputs: outputs.map(values => {
-                  return {
-                    offset: {
-                      x:
-                        values.offset.x -
-                        _ref.getBoundingClientRect().x -
-                        props.nodesPositions[index()].x +
-                        6,
-                      y:
-                        values.offset.y -
-                        _ref.getBoundingClientRect().y -
-                        props.nodesPositions[index()].y +
-                        6,
-                    },
-                  };
-                }),
+                input: {
+                  x:
+                    input.x -
+                    _ref.getBoundingClientRect().x -
+                    props.nodesPositions[index()].x +
+                    6,
+                  y:
+                    input.y -
+                    _ref.getBoundingClientRect().y -
+                    props.nodesPositions[index()].y +
+                    6,
+                },
+                output: {
+                  x:
+                    output.x -
+                    _ref.getBoundingClientRect().x -
+                    props.nodesPositions[index()].x +
+                    6,
+                  y:
+                    output.y -
+                    _ref.getBoundingClientRect().y -
+                    props.nodesPositions[index()].y +
+                    6,
+                },
               });
             }}
-            onMouseDownO={outputIndex =>
-              props.onOutputMouseDown(index(), outputIndex)
-            }
-            onMouseUpI={inputIndex =>
-              props.onInputMouseUp(index(), inputIndex)
-            }
+            onMouseDownO={() => props.onOutputMouseDown(index(), 0)}
+            onMouseUpI={() => props.onInputMouseUp(index(), 0)}
             onClickOutside={() => {
               if (index() === selected()) setSelected();
             }}

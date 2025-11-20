@@ -1,7 +1,8 @@
 /* eslint-disable @typescript-eslint/no-namespace */
-import { Component, createSignal, For, onMount, Show } from 'solid-js';
+import { Component, createSignal, onMount, Show } from 'solid-js';
 import { clickOutside } from '~ui/directives';
 import type { PropsOf } from '~ui/types';
+import type { Point } from './types';
 
 declare module 'solid-js' {
   namespace JSX {
@@ -19,15 +20,14 @@ type Props = PropsOf<'div', 'onMouseDown'> & {
   selected: boolean;
   label?: string;
   content?: any;
-  inputs: number;
-  outputs: number;
+  inputs: boolean;
   onNodeMount: (
-    inputs: { offset: { x: number; y: number } }[],
-    outputs: { offset: { x: number; y: number } }[],
+    input: Point,
+    output: Point,
   ) => void;
   onMeasure: (width: number, height: number) => void;
-  onMouseDownO: (outputIndex: number) => void;
-  onMouseUpI: (inputIndex: number) => void;
+  onMouseDownO: () => void;
+  onMouseUpI: () => void;
   onClickOutside: () => void;
   onDelete: () => void;
   onAddSibling: () => void;
@@ -35,31 +35,26 @@ type Props = PropsOf<'div', 'onMouseDown'> & {
 };
 
 const NodeComponent: Component<Props> = props => {
-  const inputRefs = [...Array(props.inputs)];
-  const outputRefs = [...Array(props.outputs)];
+  let inputRef: HTMLDivElement | undefined;
+  let outputRef: HTMLDivElement | undefined;
   const [ref, setRef] = createSignal<HTMLDivElement>();
 
   onMount(() => {
-    const inputs: { offset: { x: number; y: number } }[] = [];
-    const outputs: { offset: { x: number; y: number } }[] = [];
-    for (let i = 0; i < inputRefs.length; i++) {
-      inputs.push({
-        offset: {
-          x: inputRefs[i].getBoundingClientRect().x,
-          y: inputRefs[i].getBoundingClientRect().y,
-        },
-      });
-    }
+    const input = inputRef
+      ? {
+          x: inputRef.getBoundingClientRect().x,
+          y: inputRef.getBoundingClientRect().y,
+        }
+      : { x: 0, y: 0 };
 
-    for (let i = 0; i < outputRefs.length; i++) {
-      outputs.push({
-        offset: {
-          x: outputRefs[i].getBoundingClientRect().x,
-          y: outputRefs[i].getBoundingClientRect().y,
-        },
-      });
-    }
-    props.onNodeMount(inputs, outputs);
+    const output = outputRef
+      ? {
+          x: outputRef.getBoundingClientRect().x,
+          y: outputRef.getBoundingClientRect().y,
+        }
+      : { x: 0, y: 0 };
+
+    props.onNodeMount(input, output);
 
     const rect = ref()!.getBoundingClientRect();
     props.onMeasure(rect.width, rect.height);
@@ -97,7 +92,7 @@ const NodeComponent: Component<Props> = props => {
         >
           <path d='M12 4c-4.419 0-8 3.582-8 8s3.581 8 8 8 8-3.582 8-8-3.581-8-8-8zm3.707 10.293a.999.999 0 11-1.414 1.414L12 13.414l-2.293 2.293a.997.997 0 01-1.414 0 .999.999 0 010-1.414L10.586 12 8.293 9.707a.999.999 0 111.414-1.414L12 10.586l2.293-2.293a.999.999 0 111.414 1.414L13.414 12l2.293 2.293z' />
         </svg>
-        <Show when={props.inputs === 1}>
+        <Show when={props.inputs}>
           <svg
             class='size-6 bg-green-500 rounded-full p-0.5 hover:bg-green-600 font-bold text-center cursor-pointer overflow-visible'
             style='pointer-events: all; fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;'
@@ -134,51 +129,37 @@ const NodeComponent: Component<Props> = props => {
       <Show when={props.content} keyed>
         {content => <div class='p-3 select-none'>{content}</div>}
       </Show>
-      <Show when={props.inputs > 0}>
+      <Show when={props.inputs}>
         <div class='pointer-events-none cursor-default -z-[3] absolute top-0 -left-[18px] flex flex-col my-3'>
-          <For each={[...Array(props.inputs).keys()]}>
-            {index => (
-              <div
-                ref={ref => {
-                  inputRefs[index] = ref;
-                }}
-                class='cursor-default bg-[#e38b29] w-3 h-3 rounded-full my-3 shadow-[1px_1px_11px_-6px_rgba(0,0,0,0.75)]'
-                style='pointer-events: all;'
-                onMouseDown={event => {
-                  event.stopPropagation();
-                }}
-                onMouseUp={event => {
-                  event.stopPropagation();
-                  props.onMouseUpI(index);
-                }}
-              ></div>
-            )}
-          </For>
+          <div
+            ref={inputRef}
+            class='cursor-default bg-[#e38b29] w-3 h-3 rounded-full my-3 shadow-[1px_1px_11px_-6px_rgba(0,0,0,0.75)]'
+            style='pointer-events: all;'
+            onMouseDown={event => {
+              event.stopPropagation();
+            }}
+            onMouseUp={event => {
+              event.stopPropagation();
+              props.onMouseUpI();
+            }}
+          ></div>
         </div>
       </Show>
 
-      <Show when={props.outputs > 0}>
+      <div
+        id='outputs'
+        class='pointer-events-none -z-[3] absolute top-0 -right-[18px] flex flex-col my-3'
+      >
         <div
-          id='outputs'
-          class='pointer-events-none -z-[3] absolute top-0 -right-[18px] flex flex-col my-3'
-        >
-          <For each={[...Array(props.outputs).keys()]}>
-            {index => (
-              <div
-                ref={(ref: any) => {
-                  outputRefs[index] = ref;
-                }}
-                class='cursor-crosshair bg-[#e38b29] w-3 h-3 rounded-full my-3 shadow-[1px_1px_11px_-6px_rgba(0,0,0,0.75)]'
-                style='pointer-events: all;'
-                onMouseDown={event => {
-                  event.stopPropagation();
-                  props.onMouseDownO(index);
-                }}
-              ></div>
-            )}
-          </For>
-        </div>
-      </Show>
+          ref={outputRef}
+          class='cursor-crosshair bg-[#e38b29] w-3 h-3 rounded-full my-3 shadow-[1px_1px_11px_-6px_rgba(0,0,0,0.75)]'
+          style='pointer-events: all;'
+          onMouseDown={event => {
+            event.stopPropagation();
+            props.onMouseDownO();
+          }}
+        ></div>
+      </div>
     </div>
   );
 };
