@@ -1,4 +1,3 @@
-import { dequal } from 'dequal';
 import { Component, createEffect, createSignal, onMount } from 'solid-js';
 import { createStore, produce } from 'solid-js/store';
 import { buildEdgeId } from '../services/main.machine';
@@ -146,6 +145,9 @@ export const FlowChart: Component<Props> = props => {
   const [measures, setMeasures] = createSignal<
     Record<string, { width: number; height: number }>
   >({});
+  const [nodes, setNodes] = createSignal(primaryNodes);
+
+  const [edges, setEdges] = createSignal(props.config?.edges ?? []);
 
   // EDGES
   const { initEdgesNodes, initEdgesPositions, initEdgesActives } =
@@ -187,30 +189,8 @@ export const FlowChart: Component<Props> = props => {
     dimensions: [dimensions],
     service,
     newEdge: [newEdge2, setNewEdge2],
-    edgesPositions: [edgesPositions2, setEdgesPositions2],
+    edgesPositions: [edgesPositions2],
   } = useFlowContext();
-
-  const nodes = service.context(({ data }) => {
-    const out = { ...data?.nodes };
-    const entries = Object.entries(out);
-
-    const out2 = entries.map(([id, node]) => ({
-      id,
-      ...node,
-    }));
-    return out2;
-  });
-
-  const edges = service.context(({ data }) => {
-    const out = { ...data?.edges };
-    const entries = Object.entries(out);
-
-    const out2 = entries.map(([id, node]) => ({
-      id,
-      ...node,
-    }));
-    return out2;
-  });
 
   service.send({
     type: 'CONFIGURE',
@@ -259,7 +239,7 @@ export const FlowChart: Component<Props> = props => {
   });
 
   onMount(() => {
-    service.addOptions(({ assign, voidAction }) => ({
+    service.addOptions(({ assign }) => ({
       actions: {
         placeChild: assign('context.data.nodes', {
           ADD_CHILD: ({
@@ -314,29 +294,6 @@ export const FlowChart: Component<Props> = props => {
             return out;
           },
         }),
-
-        buildUI: voidAction(
-          ({ context: { data }, pContext: { edges } }) => {
-            console.log('Building UI...');
-            const nodes = { ...data?.nodes };
-            setEdgesPositions2(
-              produce(next => {
-                edges?.forEach(({ from, id, to }) => {
-                  const output = dimensions()[from].output;
-                  const input = dimensions()[to].input;
-                  console.log('output', output);
-                  if (input)
-                    next[id] = {
-                      x0: nodes[from].position.x + output.x,
-                      y0: nodes[from].position.y + output.y,
-                      x1: nodes[to].position.x + input!.x,
-                      y1: nodes[to].position.y + input!.y,
-                    };
-                });
-              }),
-            );
-          },
-        ),
       },
     }));
   });
@@ -465,89 +422,89 @@ export const FlowChart: Component<Props> = props => {
               );
             }}
             onNodeDelete={nodeId => {
-              // setEdges(curr =>
-              //   curr.filter(
-              //     ({ from: sourceNode, to: targetNode }) =>
-              //       sourceNode !== nodeId && targetNode !== nodeId,
-              //   ),
-              // );
+              setEdges(curr =>
+                curr.filter(
+                  ({ from: sourceNode, to: targetNode }) =>
+                    sourceNode !== nodeId && targetNode !== nodeId,
+                ),
+              );
 
-              // setNodes(curr => curr.filter(({ id }) => id !== nodeId));
+              setNodes(curr => curr.filter(({ id }) => id !== nodeId));
               props.onNodeDeleted?.(nodeId);
             }}
             onNodeAddChild={nodeId => {
-              // const parentNode = nodes().find(node => node.id === nodeId);
-              // if (!parentNode) return;
+              const parentNode = nodes().find(node => node.id === nodeId);
+              if (!parentNode) return;
 
-              // const newNodeId = `node-${nodes().length}`;
-              // const rightOffset =
-              //   parentNode.position.x +
-              //   measures()[nodeId].width +
-              //   PARENT_CHILD_GAP_WIDTH;
-              // const newNode: NodeProps = {
-              //   id: newNodeId,
-              //   position: {
-              //     x: rightOffset,
-              //     y: parentNode.position.y,
-              //   },
-              //   data: {
-              //     content: '<Nouveau nœud>',
-              //   },
-              //   input: true,
-              // };
+              const newNodeId = `node-${nodes().length}`;
+              const rightOffset =
+                parentNode.position.x +
+                measures()[nodeId].width +
+                PARENT_CHILD_GAP_WIDTH;
+              const newNode: NodeProps = {
+                id: newNodeId,
+                position: {
+                  x: rightOffset,
+                  y: parentNode.position.y,
+                },
+                data: {
+                  content: '<Nouveau nœud>',
+                },
+                input: true,
+              };
 
-              // const newEdge: EdgeProps = {
-              //   id: buildEdgeId(nodeId, newNodeId),
-              //   from: nodeId,
-              //   to: newNodeId,
-              // };
+              const newEdge: EdgeProps = {
+                id: buildEdgeId(nodeId, newNodeId),
+                from: nodeId,
+                to: newNodeId,
+              };
 
-              // setEdges(curr => [...curr, newEdge]);
-              // setNodes(curr => [...curr, newNode]);
-              // props.onNodeAdded?.(newNode);
-              // props.onEdgeAdded?.(newEdge);
+              setEdges(curr => [...curr, newEdge]);
+              setNodes(curr => [...curr, newNode]);
+              props.onNodeAdded?.(newNode);
+              props.onEdgeAdded?.(newEdge);
 
-              return 'newNodeId';
+              return newNodeId;
             }}
             onNodeAddSibling={nodeId => {
-              // const edgeParent = edges().find(edge => edge.to === nodeId);
-              // if (!edgeParent) return;
+              const edgeParent = edges().find(edge => edge.to === nodeId);
+              if (!edgeParent) return;
 
-              // const parentNodeId = edgeParent.from;
-              // const parentNode = nodes().find(
-              //   node => node.id === parentNodeId,
-              // );
-              // if (!parentNode) return;
+              const parentNodeId = edgeParent.from;
+              const parentNode = nodes().find(
+                node => node.id === parentNodeId,
+              );
+              if (!parentNode) return;
 
-              // const newNodeId = `node_${nodes().length}`;
-              // const rightOffset =
-              //   parentNode.position.x +
-              //   measures()[parentNodeId].width +
-              //   PARENT_CHILD_GAP_WIDTH;
-              // const newNode: NodeProps = {
-              //   id: newNodeId,
-              //   position: {
-              //     x: rightOffset,
-              //     y: parentNode.position.y + 100,
-              //   },
-              //   data: {
-              //     content: '<Nouveau nœud>',
-              //   },
-              //   input: true,
-              // };
+              const newNodeId = `node_${nodes().length}`;
+              const rightOffset =
+                parentNode.position.x +
+                measures()[parentNodeId].width +
+                PARENT_CHILD_GAP_WIDTH;
+              const newNode: NodeProps = {
+                id: newNodeId,
+                position: {
+                  x: rightOffset,
+                  y: parentNode.position.y + 100,
+                },
+                data: {
+                  content: '<Nouveau nœud>',
+                },
+                input: true,
+              };
 
-              // const newEdge: EdgeProps = {
-              //   id: buildEdgeId(parentNodeId, newNodeId),
-              //   from: parentNodeId,
-              //   to: newNodeId,
-              // };
+              const newEdge: EdgeProps = {
+                id: buildEdgeId(parentNodeId, newNodeId),
+                from: parentNodeId,
+                to: newNodeId,
+              };
 
-              // setEdges(curr => [...curr, newEdge]);
-              // setNodes(curr => [...curr, newNode]);
-              // props.onNodeAdded?.(newNode);
-              // props.onEdgeAdded?.(newEdge);
+              setEdges(curr => [...curr, newEdge]);
+              setNodes(curr => [...curr, newNode]);
+              props.onNodeAdded?.(newNode);
+              props.onEdgeAdded?.(newEdge);
 
-              return 'newNodeId';
+              return newNodeId;
             }}
             onOutputMouseDown={(nodeIndex, outputIndex) => {
               const nodePosition = nodesPositions()[nodeIndex];

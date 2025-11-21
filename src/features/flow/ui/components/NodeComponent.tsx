@@ -117,7 +117,7 @@ const NodeComponent: Component<Props> = props => {
           onClick={e => {
             e.stopPropagation();
             e.stopImmediatePropagation();
-            // props.onDelete();
+            props.onDelete();
             service.send({ type: 'DELETE', payload: props.id });
           }}
           fill='currentColor'
@@ -146,7 +146,7 @@ const NodeComponent: Component<Props> = props => {
         <svg
           class='size-6 bg-blue-500 text-white p-0.5 rounded-lg hover:bg-blue-600 font-bold text-center flex items-center justify-center cursor-pointer'
           onClick={() => {
-            // props.onAddChild();
+            props.onAddChild();
             service.send({
               type: 'ADD_CHILD',
               payload: props.id,

@@ -57,7 +57,7 @@ const NodesBoard: Component<Props> = props => {
   }
   const {
     dimensions: [, setDimensions],
-    service,
+    // service,
   } = useFlowContext();
 
   onMount(() => {
