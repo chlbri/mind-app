@@ -1,17 +1,9 @@
 import { createMachine, typings } from '@bemedev/app-ts';
 import { SCHEMAS } from './main.machine.gen';
-import {
-  edgeJSON,
-  extremities,
-  nodeJSON,
-  point,
-  vector,
-  type nodeOffset,
-} from './main.types';
-import type { inferT } from '@bemedev/app-ts/lib/utils/typings';
+import { edgeJSON, extremities, nodeJSON, point } from './main.types';
 
-export const buildEdgeId = (nodeOutId: string, nodeInId: string) => {
-  return `edge_${nodeOutId}_${nodeInId}`;
+export const buildEdgeId = (out: string, _in: string) => {
+  return `edge = ${out} => ${_in}`;
 };
 
 export const machine = createMachine(
@@ -23,77 +15,63 @@ export const machine = createMachine(
         on: {
           CONFIGURE: {
             actions: ['configure'],
-            target: '/initialization',
+            target: '/intialization',
           },
+          CONFIGURE_EMPTY: '/intialization',
         },
       },
-      initialization: {
-        initial: 'edges',
-        states: {
-          edges: {
-            always: {
-              actions: ['initEdges'],
-              target: '/initialization/nodes',
+      intialization: {
+        tags: ['busy'],
+        always: {
+          actions: [
+            {
+              name: 'buildUI',
+              description: 'Must be in the ui',
             },
-          },
-          nodes: {
-            always: {
-              actions: [
-                'initNodePositions',
-                'initNodeDatas',
-                'initOffsets',
-              ],
-              target: '/working',
-            },
-          },
+          ],
+          target: '/working',
         },
       },
       working: {
+        exit: ['buildArrays'],
         on: {
-          UPDATE: '/initialization',
+          MOVE: {
+            actions: ['moveNode'],
+            target: '/intialization',
+          },
+
           ADD_CHILD: {
             actions: [
-              {
-                name: 'addChildNode',
-                description: 'Must be in the ui',
-              },
-              'notifyChildAdded',
-              {
-                name: 'notifyChildAddedUI',
-                description: 'Must be in the ui',
-              },
+              { name: 'placeChild', description: 'Must be in the ui' },
+              'linkChild',
             ],
-            target: '/initialization',
+            target: '/intialization',
           },
+
           ADD_SIBLING: {
             actions: [
-              { name: 'addSiblingNode', description: 'Must be in the ui' },
-              'notifySiblingAdded',
-              {
-                name: 'notifySiblingAddedUI',
-                description: 'Must be in the ui',
-              },
+              { name: 'placeSibling', description: 'Must be in the ui' },
+              'linkSibling',
             ],
+            target: '/intialization',
           },
-          DELETE_NODE: {
-            actions: [
-              { name: 'deleteNode', description: 'Must be in the ui' },
-              'notifyNodeDeleted',
-              {
-                name: 'notifyNodeDeletedUI',
-                description: 'Must be in the ui',
-              },
-            ],
+
+          ADD_EDGE: {
+            actions: ['addEdge'],
+            target: '/intialization',
           },
-          DELETE_EDGE: {
-            actions: [
-              { name: 'deleteEdge', description: 'Must be in the ui' },
-              'notifyEdgeDeleted',
-              {
-                name: 'notifyEdgeDeletedUI',
-                description: 'Must be in the ui',
-              },
-            ],
+
+          DELETE: {
+            actions: ['delete'],
+            target: '/intialization',
+          },
+
+          SELECT: {
+            actions: ['select'],
+          },
+
+          DESELECT: {
+            actions: ['deselect'],
           },
         },
       },
@@ -101,143 +79,165 @@ export const machine = createMachine(
   },
   typings({
     eventsMap: {
-      CONFIGURE: typings.partial({
-        nodes: typings.array(nodeJSON),
-        edges: typings.array(edgeJSON),
-      }),
-      UPDATE: 'primitive',
+      CONFIGURE: {
+        nodes: typings.record(nodeJSON),
+        edges: typings.record(edgeJSON),
+      },
+      CONFIGURE_EMPTY: 'primitive',
+      MOVE: typings.intersection(
+        {
+          id: 'string',
+        },
+        point,
+      ),
       ADD_CHILD: 'string',
       ADD_SIBLING: 'string',
-      DELETE_NODE: 'string',
-      DELETE_EDGE: 'string',
+      DELETE: 'string',
+      SELECT: 'string',
+      DESELECT: 'primitive',
+      ADD_EDGE: extremities,
     },
-    context: {
-      nodes: typings.array(nodeJSON),
-      edges: typings.array(edgeJSON),
-      updates: typings.partial({
-        edges: {
-          nodes: typings.record(extremities),
-          positions: typings.record(vector),
-          actives: typings.record('boolean'),
-        },
-        nodes: {
-          positions: [point],
-          datas: [
-            typings.intersection(nodeJSON, {
-              in: typings.maybe(typings.array('string')),
-              out: ['string'],
-            }),
-          ],
-          offsets: typings.array({
-            input: typings.maybe(point),
-            output: point,
-          }),
-        },
-      }),
-    },
+    pContext: typings.partial({
+      nodes: typings.array(
+        typings.intersection(nodeJSON, { id: 'string' }),
+      ),
+      edges: typings.array(
+        typings.intersection(edgeJSON, { id: 'string' }),
+      ),
+    }),
+    context: typings.partial({
+      data: {
+        nodes: typings.record(nodeJSON),
+        edges: typings.record(edgeJSON),
+      },
+      selected: 'string',
+    }),
   }),
-).provideOptions(({ assign, batch, voidAction }) => ({
+).provideOptions(({ assign, batch }) => ({
   actions: {
     configure: batch(
-      assign('context.edges', {
-        CONFIGURE: ({ payload: { edges } }) => edges,
-      }),
-      assign('context.nodes', {
+      assign('context.data', () => ({})),
+      assign('context.data.nodes', {
         CONFIGURE: ({ payload: { nodes } }) => nodes,
       }),
+
+      assign('context.data.edges', {
+        CONFIGURE: ({ payload: { edges } }) => edges,
+      }),
     ),
 
-    initEdges: assign(
-      'context.updates.edges',
-      ({ context: { nodes: current } }) => {
-        const nodes: Record<string, inferT<typeof extremities>> = {};
-        const positions: Record<string, inferT<typeof vector>> = {};
-        const actives: Record<string, boolean> = {};
-        const collectedIds = new Set<string>();
+    buildArrays: batch(
+      assign('pContext.nodes', ({ context: { data } }) => {
+        console.log('data nodes', data?.nodes);
+        return Object.entries({ ...data?.nodes }).map(([id, node]) => ({
+          ...node,
+          id,
+        }));
+      }),
+      assign('pContext.edges', ({ context: { data } }) => {
+        return Object.entries({ ...data?.edges }).map(([id, edge]) => ({
+          ...edge,
+          id,
+        }));
+      }),
+    ),
 
-        for (let i = 0; i < current.length; i++) {
-          for (let j = 0; j < current.length; j++) {
-            if (i !== j) {
-              const nodeI = current[i];
-              const nodeJ = current[j];
+    linkChild: assign('context.data.edges', {
+      ADD_CHILD: ({ context: { data }, payload, pContext: { nodes } }) => {
+        const out = { ...data?.edges };
+        const id = buildEdgeId(payload, `node-${nodes?.length}`);
 
-              const edgeId = buildEdgeId(nodeI.id, nodeJ.id);
-              const edgeId2 = buildEdgeId(nodeJ.id, nodeI.id);
-              if (collectedIds.has(edgeId2)) continue;
-              if (collectedIds.has(edgeId)) continue;
-              positions[edgeId] = { x0: 0, y0: 0, x1: 0, y1: 0 };
-              actives[edgeId] = false;
-              nodes[edgeId] = {
-                from: nodeI.id,
-                to: nodeJ.id,
-              };
-              collectedIds.add(edgeId2);
-              collectedIds.add(edgeId);
-            }
-          }
-        }
+        out[id] = {
+          from: payload,
+          to: `node-${nodes?.length}`,
+        };
 
-        return { nodes, positions, actives };
+        return out;
       },
-    ),
+    }),
 
-    initNodePositions: assign(
-      'context.updates.nodes.positions',
-      ({ context: { nodes } }) => nodes.map(({ position }) => position),
-    ),
+    linkSibling: assign('context.data.edges', {
+      ADD_SIBLING: ({
+        context: { data },
+        payload,
+        pContext: { nodes, edges },
+      }) => {
+        const out = { ...data?.edges };
+        const from = edges!.find(({ to }) => to === payload)!.from;
+        const id = buildEdgeId(from, `node-${nodes?.length}`);
 
-    initNodeDatas: batch(
-      assign('context.updates.nodes', () => ({})),
-      assign(
-        'context.updates.nodes.datas',
-        ({ context: { nodes, edges } }) => {
-          return nodes.map(node => ({
-            in: edges
-              .filter(({ to }) => to === node.id)
-              .map(({ from, to }) => buildEdgeId(from, to)),
+        out[id] = {
+          from,
+          to: `node-${nodes?.length}`,
+        };
 
-            out: edges
-              .filter(({ from }) => from === node.id)
-              .map(({ from, to }) => buildEdgeId(from, to)),
-            ...node,
-          }));
+        return out;
+      },
+    }),
+
+    moveNode: assign('context.data.nodes', {
+      MOVE: ({ context: { data }, payload: { id, x, y } }) => {
+        const out = { ...data?.nodes };
+        out[id] = {
+          ...out[id],
+          position: { x, y },
+        };
+        return out;
+      },
+    }),
+
+    select: assign('context.selected', {
+      SELECT: ({ payload }) => payload,
+    }),
+
+    delete: batch(
+      assign('context.data.nodes', {
+        DELETE: ({ context: { data }, payload }) => {
+          const out = { ...data?.nodes };
+          console.log('Nodes before deletion:', out);
+
+          const out2 = Object.fromEntries(
+            Object.entries(out).filter(([id]) => id !== payload),
+          );
+
+          console.log('Nodes after deletion:', out2);
+          return out2;
         },
-      ),
+      }),
+
+      assign('context.data.edges', {
+        DELETE: ({ context: { data }, payload }) => {
+          const out = { ...data?.edges };
+          console.log('Edges before deletion:', out);
+
+          const entries = Object.entries(out).filter(([id, edge]) => {
+            const check =
+              id === payload ||
+              edge.from === payload ||
+              edge.to === payload;
+
+            return !check;
+          });
+
+          const out2 = Object.fromEntries(entries);
+          console.log('Edges after deletion:', out2);
+          return out2;
+        },
+      }),
     ),
 
-    initOffsets: assign(
-      'context.updates.nodes.offsets',
-      ({ context: { nodes } }) =>
-        nodes.map(node => {
-          const point = { x: 0, y: 0 };
-          const out: inferT<typeof nodeOffset> = { output: point };
-          if (node.input) (out as any).input = point;
-          return out;
-        }),
-    ),
+    addEdge: assign('context.data.edges', {
+      ADD_EDGE: ({ context: { data }, payload: { from, to } }) => {
+        const out = { ...data?.edges };
+        const id = buildEdgeId(from, to);
 
-    notifyChildAdded: voidAction({
-      ADD_CHILD: ({ payload }) => {
-        console.log(`Node ${payload} has a new child`);
+        out[id] = { from, to };
+        return out;
       },
     }),
 
-    notifySiblingAdded: voidAction({
-      ADD_SIBLING: ({ payload }) => {
-        console.log(`Node ${payload} has a new sibling`);
-      },
-    }),
-
-    notifyNodeDeleted: voidAction({
-      DELETE_NODE: ({ payload }) => {
-        console.log(`Node ${payload} has been deleted`);
-      },
-    }),
-
-    notifyEdgeDeleted: voidAction({
-      DELETE_EDGE: ({ payload }) => {
-        console.log(`Edge ${payload} has been deleted`);
-      },
-    }),
+    deselect: assign('context', ({ context: { data } }) => ({
+      data,
+    })),
   },
 }));

@@ -1,28 +1,22 @@
 import { Component, createEffect, createSignal, Show } from 'solid-js';
 import { clickOutside } from '~ui/directives';
 import { useFlowContext } from './FlowChart.context';
+import type { Vector } from '../services/main.types';
 
-interface Props {
+type Props = {
   id: string;
-  selected: boolean;
   isNew: boolean;
-  position: { x0: number; y0: number; x1: number; y1: number };
-  onClickEdge: () => void;
-  onClickDelete: () => void;
-  onClickOutside: () => void;
-}
+} & Vector;
 
-const EdgeComponent: Component<Props> = props => {
+export const EdgeComponent2: Component<Props> = props => {
   const [middlePoint, setMiddlePoint] = createSignal({
-    x: props.position.x0 + (props.position.x1 - props.position.x0) / 2,
-    y: props.position.y0 + (props.position.y1 - props.position.y0) / 2,
+    x: props.x0 + (props.x1 - props.x0) / 2,
+    y: props.y0 + (props.y1 - props.y0) / 2,
   });
 
   createEffect(() => {
-    const middleX =
-      props.position.x0 + (props.position.x1 - props.position.x0) / 2;
-    const middleY =
-      props.position.y0 + (props.position.y1 - props.position.y0) / 2;
+    const middleX = props.x0 + (props.x1 - props.x0) / 2;
+    const middleY = props.y0 + (props.y1 - props.y0) / 2;
     setMiddlePoint({
       x: middleX,
       y: middleY,
@@ -30,6 +24,7 @@ const EdgeComponent: Component<Props> = props => {
   });
 
   const { service } = useFlowContext();
+  const selected = service.context(ctx => ctx.selected === props.id);
 
   // eslint-disable-next-line @typescript-eslint/no-unused-expressions
   clickOutside;
@@ -45,30 +40,26 @@ const EdgeComponent: Component<Props> = props => {
         classList={{
           'stroke-[rgba(168,168,168,0.4)] stroke-3': props.isNew,
           'stroke-[rgba(168,168,168,1)] stroke-4 z-100':
-            props.selected && !props.isNew,
+            selected() && !props.isNew,
           'stroke-[rgba(168,168,168,0.8)] stroke-3':
-            !props.selected && !props.isNew,
+            !selected() && !props.isNew,
         }}
         style='pointer-events: all;'
-        d={`M ${props.position.x0} ${props.position.y0} C ${
-          props.position.x0 +
-          calculateOffset(Math.abs(props.position.x1 - props.position.x0))
-        } ${props.position.y0}, ${
-          props.position.x1 -
-          calculateOffset(Math.abs(props.position.x1 - props.position.x0))
-        } ${props.position.y1}, ${props.position.x1} ${props.position.y1}`}
+        d={`M ${props.x0} ${props.y0} C ${
+          props.x0 + calculateOffset(Math.abs(props.x1 - props.x0))
+        } ${props.y0}, ${
+          props.x1 - calculateOffset(Math.abs(props.x1 - props.x0))
+        } ${props.y1}, ${props.x1} ${props.y1}`}
         onClick={() => {
-          props.onClickEdge();
           service.send({ type: 'SELECT', payload: props.id });
         }}
-        use:clickOutside={() => props.onClickOutside()}
+        use:clickOutside={() => service.send('DESELECT')}
       />
-      <Show when={props.selected}>
+      <Show when={selected()}>
         <g
           cursor='pointer'
           transform={`translate(${middlePoint().x}, ${middlePoint().y})`}
           onClick={() => {
-            props.onClickDelete();
             service.send({ type: 'DELETE', payload: props.id });
           }}
           class='pointer-events-all'
@@ -93,5 +84,3 @@ const EdgeComponent: Component<Props> = props => {
     </>
   );
 };
-
-export default EdgeComponent;

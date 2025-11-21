@@ -66,19 +66,35 @@ const NodesBoard: Component<Props> = props => {
       produce(data => {
         for (const key in data) {
           const dimension = data[key];
-          const index = props.nodes.findIndex(n => n.id === dimension.id);
+          const index = props.nodes.findIndex(n => n.id === key);
           if (index === -1) continue;
 
           data[key] = {
             ...dimension,
             output: {
-              x: dimension.output.x - rect.x - props.nodesPositions[index].x + 6,
-              y: dimension.output.y - rect.y - props.nodesPositions[index].y + 6,
+              x:
+                dimension.output.x -
+                rect.x -
+                props.nodesPositions[index].x +
+                6,
+              y:
+                dimension.output.y -
+                rect.y -
+                props.nodesPositions[index].y +
+                6,
             },
             input: dimension.input
               ? {
-                  x: dimension.input.x - rect.x - props.nodesPositions[index].x + 6,
-                  y: dimension.input.y - rect.y - props.nodesPositions[index].y + 6,
+                  x:
+                    dimension.input.x -
+                    rect.x -
+                    props.nodesPositions[index].x +
+                    6,
+                  y:
+                    dimension.input.y -
+                    rect.y -
+                    props.nodesPositions[index].y +
+                    6,
                 }
               : undefined,
           };

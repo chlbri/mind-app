@@ -1,4 +1,5 @@
 import { typings } from '@bemedev/app-ts';
+import type { inferT } from '@bemedev/app-ts/lib/utils/typings';
 
 export type Point = {
   x: number;
@@ -38,7 +39,6 @@ export type NodeJSON = {
 };
 
 export const nodeJSON = typings.any({
-  id: 'string',
   position: point,
   data: typings.any({
     label: typings.maybe('string'),
@@ -49,9 +49,7 @@ export const nodeJSON = typings.any({
 
 export type EdgeJSON = Extremities;
 
-export const edgeJSON = typings.intersection(extremities, {
-  id: 'string',
-});
+export const edgeJSON = extremities;
 
 export const dimensions = typings.any({
   width: 'number',
@@ -67,3 +65,5 @@ export const vector = typings.any({
   x1: 'number',
   y1: 'number',
 });
+
+export type Vector = inferT<typeof vector>;

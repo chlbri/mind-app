@@ -1,11 +1,7 @@
-import {
-  Component,
-  createEffect,
-  createMemo,
-  createSignal,
-  onMount,
-} from 'solid-js';
+import { dequal } from 'dequal';
+import { Component, createEffect, createSignal, onMount } from 'solid-js';
 import { createStore, produce } from 'solid-js/store';
+import { buildEdgeId } from '../services/main.machine';
 import type {
   Extremities,
   NodeOffset,
@@ -14,7 +10,6 @@ import type {
 import EdgesBoard from './EdgesBoard';
 import { useFlowContext } from './FlowChart.context';
 import NodesBoard from './NodesBoard';
-import { dequal } from 'dequal';
 
 interface Vector {
   x0: number;
@@ -64,10 +59,6 @@ interface Props {
   onEdgeAdded?: (edge: EdgeProps) => void;
   onEdgeDeleted?: (edgeId: string) => void;
 }
-
-const buildEdgeId = (nodeOutId: string, nodeInId: string) => {
-  return `edge_${nodeOutId}_${nodeInId}`;
-};
 
 const getInitialEdges = (nodes: NodeProps[]) => {
   const initEdgesNodes: EdgesNodes = {};
@@ -198,22 +189,27 @@ export const FlowChart: Component<Props> = props => {
   const {
     dimensions: [dimensions],
     service,
+    newEdge: [newEdge2, setNewEdge2],
+    edgesPositions: [edgesPositions2, setEdgesPositions2],
   } = useFlowContext();
 
   service.send({
     type: 'CONFIGURE',
     payload: {
-      nodes: [
-        {
-          id: 'node-0',
-          position: { x: 350, y: 100 },
+      nodes: {
+        'node-0': {
           data: {
-            label: 'Root node',
             content: 'Somme text',
+            label: 'Root node',
           },
           input: false,
+          position: {
+            x: 350,
+            y: 100,
+          },
         },
-      ],
+      },
+      edges: {},
     },
   });
 
@@ -234,70 +230,93 @@ export const FlowChart: Component<Props> = props => {
       setNodesOffsets(initNodesOffsets);
       // service.send('UPDATE');
     }
+  });
 
-    // console.log('dimensions updated:', dimensions());
-    console.log('updates', service.select('context.updates', dequal)());
-    // console.log('nodes', service.select('context.nodes')());
-    // console.log('value', service.value());
+  createEffect(() => {
+    // console.log('nodes', service.select('context.data.nodes', dequal)());
+    // console.log('edges', service.select('context.data.edges', dequal)());
+    console.log('positions', edgesPositions2());
+    console.log('value', service.value());
   });
 
   onMount(() => {
-    service.addOptions(({ assign, batch }) => ({
+    service.addOptions(({ assign, voidAction }) => ({
       actions: {
-        addChildNode: batch(
-          assign('context.edges', {
-            ADD_CHILD: ({ payload: from, context: { nodes, edges } }) => {
-              const to = `node_${nodes.length}`;
-              const newEdge = {
-                id: buildEdgeId(from, to),
-                from,
-                to,
-              };
+        placeChild: assign('context.data.nodes', {
+          ADD_CHILD: ({
+            payload,
+            context: { data },
+            pContext: { nodes },
+          }) => {
+            const out = { ...data?.nodes };
+            const parentNode = out[payload];
+            console.log('out', '=>', out);
+            const id = `node-${nodes?.length}`;
+            const width = dimensions()[payload].width;
 
-              return [...edges, newEdge];
-            },
-          }),
-          assign('context.updates.edges.actives', {
-            ADD_CHILD: ({
-              context: {
-                updates: { edges },
-                nodes,
-              },
-              payload,
-            }) => {
-              const to = `node_${nodes.length}`;
-              return {
-                ...edges?.actives,
-                [buildEdgeId(payload, to)]: true,
-              };
-            },
-          }),
-          assign('context.nodes', {
-            ADD_CHILD: ({ payload, context: { nodes } }) => {
-              console.log('OKKK');
-              const parentNode = nodes.find(({ id }) => id === payload);
-              if (!parentNode) return nodes;
-              const newNodeId = `node_${nodes.length}`;
-              const width = createMemo(() => dimensions()[payload].width);
-              const rightOffset =
-                parentNode.position.x + width() + PARENT_CHILD_GAP_WIDTH;
-              const newNode = {
-                id: newNodeId,
-                position: {
-                  x: rightOffset,
-                  y: parentNode.position.y,
-                },
-                data: {
-                  content: '<Nouveau nœud>',
-                },
-                input: true,
-              };
+            const x =
+              parentNode.position.x + width + PARENT_CHILD_GAP_WIDTH;
 
-              console.log('OKKK');
+            out[id] = {
+              data: { content: '<Nouveau nœud>' },
+              input: true,
+              position: { x, y: parentNode.position.y },
+            };
 
-              return [...nodes, newNode];
-            },
-          }),
+            return out;
+          },
+        }),
+
+        placeSibling: assign('context.data.nodes', {
+          ADD_SIBLING: ({
+            payload,
+            context: { data },
+            pContext: { nodes, edges },
+          }) => {
+            const out = { ...data?.nodes };
+
+            const parentID = edges!.find(
+              edge => edge.to === payload,
+            )!.from;
+
+            const parentNode = out[parentID];
+            const id = `node-${nodes?.length}`;
+            const width = dimensions()[parentID].width;
+
+            const x =
+              parentNode.position.x + width + PARENT_CHILD_GAP_WIDTH;
+
+            out[id] = {
+              data: { content: '<Nouveau nœud>' },
+              input: true,
+              position: { x, y: parentNode.position.y + 100 },
+            };
+
+            return out;
+          },
+        }),
+
+        buildUI: voidAction(
+          ({ context: { data }, pContext: { edges } }) => {
+            console.log('Building UI...');
+            const nodes = { ...data?.nodes };
+            setEdgesPositions2(
+              produce(next => {
+                edges?.forEach(({ from, id, to }) => {
+                  const output = dimensions()[from].output;
+                  const input = dimensions()[to].input;
+                  console.log('output', output);
+                  if (input)
+                    next[id] = {
+                      x0: nodes[from].position.x + output.x,
+                      y0: nodes[from].position.y + output.y,
+                      x1: nodes[to].position.x + input!.x,
+                      y1: nodes[to].position.y + input!.y,
+                    };
+                });
+              }),
+            );
+          },
         ),
       },
     }));
@@ -306,7 +325,21 @@ export const FlowChart: Component<Props> = props => {
   // EDGE HANDLERS
 
   return (
-    <div class='relative w-full h-full overflow-hidden'>
+    <div
+      class='relative w-full h-full overflow-hidden'
+      onMouseUp={() => {
+        setNewEdge2();
+      }}
+      onMouseMove={({ x, y }) => {
+        const edge = newEdge2();
+        if (edge)
+          setNewEdge2({
+            ...edge,
+            x1: x,
+            y1: y,
+          });
+      }}
+    >
       <div class='w-full h-full overflow-scroll'>
         <div
           class='relative h-[150vh] w-[2160px] bg-white bg-size-[30px_30px]'
@@ -345,18 +378,16 @@ export const FlowChart: Component<Props> = props => {
                   const _nodesPositions = nodesPositions();
                   currentData.edgesIn.map(id => {
                     next[id] = {
-                      x0: next[id]?.x0 || 0,
-                      y0: next[id]?.y0 || 0,
+                      ...next[id],
                       x1: _nodesPositions[nodeIndex].x + input.x,
                       y1: _nodesPositions[nodeIndex].y + input.y,
                     };
                   });
                   currentData.edgesOut.map(id => {
                     next[id] = {
+                      ...next[id],
                       x0: _nodesPositions[nodeIndex].x + output.x,
                       y0: _nodesPositions[nodeIndex].y + output.y,
-                      x1: next[id]?.x1 || 0,
-                      y1: next[id]?.y1 || 0,
                     };
                   });
                 }),
@@ -429,7 +460,7 @@ export const FlowChart: Component<Props> = props => {
               const parentNode = nodes().find(node => node.id === nodeId);
               if (!parentNode) return;
 
-              const newNodeId = `node_${Date.now()}`;
+              const newNodeId = `node-${nodes().length}`;
               const rightOffset =
                 parentNode.position.x +
                 measures()[nodeId].width +
@@ -469,7 +500,7 @@ export const FlowChart: Component<Props> = props => {
               );
               if (!parentNode) return;
 
-              const newNodeId = `node_${Date.now()}`;
+              const newNodeId = `node_${nodes().length}`;
               const rightOffset =
                 parentNode.position.x +
                 measures()[parentNodeId].width +

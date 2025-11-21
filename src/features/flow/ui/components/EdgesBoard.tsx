@@ -48,6 +48,7 @@ const EdgesBoard: Component<Props> = props => {
     <svg class='pointer-events-none absolute top-0 w-full h-full'>
       {props.newEdge && (
         <EdgeComponent
+          id='__#new-edge#__TEMP'
           selected={false}
           isNew={true}
           position={{
@@ -62,29 +63,29 @@ const EdgesBoard: Component<Props> = props => {
         />
       )}
       <For each={ids()}>
-        {(edgeId: string) => {
-          if (props.edgesActives[edgeId])
-            return (
-              <EdgeComponent
-                selected={edgeId === selected()}
-                isNew={false}
-                position={{
-                  x0: props.edgesPositions[edgeId]?.x0 || 0,
-                  y0: props.edgesPositions[edgeId]?.y0 || 0,
-                  x1: props.edgesPositions[edgeId]?.x1 || 0,
-                  y1: props.edgesPositions[edgeId]?.y1 || 0,
-                }}
-                onClickDelete={() => {
-                  props.onDeleteEdge(edgeId);
-                }}
-                onClickEdge={() => {
-                  setSelected(edgeId);
-                }}
-                onClickOutside={() => {
-                  if (selected() === edgeId) setSelected();
-                }}
-              />
-            );
+        {edgeId => {
+          return (
+            <EdgeComponent
+              selected={edgeId === selected()}
+              id={edgeId}
+              isNew={false}
+              position={{
+                x0: props.edgesPositions[edgeId]?.x0 || 0,
+                y0: props.edgesPositions[edgeId]?.y0 || 0,
+                x1: props.edgesPositions[edgeId]?.x1 || 0,
+                y1: props.edgesPositions[edgeId]?.y1 || 0,
+              }}
+              onClickDelete={() => {
+                props.onDeleteEdge(edgeId);
+              }}
+              onClickEdge={() => {
+                setSelected(edgeId);
+              }}
+              onClickOutside={() => {
+                if (selected() === edgeId) setSelected();
+              }}
+            />
+          );
         }}
       </For>
     </svg>
