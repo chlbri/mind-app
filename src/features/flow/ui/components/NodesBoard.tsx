@@ -57,6 +57,7 @@ const NodesBoard: Component<Props> = props => {
   }
   const {
     dimensions: [, setDimensions],
+    service,
   } = useFlowContext();
 
   onMount(() => {
@@ -116,6 +117,7 @@ const NodesBoard: Component<Props> = props => {
           props.onNodeMove(_grabbing, x, y);
         }
         props.onMouseMove(x, y);
+        // service.send('DESELECT');
       }}
       onMouseUp={() => {
         setGrabbing();

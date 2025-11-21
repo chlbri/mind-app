@@ -146,9 +146,6 @@ export const FlowChart: Component<Props> = props => {
   const [measures, setMeasures] = createSignal<
     Record<string, { width: number; height: number }>
   >({});
-  const [nodes, setNodes] = createSignal(primaryNodes);
-
-  const [edges, setEdges] = createSignal(props.config?.edges ?? []);
 
   // EDGES
   const { initEdgesNodes, initEdgesPositions, initEdgesActives } =
@@ -192,6 +189,28 @@ export const FlowChart: Component<Props> = props => {
     newEdge: [newEdge2, setNewEdge2],
     edgesPositions: [edgesPositions2, setEdgesPositions2],
   } = useFlowContext();
+
+  const nodes = service.context(({ data }) => {
+    const out = { ...data?.nodes };
+    const entries = Object.entries(out);
+
+    const out2 = entries.map(([id, node]) => ({
+      id,
+      ...node,
+    }));
+    return out2;
+  });
+
+  const edges = service.context(({ data }) => {
+    const out = { ...data?.edges };
+    const entries = Object.entries(out);
+
+    const out2 = entries.map(([id, node]) => ({
+      id,
+      ...node,
+    }));
+    return out2;
+  });
 
   service.send({
     type: 'CONFIGURE',
@@ -446,89 +465,89 @@ export const FlowChart: Component<Props> = props => {
               );
             }}
             onNodeDelete={nodeId => {
-              setEdges(curr =>
-                curr.filter(
-                  ({ from: sourceNode, to: targetNode }) =>
-                    sourceNode !== nodeId && targetNode !== nodeId,
-                ),
-              );
+              // setEdges(curr =>
+              //   curr.filter(
+              //     ({ from: sourceNode, to: targetNode }) =>
+              //       sourceNode !== nodeId && targetNode !== nodeId,
+              //   ),
+              // );
 
-              setNodes(curr => curr.filter(({ id }) => id !== nodeId));
+              // setNodes(curr => curr.filter(({ id }) => id !== nodeId));
               props.onNodeDeleted?.(nodeId);
             }}
             onNodeAddChild={nodeId => {
-              const parentNode = nodes().find(node => node.id === nodeId);
-              if (!parentNode) return;
+              // const parentNode = nodes().find(node => node.id === nodeId);
+              // if (!parentNode) return;
 
-              const newNodeId = `node-${nodes().length}`;
-              const rightOffset =
-                parentNode.position.x +
-                measures()[nodeId].width +
-                PARENT_CHILD_GAP_WIDTH;
-              const newNode: NodeProps = {
-                id: newNodeId,
-                position: {
-                  x: rightOffset,
-                  y: parentNode.position.y,
-                },
-                data: {
-                  content: '<Nouveau nœud>',
-                },
-                input: true,
-              };
+              // const newNodeId = `node-${nodes().length}`;
+              // const rightOffset =
+              //   parentNode.position.x +
+              //   measures()[nodeId].width +
+              //   PARENT_CHILD_GAP_WIDTH;
+              // const newNode: NodeProps = {
+              //   id: newNodeId,
+              //   position: {
+              //     x: rightOffset,
+              //     y: parentNode.position.y,
+              //   },
+              //   data: {
+              //     content: '<Nouveau nœud>',
+              //   },
+              //   input: true,
+              // };
 
-              const newEdge: EdgeProps = {
-                id: buildEdgeId(nodeId, newNodeId),
-                from: nodeId,
-                to: newNodeId,
-              };
+              // const newEdge: EdgeProps = {
+              //   id: buildEdgeId(nodeId, newNodeId),
+              //   from: nodeId,
+              //   to: newNodeId,
+              // };
 
-              setEdges(curr => [...curr, newEdge]);
-              setNodes(curr => [...curr, newNode]);
-              props.onNodeAdded?.(newNode);
-              props.onEdgeAdded?.(newEdge);
+              // setEdges(curr => [...curr, newEdge]);
+              // setNodes(curr => [...curr, newNode]);
+              // props.onNodeAdded?.(newNode);
+              // props.onEdgeAdded?.(newEdge);
 
-              return newNodeId;
+              return 'newNodeId';
             }}
             onNodeAddSibling={nodeId => {
-              const edgeParent = edges().find(edge => edge.to === nodeId);
-              if (!edgeParent) return;
+              // const edgeParent = edges().find(edge => edge.to === nodeId);
+              // if (!edgeParent) return;
 
-              const parentNodeId = edgeParent.from;
-              const parentNode = nodes().find(
-                node => node.id === parentNodeId,
-              );
-              if (!parentNode) return;
+              // const parentNodeId = edgeParent.from;
+              // const parentNode = nodes().find(
+              //   node => node.id === parentNodeId,
+              // );
+              // if (!parentNode) return;
 
-              const newNodeId = `node_${nodes().length}`;
-              const rightOffset =
-                parentNode.position.x +
-                measures()[parentNodeId].width +
-                PARENT_CHILD_GAP_WIDTH;
-              const newNode: NodeProps = {
-                id: newNodeId,
-                position: {
-                  x: rightOffset,
-                  y: parentNode.position.y + 100,
-                },
-                data: {
-                  content: '<Nouveau nœud>',
-                },
-                input: true,
-              };
+              // const newNodeId = `node_${nodes().length}`;
+              // const rightOffset =
+              //   parentNode.position.x +
+              //   measures()[parentNodeId].width +
+              //   PARENT_CHILD_GAP_WIDTH;
+              // const newNode: NodeProps = {
+              //   id: newNodeId,
+              //   position: {
+              //     x: rightOffset,
+              //     y: parentNode.position.y + 100,
+              //   },
+              //   data: {
+              //     content: '<Nouveau nœud>',
+              //   },
+              //   input: true,
+              // };
 
-              const newEdge: EdgeProps = {
-                id: buildEdgeId(parentNodeId, newNodeId),
-                from: parentNodeId,
-                to: newNodeId,
-              };
+              // const newEdge: EdgeProps = {
+              //   id: buildEdgeId(parentNodeId, newNodeId),
+              //   from: parentNodeId,
+              //   to: newNodeId,
+              // };
 
-              setEdges(curr => [...curr, newEdge]);
-              setNodes(curr => [...curr, newNode]);
-              props.onNodeAdded?.(newNode);
-              props.onEdgeAdded?.(newEdge);
+              // setEdges(curr => [...curr, newEdge]);
+              // setNodes(curr => [...curr, newNode]);
+              // props.onNodeAdded?.(newNode);
+              // props.onEdgeAdded?.(newEdge);
 
-              return newNodeId;
+              return 'newNodeId';
             }}
             onOutputMouseDown={(nodeIndex, outputIndex) => {
               const nodePosition = nodesPositions()[nodeIndex];
