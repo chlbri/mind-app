@@ -12,7 +12,7 @@ export const NodesBoard2: Component = () => {
   const [ref, setRef] = createSignal<HTMLDivElement>();
 
   const {
-    board: [board, setPoint],
+    board: [, setPoint],
     service,
   } = useFlowContext();
 
@@ -49,16 +49,25 @@ export const NodesBoard2: Component = () => {
 
   return (
     <DragDropProvider
-      onDragMove={({ draggable: { transform, id } }) => {
+      onDragMove={({ draggable: { transform: _transform, node, id } }) => {
         setId(id);
         if (selected(id)) {
-          setTransform({ ...transform });
+          setTransform({ ..._transform });
+          const X = node.offsetLeft + transform().x + 6;
+          const Y = node.offsetTop + transform().y + 6;
+          service.send({
+            type: 'MOVE_IMMEDIATE',
+            payload: {
+              id: `${id}`,
+              x: X,
+              y: Y,
+            },
+          });
         }
       }}
       onDragEnd={({ draggable: { node, id } }) => {
         if (!selected(id)) return;
-        const _board = board();
-        if (!_board) return;
+
         const X = node.offsetLeft + transform().x + 6;
         const Y = node.offsetTop + transform().y + 6;
         node.style.setProperty('top', Y + 'px');
@@ -82,7 +91,7 @@ export const NodesBoard2: Component = () => {
           service.send('DESELECT');
         }}
       >
-        <For each={nodes()}>{node => <NodeComponent2 {...node} />}</For>
+        <For each={nodes()}>{NodeComponent2}</For>
       </div>
 
       <Show when={!id() || !selected(id())}>

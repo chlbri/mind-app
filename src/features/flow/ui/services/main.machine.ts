@@ -22,10 +22,17 @@ export const machine = createMachine(
       },
 
       working: {
-        exit: ['buildArrays'],
         on: {
           MOVE: {
             actions: ['moveNode', 'buildArrays', 'buildUI'],
+          },
+          MOVE_IMMEDIATE: {
+            actions: [
+              {
+                name: 'buildImmediateUI',
+                description: 'Must be in the ui',
+              },
+            ],
           },
 
           ADD_CHILD: {
@@ -78,6 +85,12 @@ export const machine = createMachine(
         },
         point,
       ),
+      MOVE_IMMEDIATE: typings.intersection(
+        {
+          id: 'string',
+        },
+        point,
+      ),
       ADD_CHILD: 'string',
       ADD_SIBLING: 'string',
       DELETE: 'string',
@@ -99,6 +112,7 @@ export const machine = createMachine(
         edges: typings.record(edgeJSON),
       },
       selected: 'string',
+      updatingUI: 'boolean',
     }),
   }),
 ).provideOptions(({ assign, batch }) => ({
@@ -112,6 +126,7 @@ export const machine = createMachine(
       assign('context.data.edges', {
         CONFIGURE: ({ payload: { edges } }) => edges,
       }),
+      assign('context.updatingUI', () => false),
     ),
 
     buildArrays: batch(
@@ -183,6 +198,7 @@ export const machine = createMachine(
         DELETE: ({ context: { data }, payload }) => {
           const out = { ...data?.nodes };
           console.log('Nodes before deletion:', out);
+          console.log('Deleting node with ID:', payload);
 
           const out2 = Object.fromEntries(
             Object.entries(out).filter(([id]) => id !== payload),

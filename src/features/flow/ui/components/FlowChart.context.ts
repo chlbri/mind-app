@@ -31,7 +31,7 @@ export const FlowContext = createContext(
     edgesPositions: createSignal<Record<string, Vector>>(
       {},
       {
-        equals: dequal,
+        equals: false,
       },
     ),
 

@@ -4,7 +4,6 @@ import { Component, createSignal, onMount, Show } from 'solid-js';
 import { produce } from 'solid-js/store';
 import type { PropsOf } from '~/globals/ui/types';
 import { useFlowContext } from './FlowChart.context';
-import { dimensions } from '../services/main.types';
 
 declare module 'solid-js' {
   namespace JSX {
@@ -102,7 +101,6 @@ export const NodeComponent2: Component<Props> = props => {
           class='w-6 h-6 fill-[#a11111] rounded-full cursor-pointer opacity-100 transition-all duration-200 ease-in-out'
           onClick={e => {
             e.stopPropagation();
-            e.stopImmediatePropagation();
             service.send({ type: 'DELETE', payload: props.id });
           }}
           fill='currentColor'
@@ -189,7 +187,7 @@ export const NodeComponent2: Component<Props> = props => {
       >
         <div
           ref={outputRef}
-          class='cursor-crosshair bg-[#e38b29] w-3 h-3 rounded-full my-3 shadow-[1px_1px_11px_-6px_rgba(0,0,0,0.75)] pointer-events-all'
+          class='cursor-crosshair bg-[#e38b29] w-3 h-3 rounded-full mt-3 shadow-[1px_1px_11px_-6px_rgba(0,0,0,0.75)] pointer-events-all'
           onMouseDown={event => {
             event.stopPropagation();
             service.send('DESELECT');

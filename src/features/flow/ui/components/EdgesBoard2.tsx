@@ -1,6 +1,7 @@
 import {
   Component,
   createEffect,
+  createMemo,
   createSignal,
   For,
   Show,
@@ -13,14 +14,12 @@ const EdgesBoard2: Component = () => {
 
   const {
     newEdge: [newEdge],
-    service,
     edgesPositions: [edgesPositions],
   } = useFlowContext();
 
-  const ids = service.context(ctx => {
-    const out = { ...ctx.data?.edges };
-    const out2 = Object.keys(out);
-    return out2;
+  const datas = createMemo(() => {
+    const entries = Object.entries(edgesPositions());
+    return entries.map(([id, vector]) => ({ id, ...vector }));
   });
 
   createEffect(() => {
@@ -30,30 +29,19 @@ const EdgesBoard2: Component = () => {
   return (
     <svg class='pointer-events-none absolute top-0 w-full h-full'>
       <Show when={newEdge()}>
-        <EdgeComponent2
-          id='__#new-edge#__TEMP'
-          isNew={true}
-          x0={newEdge()!.x0}
-          y0={newEdge()!.y0}
-          x1={newEdge()!.x1}
-          y1={newEdge()!.y1}
-        />
+        {value => (
+          <EdgeComponent2
+            id='__#new-edge#__TEMP'
+            isNew
+            x0={value().x0}
+            y0={value().y0}
+            x1={value().x1}
+            y1={value().y1}
+          />
+        )}
       </Show>
 
-      <For each={ids()}>
-        {edgeId => {
-          return (
-            <EdgeComponent2
-              id={edgeId}
-              isNew={false}
-              x0={edgesPositions()[edgeId]?.x0 || 0}
-              y0={edgesPositions()[edgeId]?.y0 || 0}
-              x1={edgesPositions()[edgeId]?.x1 || 0}
-              y1={edgesPositions()[edgeId]?.y1 || 0}
-            />
-          );
-        }}
-      </For>
+      <For each={datas()} children={EdgeComponent2} />
     </svg>
   );
 };

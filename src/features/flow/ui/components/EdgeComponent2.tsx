@@ -1,10 +1,10 @@
 import { Component, createEffect, createSignal, Show } from 'solid-js';
-import { useFlowContext } from './FlowChart.context';
 import type { Vector } from '../services/main.types';
+import { useFlowContext } from './FlowChart.context';
 
 type Props = {
   id: string;
-  isNew: boolean;
+  isNew?: boolean;
 } & Vector;
 
 export const EdgeComponent2: Component<Props> = props => {
@@ -12,6 +12,8 @@ export const EdgeComponent2: Component<Props> = props => {
     x: props.x0 + (props.x1 - props.x0) / 2,
     y: props.y0 + (props.y1 - props.y0) / 2,
   });
+
+  const { service } = useFlowContext();
 
   createEffect(() => {
     const middleX = props.x0 + (props.x1 - props.x0) / 2;
@@ -22,7 +24,6 @@ export const EdgeComponent2: Component<Props> = props => {
     });
   });
 
-  const { service } = useFlowContext();
   const selected = service.context(ctx => ctx.selected === props.id);
 
   function calculateOffset(value: number) {
@@ -32,9 +33,9 @@ export const EdgeComponent2: Component<Props> = props => {
   return (
     <>
       <path
-        class='fill-transparent cursor-pointer'
+        class='fill-transparent cursor-pointer relative'
         classList={{
-          'stroke-[rgba(168,168,168,0.4)] stroke-3': props.isNew,
+          'stroke-[rgba(168,168,168,0.4)] stroke-3': !!props.isNew,
           'stroke-[rgba(168,168,168,1)] stroke-4 z-100':
             selected() && !props.isNew,
           'stroke-[rgba(168,168,168,0.8)] stroke-3':
@@ -50,12 +51,13 @@ export const EdgeComponent2: Component<Props> = props => {
           e.stopPropagation();
           service.send({ type: 'SELECT', payload: props.id });
         }}
-      />
+      ></path>
       <Show when={selected()}>
         <g
           cursor='pointer'
           transform={`translate(${middlePoint().x}, ${middlePoint().y})`}
-          onClick={() => {
+          onClick={e => {
+            e.stopPropagation();
             service.send({ type: 'DELETE', payload: props.id });
           }}
           class='pointer-events-all'
