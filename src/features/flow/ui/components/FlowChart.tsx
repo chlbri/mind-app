@@ -145,9 +145,6 @@ export const FlowChart: Component<Props> = props => {
   const [measures, setMeasures] = createSignal<
     Record<string, { width: number; height: number }>
   >({});
-  const [nodes, setNodes] = createSignal(primaryNodes);
-
-  const [edges, setEdges] = createSignal(props.config?.edges ?? []);
 
   // EDGES
   const { initEdgesNodes, initEdgesPositions, initEdgesActives } =
@@ -179,18 +176,32 @@ export const FlowChart: Component<Props> = props => {
     x: 0,
     y: 0,
   });
-  const [newEdge, setNewEdge] = createSignal<{
-    position: Vector;
-    sourceNode: number;
-    sourceOutput: number;
-  }>();
 
   const {
     dimensions: [dimensions],
     service,
-    newEdge: [newEdge2, setNewEdge2],
+    newEdge: [newEdge, setNewEdge],
     edgesPositions: [edgesPositions2],
   } = useFlowContext();
+
+  const nodes = service.context(({ data }) => {
+    const out = { ...data?.nodes };
+    const entries = Object.entries(out);
+
+    return entries.map(([id, node]) => ({
+      id,
+      ...node,
+    }));
+  });
+  const edges = service.context(({ data }) => {
+    const out = { ...data?.edges };
+    const entries = Object.entries(out);
+
+    return entries.map(([id, node]) => ({
+      id,
+      ...node,
+    }));
+  });
 
   service.send({
     type: 'CONFIGURE',
@@ -304,12 +315,12 @@ export const FlowChart: Component<Props> = props => {
     <div
       class='relative w-full h-full overflow-hidden'
       onMouseUp={() => {
-        setNewEdge2();
+        setNewEdge();
       }}
       onMouseMove={({ x, y }) => {
-        const edge = newEdge2();
+        const edge = newEdge();
         if (edge)
-          setNewEdge2({
+          setNewEdge({
             ...edge,
             x1: x,
             y1: y,
@@ -422,14 +433,14 @@ export const FlowChart: Component<Props> = props => {
               );
             }}
             onNodeDelete={nodeId => {
-              setEdges(curr =>
-                curr.filter(
-                  ({ from: sourceNode, to: targetNode }) =>
-                    sourceNode !== nodeId && targetNode !== nodeId,
-                ),
-              );
+              // setEdges(curr =>
+              //   curr.filter(
+              //     ({ from: sourceNode, to: targetNode }) =>
+              //       sourceNode !== nodeId && targetNode !== nodeId,
+              //   ),
+              // );
 
-              setNodes(curr => curr.filter(({ id }) => id !== nodeId));
+              // setNodes(curr => curr.filter(({ id }) => id !== nodeId));
               props.onNodeDeleted?.(nodeId);
             }}
             onNodeAddChild={nodeId => {
@@ -459,8 +470,7 @@ export const FlowChart: Component<Props> = props => {
                 to: newNodeId,
               };
 
-              setEdges(curr => [...curr, newEdge]);
-              setNodes(curr => [...curr, newNode]);
+              // setEdges(curr => [...curr, newEdge]);
               props.onNodeAdded?.(newNode);
               props.onEdgeAdded?.(newEdge);
 
@@ -499,45 +509,46 @@ export const FlowChart: Component<Props> = props => {
                 to: newNodeId,
               };
 
-              setEdges(curr => [...curr, newEdge]);
-              setNodes(curr => [...curr, newNode]);
+              // setEdges(curr => [...curr, newEdge]);
               props.onNodeAdded?.(newNode);
               props.onEdgeAdded?.(newEdge);
 
               return newNodeId;
             }}
-            onOutputMouseDown={(nodeIndex, outputIndex) => {
+            onOutputMouseDown={nodeIndex => {
               const nodePosition = nodesPositions()[nodeIndex];
               const outputOffset = nodesOffsets[nodeIndex].output;
+              const from = nodesData[nodeIndex].id;
               setNewEdge({
-                position: {
-                  x0: nodePosition.x + outputOffset.x,
-                  y0: nodePosition.y + outputOffset.y,
-                  x1: nodePosition.x + outputOffset.x,
-                  y1: nodePosition.y + outputOffset.y,
-                },
-                sourceNode: nodeIndex,
-                sourceOutput: outputIndex,
+                x0: nodePosition.x + outputOffset.x,
+                y0: nodePosition.y + outputOffset.y,
+                x1: nodePosition.x + outputOffset.x,
+                y1: nodePosition.y + outputOffset.y,
+
+                from,
               });
             }}
             onInputMouseUp={nodeIndex => {
-              if (newEdge()?.sourceNode === nodeIndex) {
+              const _newEdge = newEdge();
+              if (!_newEdge) return;
+              const index = nodes().findIndex(
+                node => node.id === _newEdge.from,
+              );
+              if (index === -1) return;
+              if (index === nodeIndex) {
                 setNewEdge();
                 return;
               }
 
               const outputEdges: string[] = JSON.parse(
-                JSON.stringify(
-                  nodesData[newEdge()?.sourceNode || 0].edgesOut,
-                ),
+                JSON.stringify(nodesData[index].edgesOut),
               );
               const inputEdges: string[] = JSON.parse(
                 JSON.stringify(nodesData[nodeIndex].edgesIn),
               );
 
               if (!newEdge()) return;
-              const sourceNodeId =
-                nodesData[newEdge()?.sourceNode || 0].id;
+              const sourceNodeId = nodesData[index].id;
               const targetNodeId = nodesData[nodeIndex].id;
 
               const edgeId = buildEdgeId(sourceNodeId, targetNodeId);
@@ -555,11 +566,11 @@ export const FlowChart: Component<Props> = props => {
 
                     next[edgeId] = {
                       x0:
-                        nodesPositions()[newEdge()?.sourceNode || 0].x +
-                        nodesOffsets[newEdge()?.sourceNode || 0].output.x,
+                        nodesPositions()[index].x +
+                        nodesOffsets[index].output.x,
                       y0:
-                        nodesPositions()[newEdge()?.sourceNode || 0].y +
-                        nodesOffsets[newEdge()?.sourceNode || 0].output.y,
+                        nodesPositions()[index].y +
+                        nodesOffsets[index].output.y,
                       x1: nodesPositions()[nodeIndex].x + input.x,
                       y1: nodesPositions()[nodeIndex].y + input.y,
                     };
@@ -570,7 +581,7 @@ export const FlowChart: Component<Props> = props => {
 
                 setNodesData(
                   produce(data => {
-                    data[newEdge()?.sourceNode || 0].edgesOut.push(edgeId);
+                    data[index].edgesOut.push(edgeId);
                     data[nodeIndex].edgesIn.push(edgeId);
                   }),
                 );
@@ -589,7 +600,7 @@ export const FlowChart: Component<Props> = props => {
                   }
                 }
 
-                setEdges(activeEdges);
+                // setEdges(activeEdges);
 
                 if (
                   props.onEdgeAdded &&
@@ -609,14 +620,9 @@ export const FlowChart: Component<Props> = props => {
               const edge = newEdge();
               if (edge)
                 setNewEdge({
-                  position: {
-                    x0: edge.position?.x0 || 0,
-                    y0: edge.position?.y0 || 0,
-                    x1: x,
-                    y1: y,
-                  },
-                  sourceNode: edge.sourceNode || 0,
-                  sourceOutput: edge.sourceOutput || 0,
+                  ...edge,
+                  x1: x,
+                  y1: y,
                 });
             }}
             measureNodes={setMeasures}
@@ -667,7 +673,7 @@ export const FlowChart: Component<Props> = props => {
                 e => !activeEdges.some(({ id }) => id === e.id),
               )?.id;
 
-              setEdges(activeEdges);
+              // setEdges(activeEdges);
               if (deletedEdgeId) props.onEdgeDeleted?.(deletedEdgeId);
             }}
           />

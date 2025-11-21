@@ -51,6 +51,14 @@ export type EdgeJSON = Extremities;
 
 export const edgeJSON = extremities;
 
+export type EdgeVector = {
+  from: string;
+  x0: number;
+  y0: number;
+  x1: number;
+  y1: number;
+};
+
 export const dimensions = typings.any({
   width: 'number',
   height: 'number',

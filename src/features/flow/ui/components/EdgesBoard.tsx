@@ -1,4 +1,5 @@
 import { Component, createEffect, createSignal, For } from 'solid-js';
+import type { EdgeVector } from '../services/main.types';
 import EdgeComponent from './EdgeComponent';
 
 interface Vector {
@@ -16,18 +17,12 @@ interface EdgesActive {
   [id: string]: boolean;
 }
 
-interface Props {
-  newEdge:
-    | {
-        position: Vector;
-        sourceNode: number;
-        sourceOutput: number;
-      }
-    | undefined;
+type Props = {
+  newEdge?: EdgeVector;
   edgesActives: EdgesActive;
   edgesPositions: EdgesPositions;
   onDeleteEdge: (edgeId: string) => void;
-}
+};
 
 const EdgesBoard: Component<Props> = props => {
   const [ids, setIds] = createSignal<string[]>([]);
@@ -46,12 +41,10 @@ const EdgesBoard: Component<Props> = props => {
         <EdgeComponent
           id='__#new-edge#__TEMP'
           isNew={true}
-          position={{
-            x0: props.newEdge.position.x0,
-            y0: props.newEdge.position.y0,
-            x1: props.newEdge.position.x1,
-            y1: props.newEdge.position.y1,
-          }}
+          x0={props.newEdge.x0}
+          y0={props.newEdge.y0}
+          x1={props.newEdge.x1}
+          y1={props.newEdge.y1}
           onClickDelete={() => {}}
           onClickEdge={() => {}}
           onClickOutside={() => {}}
@@ -63,12 +56,10 @@ const EdgesBoard: Component<Props> = props => {
             <EdgeComponent
               id={edgeId}
               isNew={false}
-              position={{
-                x0: props.edgesPositions[edgeId]?.x0 || 0,
-                y0: props.edgesPositions[edgeId]?.y0 || 0,
-                x1: props.edgesPositions[edgeId]?.x1 || 0,
-                y1: props.edgesPositions[edgeId]?.y1 || 0,
-              }}
+              x0={props.edgesPositions[edgeId]?.x0 || 0}
+              y0={props.edgesPositions[edgeId]?.y0 || 0}
+              x1={props.edgesPositions[edgeId]?.x1 || 0}
+              y1={props.edgesPositions[edgeId]?.y1 || 0}
               onClickDelete={() => {
                 props.onDeleteEdge(edgeId);
               }}

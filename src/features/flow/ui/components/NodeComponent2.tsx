@@ -1,9 +1,10 @@
 /* eslint-disable @typescript-eslint/no-namespace */
+import { createDraggable } from '@thisbeyond/solid-dnd';
 import { Component, createSignal, onMount, Show } from 'solid-js';
 import { produce } from 'solid-js/store';
 import type { PropsOf } from '~/globals/ui/types';
 import { useFlowContext } from './FlowChart.context';
-import { createDroppable, createDraggable } from '@thisbeyond/solid-dnd';
+import { dimensions } from '../services/main.types';
 
 declare module 'solid-js' {
   namespace JSX {
@@ -29,7 +30,7 @@ export const NodeComponent2: Component<Props> = props => {
   let outputRef: HTMLDivElement | undefined;
   const [ref, setRef] = createSignal<HTMLDivElement>();
   const {
-    dimensions: [, setDimensions],
+    dimensions: [dimensions, setDimensions],
     newEdge: [newEdge, setNewEdge],
     board: [board],
     service,
@@ -74,7 +75,6 @@ export const NodeComponent2: Component<Props> = props => {
 
   return (
     <div
-      use:draggable
       ref={setRef}
       class='flex flex-col absolute cursor-grab bg-white rounded-md shadow-[1px_1px_11px_-6px_rgba(0,0,0,0.75)] select-none transition-[border,box-shadow] duration-200 ease-in-out hover:shadow-[2px_2px_12px_-6px_rgba(0,0,0,0.75)] draggable'
       classList={{
@@ -82,25 +82,14 @@ export const NodeComponent2: Component<Props> = props => {
         'border border-[#e6d4be] z-[1]': !selected(),
       }}
       style={{
-        transform: `translate(${props.x}px, ${props.y}px)`,
+        top: props.y + 'px',
+        left: props.x + 'px',
       }}
       onMouseDown={e => {
         e.stopPropagation();
-        (props.onMouseDown as any)?.(e);
         service.send({ type: 'SELECT', payload: props.id });
       }}
-      onMouseMove={({ x, y }) => {
-        const _board = board();
-        if (selected() && _board)
-          service.send({
-            type: 'MOVE',
-            payload: {
-              id: props.id,
-              x: x - props.x - _board.x,
-              y: y - props.y - _board.y,
-            },
-          });
-      }}
+      use:draggable
     >
       <div
         class='pointer-events-none absolute flex items-center justify-end -top-[30px] right-0 transition-all duration-200 ease-in-out space-x-2'
@@ -203,11 +192,13 @@ export const NodeComponent2: Component<Props> = props => {
           class='cursor-crosshair bg-[#e38b29] w-3 h-3 rounded-full my-3 shadow-[1px_1px_11px_-6px_rgba(0,0,0,0.75)] pointer-events-all'
           onMouseDown={event => {
             event.stopPropagation();
+            service.send('DESELECT');
             const _board = board();
+            const output = dimensions()[props.id].output;
             if (_board)
               setNewEdge({
-                x0: event.x - _board.x,
-                y0: event.y - _board.y,
+                x0: output.x - _board.x + 6,
+                y0: output.y - _board.y + 6,
                 x1: event.x - _board.x,
                 y1: event.y - _board.y,
                 from: props.id,

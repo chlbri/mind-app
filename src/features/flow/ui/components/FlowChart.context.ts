@@ -10,7 +10,7 @@ type Dimensions = {
   input?: Point;
 };
 
-type Edge = {
+export type Edge = {
   from: string;
   x0: number;
   y0: number;

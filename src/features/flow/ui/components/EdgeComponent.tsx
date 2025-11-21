@@ -1,27 +1,25 @@
 import { Component, createEffect, createSignal, Show } from 'solid-js';
 import { clickOutside } from '~ui/directives';
 import { useFlowContext } from './FlowChart.context';
+import type { Vector } from '../services/main.types';
 
-interface Props {
+export type EdgeProps = Vector & {
   id: string;
   isNew: boolean;
-  position: { x0: number; y0: number; x1: number; y1: number };
   onClickEdge: () => void;
   onClickDelete: () => void;
   onClickOutside: () => void;
-}
+};
 
-const EdgeComponent: Component<Props> = props => {
+const EdgeComponent: Component<EdgeProps> = props => {
   const [middlePoint, setMiddlePoint] = createSignal({
-    x: props.position.x0 + (props.position.x1 - props.position.x0) / 2,
-    y: props.position.y0 + (props.position.y1 - props.position.y0) / 2,
+    x: props.x0 + (props.x1 - props.x0) / 2,
+    y: props.y0 + (props.y1 - props.y0) / 2,
   });
 
   createEffect(() => {
-    const middleX =
-      props.position.x0 + (props.position.x1 - props.position.x0) / 2;
-    const middleY =
-      props.position.y0 + (props.position.y1 - props.position.y0) / 2;
+    const middleX = props.x0 + (props.x1 - props.x0) / 2;
+    const middleY = props.y0 + (props.y1 - props.y0) / 2;
     setMiddlePoint({
       x: middleX,
       y: middleY,
@@ -51,13 +49,11 @@ const EdgeComponent: Component<Props> = props => {
             !selected() && !props.isNew,
         }}
         style='pointer-events: all;'
-        d={`M ${props.position.x0} ${props.position.y0} C ${
-          props.position.x0 +
-          calculateOffset(Math.abs(props.position.x1 - props.position.x0))
-        } ${props.position.y0}, ${
-          props.position.x1 -
-          calculateOffset(Math.abs(props.position.x1 - props.position.x0))
-        } ${props.position.y1}, ${props.position.x1} ${props.position.y1}`}
+        d={`M ${props.x0} ${props.y0} C ${
+          props.x0 + calculateOffset(Math.abs(props.x1 - props.x0))
+        } ${props.y0}, ${
+          props.x1 - calculateOffset(Math.abs(props.x1 - props.x0))
+        } ${props.y1}, ${props.x1} ${props.y1}`}
         onClick={() => {
           service.send({ type: 'SELECT', payload: props.id });
         }}
