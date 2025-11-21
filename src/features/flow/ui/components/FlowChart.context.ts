@@ -27,6 +27,7 @@ export const FlowContext = createContext(
       },
     ),
     newEdge: createSignal<Edge>(),
+    board: createSignal<Point>(),
     edgesPositions: createSignal<Record<string, Vector>>(
       {},
       {

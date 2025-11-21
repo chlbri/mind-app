@@ -4,7 +4,6 @@ import { useFlowContext } from './FlowChart.context';
 
 interface Props {
   id: string;
-  selected: boolean;
   isNew: boolean;
   position: { x0: number; y0: number; x1: number; y1: number };
   onClickEdge: () => void;
@@ -38,6 +37,8 @@ const EdgeComponent: Component<Props> = props => {
     return (value * 100) / 200;
   }
 
+  const selected = service.context(ctx => ctx.selected === props.id);
+
   return (
     <>
       <path
@@ -45,9 +46,9 @@ const EdgeComponent: Component<Props> = props => {
         classList={{
           'stroke-[rgba(168,168,168,0.4)] stroke-3': props.isNew,
           'stroke-[rgba(168,168,168,1)] stroke-4 z-100':
-            props.selected && !props.isNew,
+            selected() && !props.isNew,
           'stroke-[rgba(168,168,168,0.8)] stroke-3':
-            !props.selected && !props.isNew,
+            !selected() && !props.isNew,
         }}
         style='pointer-events: all;'
         d={`M ${props.position.x0} ${props.position.y0} C ${
@@ -58,12 +59,11 @@ const EdgeComponent: Component<Props> = props => {
           calculateOffset(Math.abs(props.position.x1 - props.position.x0))
         } ${props.position.y1}, ${props.position.x1} ${props.position.y1}`}
         onClick={() => {
-          props.onClickEdge();
           service.send({ type: 'SELECT', payload: props.id });
         }}
         use:clickOutside={() => props.onClickOutside()}
       />
-      <Show when={props.selected}>
+      <Show when={selected()}>
         <g
           cursor='pointer'
           transform={`translate(${middlePoint().x}, ${middlePoint().y})`}

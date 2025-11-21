@@ -15,55 +15,43 @@ export const machine = createMachine(
         on: {
           CONFIGURE: {
             actions: ['configure'],
-            target: '/intialization',
+            target: '/working',
           },
-          CONFIGURE_EMPTY: '/intialization',
+          CONFIGURE_EMPTY: '/working',
         },
       },
-      intialization: {
-        tags: ['busy'],
-        always: {
-          actions: [
-            {
-              name: 'buildUI',
-              description: 'Must be in the ui',
-            },
-          ],
-          target: '/working',
-        },
-      },
+
       working: {
         exit: ['buildArrays'],
         on: {
           MOVE: {
-            actions: ['moveNode'],
-            target: '/intialization',
+            actions: ['moveNode', 'buildArrays', 'buildUI'],
           },
 
           ADD_CHILD: {
             actions: [
               { name: 'placeChild', description: 'Must be in the ui' },
               'linkChild',
+              'buildArrays',
+              'buildUI',
             ],
-            target: '/intialization',
           },
 
           ADD_SIBLING: {
             actions: [
               { name: 'placeSibling', description: 'Must be in the ui' },
               'linkSibling',
+              'buildArrays',
+              'buildUI',
             ],
-            target: '/intialization',
           },
 
           ADD_EDGE: {
-            actions: ['addEdge'],
-            target: '/intialization',
+            actions: ['addEdge', 'buildArrays', 'buildUI'],
           },
 
           DELETE: {
-            actions: ['delete'],
-            target: '/intialization',
+            actions: ['delete', 'buildArrays', 'buildUI'],
           },
 
           SELECT: {
@@ -128,7 +116,6 @@ export const machine = createMachine(
 
     buildArrays: batch(
       assign('pContext.nodes', ({ context: { data } }) => {
-        console.log('data nodes', data?.nodes);
         return Object.entries({ ...data?.nodes }).map(([id, node]) => ({
           ...node,
           id,
@@ -163,7 +150,8 @@ export const machine = createMachine(
         pContext: { nodes, edges },
       }) => {
         const out = { ...data?.edges };
-        const from = edges!.find(({ to }) => to === payload)!.from;
+        const from = edges?.find(({ to }) => to === payload)?.from;
+        if (!from) return out;
         const id = buildEdgeId(from, `node-${nodes?.length}`);
 
         out[id] = {

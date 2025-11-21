@@ -44,6 +44,7 @@
     "@tailwindcss/vite": "^4.1.17",
     "@tanstack/solid-router": "1.133.15",
     "@tanstack/solid-start": "1.133.15",
+    "@thisbeyond/solid-dnd": "^0.7.5",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "color": "^5.0.3",

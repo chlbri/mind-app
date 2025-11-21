@@ -1,20 +1,21 @@
 /* eslint-disable @typescript-eslint/no-namespace */
 import { Component, createSignal, onMount, Show } from 'solid-js';
 import { produce } from 'solid-js/store';
-import { clickOutside } from '~ui/directives';
-import type { Point } from '../services/main.types';
+import type { PropsOf } from '~/globals/ui/types';
 import { useFlowContext } from './FlowChart.context';
+import { createDroppable, createDraggable } from '@thisbeyond/solid-dnd';
 
 declare module 'solid-js' {
   namespace JSX {
     interface Directives {
       // use:model
       clickOutside: () => void;
+      draggable: any;
     }
   }
 }
 
-type Props = {
+type Props = PropsOf<'div', 'onMouseDown'> & {
   id: string;
   x: number;
   y: number;
@@ -30,12 +31,11 @@ export const NodeComponent2: Component<Props> = props => {
   const {
     dimensions: [, setDimensions],
     newEdge: [newEdge, setNewEdge],
+    board: [board],
     service,
   } = useFlowContext();
 
-  const selected = service.context(
-    ctx => !!ctx.selected && ctx.selected === props.id,
-  );
+  const selected = service.context(ctx => ctx.selected === props.id);
 
   onMount(() => {
     const input = inputRef
@@ -63,35 +63,43 @@ export const NodeComponent2: Component<Props> = props => {
     );
   });
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-expressions
-  clickOutside;
+  const hasParent = service.context(ctx => {
+    const edges = ctx.data?.edges;
+    if (!edges) return false;
+    return Object.values(edges).some(edge => edge.to === props.id);
+  });
 
-  const [mouse, moveMouve] = createSignal<Point>({ x: 0, y: 0 });
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const draggable = createDraggable(props.id);
 
   return (
     <div
+      use:draggable
       ref={setRef}
-      class='flex flex-col absolute cursor-grab bg-white rounded-md shadow-[1px_1px_11px_-6px_rgba(0,0,0,0.75)] select-none transition-[border,box-shadow] duration-200 ease-in-out hover:shadow-[2px_2px_12px_-6px_rgba(0,0,0,0.75)]'
+      class='flex flex-col absolute cursor-grab bg-white rounded-md shadow-[1px_1px_11px_-6px_rgba(0,0,0,0.75)] select-none transition-[border,box-shadow] duration-200 ease-in-out hover:shadow-[2px_2px_12px_-6px_rgba(0,0,0,0.75)] draggable'
       classList={{
         'border border-[#e38c29] z-[100]': selected(),
         'border border-[#e6d4be] z-[1]': !selected(),
       }}
-      style={{ transform: `translate(${props.x}px, ${props.y}px)` }}
+      style={{
+        transform: `translate(${props.x}px, ${props.y}px)`,
+      }}
       onMouseDown={e => {
+        e.stopPropagation();
+        (props.onMouseDown as any)?.(e);
         service.send({ type: 'SELECT', payload: props.id });
-        moveMouve({ x: e.x, y: e.y });
       }}
-      onMouseUp={({ x, y }) => {
-        const check = mouse().x === x && mouse().y === y;
-        if (check) return;
-
-        return service.send({
-          type: 'MOVE',
-          payload: { id: props.id, x, y },
-        });
-      }}
-      use:clickOutside={() => {
-        service.send('DESELECT');
+      onMouseMove={({ x, y }) => {
+        const _board = board();
+        if (selected() && _board)
+          service.send({
+            type: 'MOVE',
+            payload: {
+              id: props.id,
+              x: x - props.x - _board.x,
+              y: y - props.y - _board.y,
+            },
+          });
       }}
     >
       <div
@@ -115,7 +123,7 @@ export const NodeComponent2: Component<Props> = props => {
         >
           <path d='M12 4c-4.419 0-8 3.582-8 8s3.581 8 8 8 8-3.582 8-8-3.581-8-8-8zm3.707 10.293a.999.999 0 11-1.414 1.414L12 13.414l-2.293 2.293a.997.997 0 01-1.414 0 .999.999 0 010-1.414L10.586 12 8.293 9.707a.999.999 0 111.414-1.414L12 10.586l2.293-2.293a.999.999 0 111.414 1.414L13.414 12l2.293 2.293z' />
         </svg>
-        <Show when={props.input}>
+        <Show when={hasParent()}>
           <svg
             class='size-6 bg-green-500 rounded-full p-0.5 hover:bg-green-600 font-bold text-center cursor-pointer overflow-visible'
             style='pointer-events: all; fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;'
@@ -163,7 +171,7 @@ export const NodeComponent2: Component<Props> = props => {
         {content => <div class='p-3 select-none'>{content}</div>}
       </Show>
       <Show when={props.input}>
-        <div class='pointer-events-none cursor-default -z-[3] absolute top-0 -left-[18px] flex flex-col my-3'>
+        <div class='pointer-events-none cursor-default -z-3 absolute top-0 -left-[18px] flex flex-col'>
           <div
             ref={inputRef}
             class='cursor-default bg-[#e38b29] w-3 h-3 rounded-full my-3 shadow-[1px_1px_11px_-6px_rgba(0,0,0,0.75)] pointer-events-all'
@@ -188,20 +196,22 @@ export const NodeComponent2: Component<Props> = props => {
       </Show>
       <div
         id='outputs'
-        class='pointer-events-none -z-[3] absolute top-0 -right-[18px] flex flex-col my-3'
+        class='pointer-events-none -z-3 absolute top-0 -right-[18px] flex flex-col'
       >
         <div
           ref={outputRef}
           class='cursor-crosshair bg-[#e38b29] w-3 h-3 rounded-full my-3 shadow-[1px_1px_11px_-6px_rgba(0,0,0,0.75)] pointer-events-all'
           onMouseDown={event => {
             event.stopPropagation();
-            setNewEdge({
-              x0: event.x,
-              y0: event.y,
-              x1: event.x,
-              y1: event.y,
-              from: props.id,
-            });
+            const _board = board();
+            if (_board)
+              setNewEdge({
+                x0: event.x - _board.x,
+                y0: event.y - _board.y,
+                x1: event.x - _board.x,
+                y1: event.y - _board.y,
+                from: props.id,
+              });
           }}
         ></div>
       </div>

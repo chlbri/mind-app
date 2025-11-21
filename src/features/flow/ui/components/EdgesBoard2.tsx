@@ -30,16 +30,14 @@ const EdgesBoard2: Component = () => {
   return (
     <svg class='pointer-events-none absolute top-0 w-full h-full'>
       <Show when={newEdge()}>
-        {value => (
-          <EdgeComponent2
-            id='__#new-edge#__TEMP'
-            isNew={true}
-            x0={value().x0}
-            y0={value().y0}
-            x1={value().x1}
-            y1={value().y1}
-          />
-        )}
+        <EdgeComponent2
+          id='__#new-edge#__TEMP'
+          isNew={true}
+          x0={newEdge()!.x0}
+          y0={newEdge()!.y0}
+          x1={newEdge()!.x1}
+          y1={newEdge()!.y1}
+        />
       </Show>
 
       <For each={ids()}>
@@ -48,7 +46,10 @@ const EdgesBoard2: Component = () => {
             <EdgeComponent2
               id={edgeId}
               isNew={false}
-              {...edgesPositions()[edgeId]}
+              x0={edgesPositions()[edgeId]?.x0 || 0}
+              y0={edgesPositions()[edgeId]?.y0 || 0}
+              x1={edgesPositions()[edgeId]?.x1 || 0}
+              y1={edgesPositions()[edgeId]?.y1 || 0}
             />
           );
         }}

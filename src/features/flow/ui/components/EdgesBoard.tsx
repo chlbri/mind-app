@@ -40,16 +40,11 @@ const EdgesBoard: Component<Props> = props => {
     setIds(newIds);
   });
 
-  createEffect(() => {
-    if (selected() && props.newEdge) setSelected();
-  });
-
   return (
     <svg class='pointer-events-none absolute top-0 w-full h-full'>
       {props.newEdge && (
         <EdgeComponent
           id='__#new-edge#__TEMP'
-          selected={false}
           isNew={true}
           position={{
             x0: props.newEdge.position.x0,
@@ -66,7 +61,6 @@ const EdgesBoard: Component<Props> = props => {
         {edgeId => {
           return (
             <EdgeComponent
-              selected={edgeId === selected()}
               id={edgeId}
               isNew={false}
               position={{

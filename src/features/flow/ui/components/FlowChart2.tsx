@@ -1,7 +1,5 @@
 import type { inferT } from '@bemedev/app-ts/lib/utils/typings';
-import { dequal } from 'dequal';
 import { Component, createEffect, onMount } from 'solid-js';
-import { produce } from 'solid-js/store';
 import type { edgeJSON, nodeJSON } from '../services/main.types';
 import EdgesBoard2 from './EdgesBoard2';
 import { useFlowContext } from './FlowChart.context';
@@ -46,7 +44,7 @@ export const FlowChart2: Component<Props> = props => {
     dimensions: [dimensions],
     service,
     newEdge: [newEdge, setNewEdge],
-    edgesPositions: [, setEdgesPositions],
+    board: [board],
   } = useFlowContext();
 
   service.send({
@@ -58,36 +56,12 @@ export const FlowChart2: Component<Props> = props => {
   });
 
   createEffect(() => {
-    console.log('nodes', service.select('context.data.nodes', dequal)());
-    console.log('edges', service.select('context.data.edges', dequal)());
+    // console.log('nodes', service.select('context.data.nodes', dequal)());
+    // console.log('edges', edgesPositions());
+    // console.log('selected', service.select('context.selected')());
   });
 
   onMount(() => {
-    const _edges = service.context(({ data }) => {
-      const edges = { ...data?.edges };
-      const entries = Object.entries(edges);
-      const out2 = entries.map(([id, edge]) => ({
-        ...edge,
-        id,
-      }));
-      return out2;
-    });
-    setEdgesPositions(
-      produce(next => {
-        const nodes = service.select('context.data.nodes', dequal)();
-        _edges().forEach(({ from, id, to }) => {
-          const output = dimensions()[from].output;
-          const input = dimensions()[to].input;
-          if (input)
-            next[id] = {
-              x0: nodes[from].position.x + output.x,
-              y0: nodes[from].position.y + output.y,
-              x1: nodes[to].position.x + input.x,
-              y1: nodes[to].position.y + input.y,
-            };
-        });
-      }),
-    );
     service.addOptions(({ assign }) => ({
       actions: {
         placeChild: assign('context.data.nodes', {
@@ -98,7 +72,6 @@ export const FlowChart2: Component<Props> = props => {
           }) => {
             const out = { ...data?.nodes };
             const parentNode = out[payload];
-            console.log('out', '=>', out);
             const id = `node-${nodes?.length}`;
             const width = dimensions()[payload].width;
 
@@ -123,9 +96,11 @@ export const FlowChart2: Component<Props> = props => {
           }) => {
             const out = { ...data?.nodes };
 
-            const parentID = edges!.find(
+            const parentID = edges?.find(
               edge => edge.to === payload,
-            )!.from;
+            )?.from;
+
+            if (!parentID) return out;
 
             const parentNode = out[parentID];
             const id = `node-${nodes?.length}`;
@@ -157,11 +132,12 @@ export const FlowChart2: Component<Props> = props => {
       }}
       onMouseMove={({ x, y }) => {
         const edge = newEdge();
-        if (edge)
+        const _board = board();
+        if (edge && _board)
           setNewEdge({
             ...edge,
-            x1: x,
-            y1: y,
+            x1: x - _board.x,
+            y1: y - _board.y,
           });
       }}
     >

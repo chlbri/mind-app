@@ -1,5 +1,4 @@
 import { Component, createEffect, createSignal, Show } from 'solid-js';
-import { clickOutside } from '~ui/directives';
 import { useFlowContext } from './FlowChart.context';
 import type { Vector } from '../services/main.types';
 
@@ -26,9 +25,6 @@ export const EdgeComponent2: Component<Props> = props => {
   const { service } = useFlowContext();
   const selected = service.context(ctx => ctx.selected === props.id);
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-expressions
-  clickOutside;
-
   function calculateOffset(value: number) {
     return (value * 100) / 200;
   }
@@ -50,10 +46,10 @@ export const EdgeComponent2: Component<Props> = props => {
         } ${props.y0}, ${
           props.x1 - calculateOffset(Math.abs(props.x1 - props.x0))
         } ${props.y1}, ${props.x1} ${props.y1}`}
-        onClick={() => {
+        onClick={e => {
+          e.stopPropagation();
           service.send({ type: 'SELECT', payload: props.id });
         }}
-        use:clickOutside={() => service.send('DESELECT')}
       />
       <Show when={selected()}>
         <g
