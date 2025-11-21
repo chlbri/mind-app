@@ -1,80 +1,47 @@
-import { Component, createEffect, createSignal, For } from 'solid-js';
-import type { EdgeVector } from '../services/main.types';
-import EdgeComponent from './EdgeComponent';
+import {
+  Component,
+  createEffect,
+  createMemo,
+  createSignal,
+  For,
+  Show,
+} from 'solid-js';
+import { EdgeComponent } from './EdgeComponent';
+import { useFlowContext } from './FlowChart.context';
 
-interface Vector {
-  x0: number;
-  y0: number;
-  x1: number;
-  y1: number;
-}
-
-interface EdgesPositions {
-  [id: string]: Vector;
-}
-
-interface EdgesActive {
-  [id: string]: boolean;
-}
-
-type Props = {
-  newEdge?: EdgeVector;
-  edgesActives: EdgesActive;
-  edgesPositions: EdgesPositions;
-  onDeleteEdge: (edgeId: string) => void;
-};
-
-const EdgesBoard: Component<Props> = props => {
-  const [ids, setIds] = createSignal<string[]>([]);
+export const EdgesBoard: Component = () => {
   const [selected, setSelected] = createSignal<string>();
 
+  const {
+    newEdge: [newEdge],
+    edgesPositions: [edgesPositions],
+  } = useFlowContext();
+
+  const datas = createMemo(() => {
+    const entries = Object.entries(edgesPositions());
+    return entries.map(([id, vector]) => ({ id, ...vector }));
+  });
+
   createEffect(() => {
-    const newIds = Object.keys(props.edgesActives).filter(
-      elem => props.edgesActives[elem],
-    );
-    setIds(newIds);
+    if (selected() && newEdge()) setSelected();
   });
 
   return (
     <svg class='pointer-events-none absolute top-0 w-full h-full'>
-      {props.newEdge && (
-        <EdgeComponent
-          id='__#new-edge#__TEMP'
-          isNew={true}
-          x0={props.newEdge.x0}
-          y0={props.newEdge.y0}
-          x1={props.newEdge.x1}
-          y1={props.newEdge.y1}
-          onClickDelete={() => {}}
-          onClickEdge={() => {}}
-          onClickOutside={() => {}}
-        />
-      )}
-      <For each={ids()}>
-        {edgeId => {
-          return (
-            <EdgeComponent
-              id={edgeId}
-              isNew={false}
-              x0={props.edgesPositions[edgeId]?.x0 || 0}
-              y0={props.edgesPositions[edgeId]?.y0 || 0}
-              x1={props.edgesPositions[edgeId]?.x1 || 0}
-              y1={props.edgesPositions[edgeId]?.y1 || 0}
-              onClickDelete={() => {
-                props.onDeleteEdge(edgeId);
-              }}
-              onClickEdge={() => {
-                setSelected(edgeId);
-              }}
-              onClickOutside={() => {
-                if (selected() === edgeId) setSelected();
-              }}
-            />
-          );
-        }}
-      </For>
+      <Show when={newEdge()}>
+        {value => (
+          <EdgeComponent
+            id='__#new-edge#__TEMP'
+            isNew
+            x0={value().x0}
+            y0={value().y0}
+            x1={value().x1}
+            y1={value().y1}
+          />
+        )}
+      </Show>
+
+      <For each={datas()} children={EdgeComponent} />
     </svg>
   );
 };
-
-export default EdgesBoard;

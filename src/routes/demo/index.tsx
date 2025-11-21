@@ -1,7 +1,7 @@
 import { createFileRoute } from '@tanstack/solid-router';
 import { produce } from 'solid-js/store';
 import { FlowContext } from '~/features/flow/ui/components/FlowChart.context';
-import { FlowChart2 } from '~/features/flow/ui/components/FlowChart2';
+import { FlowChart } from '~/features/flow/ui/components/FlowChart';
 
 export const Route = createFileRoute('/demo/')({
   component: () => {
@@ -156,7 +156,7 @@ export const Route = createFileRoute('/demo/')({
         <FlowContext.Provider
           value={{ ...FlowContext.defaultValue, service }}
         >
-          <FlowChart2 />
+          <FlowChart />
         </FlowContext.Provider>
       </div>
     );

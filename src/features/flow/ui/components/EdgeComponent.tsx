@@ -1,21 +1,19 @@
 import { Component, createEffect, createSignal, Show } from 'solid-js';
-import { clickOutside } from '~ui/directives';
-import { useFlowContext } from './FlowChart.context';
 import type { Vector } from '../services/main.types';
+import { useFlowContext } from './FlowChart.context';
 
-export type EdgeProps = Vector & {
+type Props = {
   id: string;
-  isNew: boolean;
-  onClickEdge: () => void;
-  onClickDelete: () => void;
-  onClickOutside: () => void;
-};
+  isNew?: boolean;
+} & Vector;
 
-const EdgeComponent: Component<EdgeProps> = props => {
+export const EdgeComponent: Component<Props> = props => {
   const [middlePoint, setMiddlePoint] = createSignal({
     x: props.x0 + (props.x1 - props.x0) / 2,
     y: props.y0 + (props.y1 - props.y0) / 2,
   });
+
+  const { service } = useFlowContext();
 
   createEffect(() => {
     const middleX = props.x0 + (props.x1 - props.x0) / 2;
@@ -26,23 +24,18 @@ const EdgeComponent: Component<EdgeProps> = props => {
     });
   });
 
-  const { service } = useFlowContext();
-
-  // eslint-disable-next-line @typescript-eslint/no-unused-expressions
-  clickOutside;
+  const selected = service.context(ctx => ctx.selected === props.id);
 
   function calculateOffset(value: number) {
     return (value * 100) / 200;
   }
 
-  const selected = service.context(ctx => ctx.selected === props.id);
-
   return (
     <>
       <path
-        class='fill-transparent cursor-pointer'
+        class='fill-transparent cursor-pointer relative'
         classList={{
-          'stroke-[rgba(168,168,168,0.4)] stroke-3': props.isNew,
+          'stroke-[rgba(168,168,168,0.4)] stroke-3': !!props.isNew,
           'stroke-[rgba(168,168,168,1)] stroke-4 z-100':
             selected() && !props.isNew,
           'stroke-[rgba(168,168,168,0.8)] stroke-3':
@@ -54,17 +47,17 @@ const EdgeComponent: Component<EdgeProps> = props => {
         } ${props.y0}, ${
           props.x1 - calculateOffset(Math.abs(props.x1 - props.x0))
         } ${props.y1}, ${props.x1} ${props.y1}`}
-        onClick={() => {
+        onClick={e => {
+          e.stopPropagation();
           service.send({ type: 'SELECT', payload: props.id });
         }}
-        use:clickOutside={() => props.onClickOutside()}
-      />
+      ></path>
       <Show when={selected()}>
         <g
           cursor='pointer'
           transform={`translate(${middlePoint().x}, ${middlePoint().y})`}
-          onClick={() => {
-            props.onClickDelete();
+          onClick={e => {
+            e.stopPropagation();
             service.send({ type: 'DELETE', payload: props.id });
           }}
           class='pointer-events-all'
@@ -89,5 +82,3 @@ const EdgeComponent: Component<EdgeProps> = props => {
     </>
   );
 };
-
-export default EdgeComponent;
