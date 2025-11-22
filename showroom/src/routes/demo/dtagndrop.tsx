@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-namespace */
 import { createFileRoute } from '@tanstack/solid-router';
 import {
   createDraggable,
@@ -12,6 +13,15 @@ type Props = {
   top: number;
   left: number;
 };
+
+declare module 'solid-js' {
+  namespace JSX {
+    interface Directives {
+      // use:model
+      draggable: any;
+    }
+  }
+}
 
 const Draggable: Component<Props> = props => {
   const draggable = createDraggable(props.id);
