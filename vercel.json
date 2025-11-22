@@ -1,9 +1,5 @@
 {
+  "$schema": "https://openapi.vercel.sh/vercel.json",
   "buildCommand": "pnpm run build:showroom",
-  "outputDirectory": "showroom/.output",
-  "functions": {
-    "showroom/.output/server/index.mjs": {
-      "runtime": "nodejs22.x"
-    }
-  }
+  "outputDirectory": "showroom/.output/public"
 }
