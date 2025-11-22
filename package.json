@@ -45,7 +45,7 @@
   },
   "scripts": {
     "build": "pnpm rm:lib && pnpm run rollup",
-    "build:showroom": "cd showroom && pnpm run build",
+    "build:showroom": "pnpm run build && cd showroom && pnpm run build",
     "ci": "pnpm run config:off && pnpm run lint && pnpm run test && pnpm run prettier && pnpm run p-q",
     "ci:admin": "pnpm run rm && pnpm run upgrade && pnpm run ci",
     "clean": "pnpm run rm && pnpm run config",
