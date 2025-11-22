@@ -21,7 +21,7 @@
       "~features/*": ["./src/features/*"],
       "~signals/*": ["src/globals/ui/signals/*"],
       "#signals": ["src/globals/ui/signals/index.ts"],
-      "#serviceM": ["src/features/flow/services/main.ts"],
+      "#serviceM": ["src/lib/services/main.ts"],
       "~styles/*": ["src/globals/ui/styles/*"],
       "~ui/*": ["src/globals/ui/*"],
       "~constants": ["src/globals/constants/index.ts"],

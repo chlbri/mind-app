@@ -1,6 +1,5 @@
 import { createFileRoute } from '@tanstack/solid-router';
-import { FlowChart } from '~/features/flow/ui/components/FlowChart';
-import { Provider } from '~/features/flow/ui/components/FlowChart.context';
+import { FlowChart, Provider } from '~/lib';
 
 export const Route = createFileRoute('/demo/')({
   component: () => {

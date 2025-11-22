@@ -1,1 +1,0 @@
-export const PARENT_CHILD_GAP_WIDTH = 100;
