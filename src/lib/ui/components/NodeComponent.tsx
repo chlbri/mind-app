@@ -157,7 +157,7 @@ export const NodeComponent: Component<Props> = props => {
         {content => <div class='p-3 select-none'>{content}</div>}
       </Show>
       <Show when={props.input}>
-        <div class='pointer-events-none cursor-default -z-3 absolute top-0 -left-[18px] flex flex-col'>
+        <div class='pointer-events-none cursor-default z-[-3] absolute top-0 -left-[18px] flex flex-col'>
           <div
             ref={inputRef}
             class='cursor-default bg-[#e38b29] w-3 h-3 rounded-full my-3 shadow-[1px_1px_11px_-6px_rgba(0,0,0,0.75)] pointer-events-all'
@@ -182,7 +182,7 @@ export const NodeComponent: Component<Props> = props => {
       </Show>
       <div
         id='outputs'
-        class='pointer-events-none -z-3 absolute top-0 -right-[18px] flex flex-col'
+        class='pointer-events-none z-[-3] absolute top-0 -right-[18px] flex flex-col'
       >
         <div
           ref={outputRef}
