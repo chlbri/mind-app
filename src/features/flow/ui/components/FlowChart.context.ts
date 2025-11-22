@@ -5,10 +5,12 @@ import {
   createSignal,
   onCleanup,
   useContext,
+  type ParentComponent,
 } from 'solid-js';
 import { produce } from 'solid-js/store';
 import { machine } from '../services/main.machine';
 import type { Point, Vector } from '../services/main.types';
+import { PARENT_CHILD_GAP_WIDTH } from './FlowChart.data';
 
 type Dimensions = {
   width: number;
@@ -24,8 +26,6 @@ export type Edge = {
   x1: number;
   y1: number;
 };
-
-const PARENT_CHILD_GAP_WIDTH = 75;
 
 export const buildContext = () => {
   const [dimensions, setDimensions] = createSignal<
@@ -258,12 +258,14 @@ export const buildContext = () => {
     { name: 'FlowContext' },
   );
 
-  onCleanup(() => {
-    service.dispose();
-  });
+  const Provider: ParentComponent = ({ children }) =>
+    context.Provider({ value: context.defaultValue, children });
 
-  return context;
+  const _useContext = () => useContext(context);
+
+  onCleanup(service.dispose);
+
+  return [Provider, _useContext] as const;
 };
 
-export const FlowContext = buildContext();
-export const useFlow = () => useContext(FlowContext);
+export const [Provider, useFlow] = buildContext();
