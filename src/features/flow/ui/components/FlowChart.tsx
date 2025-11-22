@@ -20,7 +20,7 @@ interface Props {
   onEdgeDeleted?: (edgeId: string) => void;
 }
 
-const PARENT_CHILD_GAP_WIDTH = 75;
+// const PARENT_CHILD_GAP_WIDTH = 75;
 
 export const FlowChart: Component<Props> = props => {
   const DEFAULT_NODES: Record<string, NodeProps> = {
@@ -41,7 +41,6 @@ export const FlowChart: Component<Props> = props => {
   const primaryEdges = { ...props.config?.edges };
 
   const {
-    dimensions: [dimensions],
     service,
     newEdge: [newEdge, setNewEdge],
     board: [board],
@@ -61,66 +60,7 @@ export const FlowChart: Component<Props> = props => {
     // console.log('selected', service.select('context.selected')());
   });
 
-  onMount(() => {
-    service.addOptions(({ assign }) => ({
-      actions: {
-        placeChild: assign('context.data.nodes', {
-          ADD_CHILD: ({
-            payload,
-            context: { data },
-            pContext: { nodes },
-          }) => {
-            const out = { ...data?.nodes };
-            const parentNode = out[payload];
-            const id = `node-${nodes?.length}`;
-            const width = dimensions()[payload].width;
-
-            const x =
-              parentNode.position.x + width + PARENT_CHILD_GAP_WIDTH;
-
-            out[id] = {
-              data: { content: '<Nouveau nœud>' },
-              input: true,
-              position: { x, y: parentNode.position.y },
-            };
-
-            return out;
-          },
-        }),
-
-        placeSibling: assign('context.data.nodes', {
-          ADD_SIBLING: ({
-            payload,
-            context: { data },
-            pContext: { nodes, edges },
-          }) => {
-            const out = { ...data?.nodes };
-
-            const parentID = edges?.find(
-              edge => edge.to === payload,
-            )?.from;
-
-            if (!parentID) return out;
-
-            const parentNode = out[parentID];
-            const id = `node-${nodes?.length}`;
-            const width = dimensions()[parentID].width;
-
-            const x =
-              parentNode.position.x + width + PARENT_CHILD_GAP_WIDTH;
-
-            out[id] = {
-              data: { content: '<Nouveau nœud>' },
-              input: true,
-              position: { x, y: parentNode.position.y + 100 },
-            };
-
-            return out;
-          },
-        }),
-      },
-    }));
-  });
+  onMount(() => {});
 
   // EDGE HANDLERS
 

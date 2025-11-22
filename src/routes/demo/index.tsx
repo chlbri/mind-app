@@ -3,6 +3,8 @@ import { produce } from 'solid-js/store';
 import { FlowContext } from '~/features/flow/ui/components/FlowChart.context';
 import { FlowChart } from '~/features/flow/ui/components/FlowChart';
 
+const PARENT_CHILD_GAP_WIDTH = 75;
+
 export const Route = createFileRoute('/demo/')({
   component: () => {
     const service = FlowContext.defaultValue.service;
@@ -14,6 +16,60 @@ export const Route = createFileRoute('/demo/')({
     service.addOptions(({ voidAction, batch, assign }) => ({
       actions: {
         // setDimensions: voidAction(() => {}),
+        placeChild: assign('context.data.nodes', {
+          ADD_CHILD: ({
+            payload,
+            context: { data },
+            pContext: { generatedId },
+          }) => {
+            const out = { ...data?.nodes };
+            const parentNode = out[payload];
+            const id = `node-${generatedId}`;
+            const width = dimensions()[payload].width;
+
+            const x =
+              parentNode.position.x + width + PARENT_CHILD_GAP_WIDTH;
+
+            out[id] = {
+              data: { content: '<Nouveau nœud>' },
+              input: true,
+              position: { x, y: parentNode.position.y },
+            };
+
+            return out;
+          },
+        }),
+
+        placeSibling: assign('context.data.nodes', {
+          ADD_SIBLING: ({
+            payload,
+            context: { data },
+            pContext: { edges, generatedId },
+          }) => {
+            const out = { ...data?.nodes };
+
+            const parentID = edges?.find(
+              edge => edge.to === payload,
+            )?.from;
+
+            if (!parentID) return out;
+
+            const parentNode = out[parentID];
+            const id = `node-${generatedId}`;
+            const width = dimensions()[parentID].width;
+
+            const x =
+              parentNode.position.x + width + PARENT_CHILD_GAP_WIDTH;
+
+            out[id] = {
+              data: { content: '<Nouveau nœud>' },
+              input: true,
+              position: { x, y: parentNode.position.y + 100 },
+            };
+
+            return out;
+          },
+        }),
         buildUI: batch(
           voidAction(({ pContext: { edges } }) => {
             setEdgesPositions(data => {

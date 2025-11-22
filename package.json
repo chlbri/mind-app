@@ -50,6 +50,7 @@
     "color": "^5.0.3",
     "dequal": "^2.0.3",
     "lucide-solid": "^0.554.0",
+    "nanoid": "^5.1.6",
     "nitro": "3.0.1-alpha.1",
     "redaxios": "^0.5.1",
     "solid-flow": "^1.0.4",
@@ -80,8 +81,8 @@
     "@types/node": "^24.10.1",
     "@typescript-eslint/eslint-plugin": "^8.47.0",
     "@typescript-eslint/parser": "^8.47.0",
-    "@vitest/browser-playwright": "4.0.12",
-    "@vitest/coverage-istanbul": "^4.0.12",
+    "@vitest/browser-playwright": "4.0.13",
+    "@vitest/coverage-istanbul": "^4.0.13",
     "combinate": "^1.1.11",
     "eslint": "^9.39.1",
     "glob": "^13.0.0",
@@ -98,7 +99,7 @@
     "vite": "npm:rolldown-vite@^7.2.7",
     "vite-plugin-solid": "^2.11.10",
     "vite-tsconfig-paths": "^5.1.4",
-    "vitest": "4.0.12"
+    "vitest": "4.0.13"
   },
   "overrides": {
     "vite": "npm:rolldown-vite@latest"

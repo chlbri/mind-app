@@ -6,7 +6,7 @@ import {
   Outlet,
   Scripts,
 } from '@tanstack/solid-router';
-import { TanStackRouterDevtools } from '@tanstack/solid-router-devtools';
+
 import seo from '~seo';
 import appCss from '~styles/app.css?url';
 import HeadLinks from '~ui/organisms/HeadLinks';
@@ -35,7 +35,6 @@ export const Route = createRootRoute({
         <main class='p-2 w-full min-h-full text-center'>
           <Outlet />
         </main>
-        <TanStackRouterDevtools position='bottom-left' />
         <Scripts />
       </>
     );

@@ -1,6 +1,7 @@
 import { createMachine, typings } from '@bemedev/app-ts';
 import { SCHEMAS } from './main.machine.gen';
 import { edgeJSON, extremities, nodeJSON, point } from './main.types';
+import { nanoid } from 'nanoid';
 
 export const buildEdgeId = (out: string, _in: string) => {
   return `edge = ${out} => ${_in}`;
@@ -37,6 +38,7 @@ export const machine = createMachine(
 
           ADD_CHILD: {
             actions: [
+              'generateID',
               { name: 'placeChild', description: 'Must be in the ui' },
               'linkChild',
               'buildArrays',
@@ -46,6 +48,7 @@ export const machine = createMachine(
 
           ADD_SIBLING: {
             actions: [
+              'generateID',
               { name: 'placeSibling', description: 'Must be in the ui' },
               'linkSibling',
               'buildArrays',
@@ -98,14 +101,15 @@ export const machine = createMachine(
       DESELECT: 'primitive',
       ADD_EDGE: extremities,
     },
-    pContext: typings.partial({
-      nodes: typings.array(
-        typings.intersection(nodeJSON, { id: 'string' }),
+    pContext: {
+      nodes: typings.maybe(
+        typings.array(typings.intersection(nodeJSON, { id: 'string' })),
       ),
-      edges: typings.array(
-        typings.intersection(edgeJSON, { id: 'string' }),
+      edges: typings.maybe(
+        typings.array(typings.intersection(edgeJSON, { id: 'string' })),
       ),
-    }),
+      generatedId: typings.union('string', 'null'),
+    },
     context: typings.partial({
       data: {
         nodes: typings.record(nodeJSON),
@@ -127,6 +131,7 @@ export const machine = createMachine(
         CONFIGURE: ({ payload: { edges } }) => edges,
       }),
       assign('context.updatingUI', () => false),
+      assign('pContext.generatedId', () => null),
     ),
 
     buildArrays: batch(
@@ -142,16 +147,24 @@ export const machine = createMachine(
           id,
         }));
       }),
+      assign('pContext.generatedId', () => null),
     ),
 
+    generateID: assign('pContext.generatedId', () => nanoid()),
+
     linkChild: assign('context.data.edges', {
-      ADD_CHILD: ({ context: { data }, payload, pContext: { nodes } }) => {
+      ADD_CHILD: ({
+        context: { data },
+        payload,
+        pContext: { generatedId },
+      }) => {
         const out = { ...data?.edges };
-        const id = buildEdgeId(payload, `node-${nodes?.length}`);
+        const nodeID = `node-${generatedId}`;
+        const id = buildEdgeId(payload, nodeID);
 
         out[id] = {
           from: payload,
-          to: `node-${nodes?.length}`,
+          to: nodeID,
         };
 
         return out;
@@ -162,16 +175,17 @@ export const machine = createMachine(
       ADD_SIBLING: ({
         context: { data },
         payload,
-        pContext: { nodes, edges },
+        pContext: { edges, generatedId },
       }) => {
         const out = { ...data?.edges };
         const from = edges?.find(({ to }) => to === payload)?.from;
         if (!from) return out;
-        const id = buildEdgeId(from, `node-${nodes?.length}`);
+        const nodeID = `node-${generatedId}`;
+        const id = buildEdgeId(from, nodeID);
 
         out[id] = {
           from,
-          to: `node-${nodes?.length}`,
+          to: nodeID,
         };
 
         return out;

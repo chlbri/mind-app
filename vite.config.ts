@@ -1,8 +1,8 @@
 import tailwindcss from '@tailwindcss/vite';
 import { tanstackStart } from '@tanstack/solid-start/plugin/vite';
+import { nitro } from 'nitro/vite';
 import { defineConfig } from 'vite';
 import viteSolid from 'vite-plugin-solid';
-import { nitroV2Plugin } from '@tanstack/nitro-v2-vite-plugin';
 import tsConfigPaths from 'vite-tsconfig-paths';
 
 export default defineConfig({
@@ -10,12 +10,13 @@ export default defineConfig({
     port: 3000,
   },
   plugins: [
+    tailwindcss(),
+    tanstackStart({}),
     tsConfigPaths({
       projects: ['./tsconfig.json'],
     }),
-    tanstackStart({}),
-    nitroV2Plugin({}),
     viteSolid({ ssr: true }) as any,
-    tailwindcss(),
+    nitro({}),
   ],
+  nitro: {},
 });
