@@ -12,9 +12,9 @@ export default defineConfig({
   plugins: [
     tailwindcss(),
     tanstackStart({
-      routesDirectory: './showroom/routes',
-      routeTreeFilePattern: './showroom/routeTree.gen.ts',
-      routerDirectory: './showroom',
+      routesDirectory: './routes',
+      routeTreeFilePattern: './routeTree.gen.ts',
+      routerDirectory: './',
     }),
     tsConfigPaths({
       projects: ['./tsconfig.json'],

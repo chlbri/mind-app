@@ -1,0 +1,38 @@
+{
+  "include": ["**/*.ts", "**/*.tsx"],
+  "compilerOptions": {
+    "strict": true,
+    "esModuleInterop": true,
+    "jsx": "preserve",
+    "jsxImportSource": "solid-js",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "lib": ["DOM", "DOM.Iterable", "ES2022"],
+    "types": ["vitest/globals"],
+    "isolatedModules": true,
+    "resolveJsonModule": true,
+    "skipLibCheck": true,
+    "target": "ES2022",
+    "allowJs": true,
+    "forceConsistentCasingInFileNames": true,
+    "baseUrl": ".",
+    "paths": {
+      "~/*": ["../src/*"],
+      "~features/*": ["./features/*"],
+      "~signals/*": ["globals/ui/signals/*"],
+      "#signals": ["globals/ui/signals/index.ts"],
+      "#serviceM": ["../src/services/main.ts"],
+      "~styles/*": ["globals/ui/styles/*"],
+      "~ui/*": ["globals/ui/*"],
+      "~constants": ["globals/constants/index.ts"],
+      "~services/*": ["globals/services/*"],
+      "~types": ["globals/types/index.ts"],
+      "~utils/*": ["globals/utils/*"],
+      "~cn/*": ["globals/ui/cn/*"],
+      "~cn-comp/*": ["globals/ui/cn/components/ui/*"],
+      "~helpers/*": ["./helpers/*"],
+      "~seo": ["globals/ui/helpers/seo.ts"]
+    },
+    "noEmit": true
+  }
+}
