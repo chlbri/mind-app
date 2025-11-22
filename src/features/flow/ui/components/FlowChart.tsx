@@ -1,6 +1,6 @@
 import type { inferT } from '@bemedev/app-ts/lib/utils/typings';
 import { Component, createEffect, onMount } from 'solid-js';
-import type { edgeJSON, nodeJSON } from '../services/main.types';
+import type { edgeJSON, nodeJSON } from '../../services/main.types';
 import { EdgesBoard } from './EdgesBoard';
 import { useFlow } from './FlowChart.context';
 import { NodesBoard } from './NodesBoard';

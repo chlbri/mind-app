@@ -1,4 +1,5 @@
 export * from './circular';
+export * from './context';
 export * from './counter';
 export * from './createTyping';
 export * from './debounce';

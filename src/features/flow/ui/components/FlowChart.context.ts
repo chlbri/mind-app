@@ -1,14 +1,11 @@
-import { interpret } from '@bemedev/app-solid';
+import { createContext } from '#signals';
 import { dequal } from 'dequal/lite';
-import {
-  createContext,
-  createSignal,
-  onCleanup,
-  useContext,
-} from 'solid-js';
+import { createSignal } from 'solid-js';
 import { produce } from 'solid-js/store';
-import { machine } from '../services/main.machine';
-import type { Point, Vector } from '../services/main.types';
+import { buildService } from '#serviceM';
+import { machine } from '../../services/main.machine';
+import type { Point, Vector } from '../../services/main.types';
+import { PARENT_CHILD_GAP_WIDTH } from './FlowChart.data';
 
 type Dimensions = {
   width: number;
@@ -25,239 +22,232 @@ export type Edge = {
   y1: number;
 };
 
-const PARENT_CHILD_GAP_WIDTH = 75;
+export const [Provider, useFlow] = createContext(
+  () => {
+    const [dimensions, setDimensions] = createSignal<
+      Record<string, Dimensions>
+    >(
+      {},
+      {
+        equals: dequal,
+      },
+    );
 
-export const buildContext = () => {
-  const [dimensions, setDimensions] = createSignal<
-    Record<string, Dimensions>
-  >(
-    {},
-    {
-      equals: dequal,
-    },
-  );
+    const newEdge = createSignal<Edge>();
+    const board = createSignal<Point>();
 
-  const newEdge = createSignal<Edge>();
-  const board = createSignal<Point>();
+    const [edgesPositions, setEdgesPositions] = createSignal<
+      Record<string, Vector>
+    >({}, { equals: false });
 
-  const [edgesPositions, setEdgesPositions] = createSignal<
-    Record<string, Vector>
-  >({}, { equals: false });
+    const _machine = machine.provideOptions(
+      ({ voidAction, batch, assign }) => ({
+        actions: {
+          placeChild: assign('context.data.nodes', {
+            ADD_CHILD: ({
+              payload,
+              context: { data },
+              pContext: { generatedId },
+            }) => {
+              const out = { ...data?.nodes };
+              const parentNode = out[payload];
+              const id = `node-${generatedId}`;
+              const width = dimensions()[payload].width;
 
-  const service = interpret(machine, {
-    pContext: { generatedId: null },
-  });
+              const x =
+                parentNode.position.x + width + PARENT_CHILD_GAP_WIDTH;
 
-  service.addOptions(({ voidAction, batch, assign }) => ({
-    actions: {
-      placeChild: assign('context.data.nodes', {
-        ADD_CHILD: ({
-          payload,
-          context: { data },
-          pContext: { generatedId },
-        }) => {
-          const out = { ...data?.nodes };
-          const parentNode = out[payload];
-          const id = `node-${generatedId}`;
-          const width = dimensions()[payload].width;
+              out[id] = {
+                data: { content: '<Nouveau nœud>' },
+                input: true,
+                position: { x, y: parentNode.position.y },
+              };
 
-          const x = parentNode.position.x + width + PARENT_CHILD_GAP_WIDTH;
+              return out;
+            },
+          }),
 
-          out[id] = {
-            data: { content: '<Nouveau nœud>' },
-            input: true,
-            position: { x, y: parentNode.position.y },
-          };
+          placeSibling: assign('context.data.nodes', {
+            ADD_SIBLING: ({
+              payload,
+              context: { data },
+              pContext: { edges, generatedId },
+            }) => {
+              const out = { ...data?.nodes };
 
-          return out;
-        },
-      }),
+              const parentID = edges?.find(
+                edge => edge.to === payload,
+              )?.from;
 
-      placeSibling: assign('context.data.nodes', {
-        ADD_SIBLING: ({
-          payload,
-          context: { data },
-          pContext: { edges, generatedId },
-        }) => {
-          const out = { ...data?.nodes };
+              if (!parentID) return out;
 
-          const parentID = edges?.find(edge => edge.to === payload)?.from;
+              const parentNode = out[parentID];
+              const id = `node-${generatedId}`;
+              const width = dimensions()[parentID].width;
 
-          if (!parentID) return out;
+              const x =
+                parentNode.position.x + width + PARENT_CHILD_GAP_WIDTH;
 
-          const parentNode = out[parentID];
-          const id = `node-${generatedId}`;
-          const width = dimensions()[parentID].width;
+              out[id] = {
+                data: { content: '<Nouveau nœud>' },
+                input: true,
+                position: { x, y: parentNode.position.y + 100 },
+              };
 
-          const x = parentNode.position.x + width + PARENT_CHILD_GAP_WIDTH;
+              return out;
+            },
+          }),
 
-          out[id] = {
-            data: { content: '<Nouveau nœud>' },
-            input: true,
-            position: { x, y: parentNode.position.y + 100 },
-          };
+          buildUI: batch(
+            voidAction(({ pContext: { edges } }) => {
+              setEdgesPositions(data => {
+                const array = Object.entries({ ...data }).filter(
+                  ([id]) => {
+                    return edges?.some(edge => edge.id === id);
+                  },
+                );
 
-          return out;
-        },
-      }),
-
-      buildUI: batch(
-        voidAction(({ pContext: { edges } }) => {
-          setEdgesPositions(data => {
-            const array = Object.entries({ ...data }).filter(([id]) => {
-              return edges?.some(edge => edge.id === id);
-            });
-
-            return Object.fromEntries(array);
-          });
-        }),
-        voidAction({
-          else: ({ pContext: { edges } }) => {
-            console.log('Building UI...');
-
-            setEdgesPositions(
-              produce(next => {
-                edges?.forEach(({ from, id, to }) => {
-                  const output = dimensions()[from].output;
-                  const input = dimensions()[to].input;
-                  const _board = board[0]();
-                  if (input && _board)
-                    next[id] = {
-                      x0: output.x - _board.x + 6,
-                      y0: output.y - _board.y + 6,
-                      x1: input.x - _board.x + 6,
-                      y1: input.y - _board.y + 6,
-                    };
-                });
-              }),
-            );
-          },
-          MOVE: ({ pContext: { edges }, payload }) => {
-            setEdgesPositions(
-              produce(next => {
-                edges?.forEach(({ from, to, id }) => {
-                  if (from === payload.id) {
-                    const width = dimensions()[payload.id].width;
-                    const x0 = payload.x + width + 9;
-                    const y0 = payload.y + 19.5;
-                    next[id] = {
-                      ...next[id],
-                      x0,
-                      y0,
-                    };
-                    setDimensions(
-                      produce(data => {
-                        data[payload.id] = {
-                          ...data[payload.id],
-                          output: {
-                            x: x0,
-                            y: y0,
-                          },
-                        };
-                      }),
-                    );
-                  }
-                  if (to === payload.id) {
-                    const x1 = payload.x - 9;
-                    const y1 = payload.y + 19.5;
-                    next[id] = {
-                      ...next[id],
-                      x1,
-                      y1,
-                    };
-                    setDimensions(
-                      produce(data => {
-                        data[payload.id] = {
-                          ...data[payload.id],
-                          input: {
-                            x: x1,
-                            y: y1,
-                          },
-                        };
-                      }),
-                    );
-                  }
-                });
-              }),
-            );
-          },
-        }),
-        assign('context.updatingUI', () => true),
-      ),
-
-      buildImmediateUI: voidAction({
-        MOVE_IMMEDIATE: ({ pContext: { edges }, payload }) => {
-          setEdgesPositions(
-            produce(next => {
-              edges?.forEach(({ from, to, id }) => {
-                if (from === payload.id) {
-                  const width = dimensions()[payload.id].width;
-                  const x0 = payload.x + width + 4;
-                  const y0 = payload.y + 16.5;
-                  next[id] = {
-                    ...next[id],
-                    x0,
-                    y0,
-                  };
-                  setDimensions(
-                    produce(data => {
-                      data[payload.id] = {
-                        ...data[payload.id],
-                        output: {
-                          x: x0,
-                          y: y0,
-                        },
-                      };
-                    }),
-                  );
-                }
-                if (to === payload.id) {
-                  const x1 = payload.x - 15;
-                  const y1 = payload.y + 13.5;
-                  next[id] = {
-                    ...next[id],
-                    x1,
-                    y1,
-                  };
-                  setDimensions(
-                    produce(data => {
-                      data[payload.id] = {
-                        ...data[payload.id],
-                        input: {
-                          x: x1,
-                          y: y1,
-                        },
-                      };
-                    }),
-                  );
-                }
+                return Object.fromEntries(array);
               });
             }),
-          );
+            voidAction({
+              else: ({ pContext: { edges } }) => {
+                console.log('Building UI...');
+
+                setEdgesPositions(
+                  produce(next => {
+                    edges?.forEach(({ from, id, to }) => {
+                      const output = dimensions()[from].output;
+                      const input = dimensions()[to].input;
+                      const _board = board[0]();
+                      if (input && _board)
+                        next[id] = {
+                          x0: output.x - _board.x + 6,
+                          y0: output.y - _board.y + 6,
+                          x1: input.x - _board.x + 6,
+                          y1: input.y - _board.y + 6,
+                        };
+                    });
+                  }),
+                );
+              },
+              MOVE: ({ pContext: { edges }, payload }) => {
+                setEdgesPositions(
+                  produce(next => {
+                    edges?.forEach(({ from, to, id }) => {
+                      if (from === payload.id) {
+                        const width = dimensions()[payload.id].width;
+                        const x0 = payload.x + width + 9;
+                        const y0 = payload.y + 19.5;
+                        next[id] = {
+                          ...next[id],
+                          x0,
+                          y0,
+                        };
+                        setDimensions(
+                          produce(data => {
+                            data[payload.id] = {
+                              ...data[payload.id],
+                              output: {
+                                x: x0,
+                                y: y0,
+                              },
+                            };
+                          }),
+                        );
+                      }
+                      if (to === payload.id) {
+                        const x1 = payload.x - 9;
+                        const y1 = payload.y + 19.5;
+                        next[id] = {
+                          ...next[id],
+                          x1,
+                          y1,
+                        };
+                        setDimensions(
+                          produce(data => {
+                            data[payload.id] = {
+                              ...data[payload.id],
+                              input: {
+                                x: x1,
+                                y: y1,
+                              },
+                            };
+                          }),
+                        );
+                      }
+                    });
+                  }),
+                );
+              },
+            }),
+            assign('context.updatingUI', () => true),
+          ),
+
+          buildImmediateUI: voidAction({
+            MOVE_IMMEDIATE: ({ pContext: { edges }, payload }) => {
+              setEdgesPositions(
+                produce(next => {
+                  edges?.forEach(({ from, to, id }) => {
+                    if (from === payload.id) {
+                      const width = dimensions()[payload.id].width;
+                      const x0 = payload.x + width + 4;
+                      const y0 = payload.y + 16.5;
+                      next[id] = {
+                        ...next[id],
+                        x0,
+                        y0,
+                      };
+                      setDimensions(
+                        produce(data => {
+                          data[payload.id] = {
+                            ...data[payload.id],
+                            output: {
+                              x: x0,
+                              y: y0,
+                            },
+                          };
+                        }),
+                      );
+                    }
+                    if (to === payload.id) {
+                      const x1 = payload.x - 15;
+                      const y1 = payload.y + 13.5;
+                      next[id] = {
+                        ...next[id],
+                        x1,
+                        y1,
+                      };
+                      setDimensions(
+                        produce(data => {
+                          data[payload.id] = {
+                            ...data[payload.id],
+                            input: {
+                              x: x1,
+                              y: y1,
+                            },
+                          };
+                        }),
+                      );
+                    }
+                  });
+                }),
+              );
+            },
+          }),
         },
       }),
-    },
-  }));
+    );
 
-  service.start();
+    const service = buildService(_machine);
 
-  const context = createContext(
-    {
+    return {
       dimensions: [dimensions, setDimensions] as const,
       newEdge,
       board,
       edgesPositions: [edgesPositions, setEdgesPositions] as const,
       service,
-    },
-    { name: 'FlowContext' },
-  );
-
-  onCleanup(() => {
-    service.dispose();
-  });
-
-  return context;
-};
-
-export const FlowContext = buildContext();
-export const useFlow = () => useContext(FlowContext);
+    };
+  },
+  { name: 'FlowContext' },
+);

@@ -1,5 +1,5 @@
 import { Component, createEffect, createSignal, Show } from 'solid-js';
-import type { Vector } from '../services/main.types';
+import type { Vector } from '../../services/main.types';
 import { useFlow } from './FlowChart.context';
 
 type Props = {
