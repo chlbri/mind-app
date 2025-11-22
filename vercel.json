@@ -1,4 +1,4 @@
 {
   "buildCommand": "pnpm run build:showroom",
-  "outputDirectory": "showroom/.output/public"
+  "outputDirectory": "showroom/.output/vercel/public"
 }
