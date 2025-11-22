@@ -44,7 +44,7 @@
     "node": ">=22"
   },
   "scripts": {
-    "build": "pnpm rm:lib && pnpm run rollup",
+    "build": "pnpm rm:lib && tsc && vite build",
     "build:showroom": "pnpm run build && cd showroom && pnpm run build",
     "ci": "pnpm run config:off && pnpm run lint && pnpm run test && pnpm run prettier && pnpm run p-q",
     "ci:admin": "pnpm run rm && pnpm run upgrade && pnpm run ci",
@@ -65,7 +65,6 @@
     "rimraf": "pnpx rimraf -rf",
     "rm": "pnpm run rimraf -- node_modules pnpm-lock.yaml",
     "rm:lib": "pnpm run rimraf -- lib",
-    "rollup": "tsc && vite build && pnpm run build:css",
     "size": "size-limit",
     "test": "pnpm run test:coverage --no-coverage",
     "test:coverage": "vitest run",
