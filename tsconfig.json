@@ -1,5 +1,5 @@
 {
-  "include": ["src/**/*"],
+  "include": ["src/**/*", "rollup.config.mjs", "eslint.config.mjs"],
   "compilerOptions": {
     "lib": ["dom", "esnext"],
     "importHelpers": true,

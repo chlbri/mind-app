@@ -19,19 +19,19 @@
     "paths": {
       "~/*": ["../src/*"],
       "~features/*": ["./features/*"],
-      "~signals/*": ["globals/ui/signals/*"],
-      "#signals": ["globals/ui/signals/index.ts"],
+      "~signals/*": ["src/globals/ui/signals/*"],
+      "#signals": ["src/globals/ui/signals/index.ts"],
       "#serviceM": ["../src/services/main.ts"],
-      "~styles/*": ["globals/ui/styles/*"],
-      "~ui/*": ["globals/ui/*"],
-      "~constants": ["globals/constants/index.ts"],
-      "~services/*": ["globals/services/*"],
-      "~types": ["globals/types/index.ts"],
-      "~utils/*": ["globals/utils/*"],
-      "~cn/*": ["globals/ui/cn/*"],
-      "~cn-comp/*": ["globals/ui/cn/components/ui/*"],
+      "~ui/*": ["src/globals/ui/*"],
+      "~constants": ["src/globals/constants/index.ts"],
+      "~services/*": ["src/globals/services/*"],
+      "~types": ["src/globals/types/index.ts"],
+      "~utils/*": ["src/globals/utils/*"],
+      "~cn/*": ["src/globals/ui/cn/*"],
+      "~cn-comp/*": ["src/globals/ui/cn/components/ui/*"],
       "~helpers/*": ["./helpers/*"],
-      "~seo": ["globals/ui/helpers/seo.ts"]
+      "~seo": ["src/globals/ui/helpers/seo.ts"],
+      "#main": ["../src/index.ts"]
     },
     "noEmit": true
   }

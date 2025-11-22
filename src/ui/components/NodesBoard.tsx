@@ -36,7 +36,10 @@ export const NodesBoard: Component = () => {
   }, dequal);
 
   onMount(() => {
-    const rect = ref()!.getBoundingClientRect();
+    const element = ref();
+    if (!element) return;
+
+    const rect = element.getBoundingClientRect();
 
     setPoint({
       x: rect.x,

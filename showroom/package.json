@@ -20,7 +20,9 @@
     "start": "vite start",
     "test": "pnpm run test:coverage --no-coverage",
     "test:coverage": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "upgrade": "pnpm up --latest",
+    "upgrade:safe": "pnpm run upgrade && pnpm add @tanstack/solid-router@1.133.15 @tanstack/solid-start@1.133.15 && pnpm add -D @tanstack/nitro-v2-vite-plugin@1.133.17 @tanstack/solid-router-devtools@1.133.15"
   },
   "dependencies": {
     "@bemedev/app-solid": "^0.3.0",
@@ -28,6 +30,7 @@
     "@bemedev/decompose": "^1.3.1",
     "@bemedev/fsf": "^1.0.1",
     "@bemedev/i18n": "^0.5.2",
+    "@bemedev/mind-flow": "link:..",
     "@bemedev/pipe": "^0.1.0",
     "@bemedev/sleep": "^0.1.2",
     "@kobalte/core": "^0.13.11",

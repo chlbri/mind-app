@@ -10,12 +10,10 @@ export default defineConfig({
     port: 3000,
   },
   plugins: [
-    tailwindcss(),
-    tanstackStart({
-      routesDirectory: './routes',
-      routeTreeFilePattern: './routeTree.gen.ts',
-      routerDirectory: './',
+    tailwindcss({
+      
     }),
+    tanstackStart({}),
     tsConfigPaths({
       projects: ['./tsconfig.json'],
     }),

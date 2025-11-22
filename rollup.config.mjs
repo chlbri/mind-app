@@ -4,4 +4,5 @@ export default withSolid({
   input: 'src/index.ts',
   targets: ['esm', 'cjs'],
   printInstructions: false,
+  
 });

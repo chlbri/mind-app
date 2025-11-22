@@ -8,7 +8,6 @@ declare module 'solid-js' {
   namespace JSX {
     interface Directives {
       // use:model
-      clickOutside: () => void;
       draggable: any;
     }
   }
@@ -37,24 +36,33 @@ export const NodeComponent: Component<Props> = props => {
   const selected = service.context(ctx => ctx.selected === props.id);
 
   onMount(() => {
-    const input = inputRef
+    const _inputRef = inputRef;
+    const _outputRef = outputRef;
+    const _rootRef = ref();
+
+    if (!_outputRef || !_rootRef) return;
+
+    const inputRect = _inputRef?.getBoundingClientRect();
+    const outputRect = _outputRef.getBoundingClientRect();
+    const rootRect = _rootRef.getBoundingClientRect();
+
+    const input = inputRect
       ? {
-          x: inputRef.getBoundingClientRect().x,
-          y: inputRef.getBoundingClientRect().y,
+          x: inputRect.x,
+          y: inputRect.y,
         }
       : undefined;
 
     const output = {
-      x: outputRef!.getBoundingClientRect().x,
-      y: outputRef!.getBoundingClientRect().y,
+      x: outputRect.x,
+      y: outputRect.y,
     };
 
-    const rect = ref()!.getBoundingClientRect();
     setDimensions(
       produce(data => {
         data[props.id] = {
-          width: rect.width,
-          height: rect.height,
+          width: rootRect.width,
+          height: rootRect.height,
           output,
           input,
         };
@@ -68,6 +76,7 @@ export const NodeComponent: Component<Props> = props => {
     return Object.values(edges).some(edge => edge.to === props.id);
   });
 
+  // @ts-expect-error solid-js directive
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const draggable = createDraggable(props.id);
 
@@ -160,10 +169,11 @@ export const NodeComponent: Component<Props> = props => {
         <div class='pointer-events-none cursor-default z-[-3] absolute top-0 -left-[18px] flex flex-col'>
           <div
             ref={inputRef}
-            class='cursor-default bg-[#e38b29] w-3 h-3 rounded-full my-3 shadow-[1px_1px_11px_-6px_rgba(0,0,0,0.75)] pointer-events-all'
+            class='cursor-default bg-[#e38b29] w-3 h-3 rounded-full my-3 shadow-[1px_1px_11px_-6px_rgba(0,0,0,0.75)]'
             onMouseDown={event => {
               event.stopPropagation();
             }}
+            style='pointer-events: all;'
             onMouseUp={event => {
               event.stopPropagation();
               const from = newEdge()?.from;
@@ -186,7 +196,8 @@ export const NodeComponent: Component<Props> = props => {
       >
         <div
           ref={outputRef}
-          class='cursor-crosshair bg-[#e38b29] w-3 h-3 rounded-full mt-3 shadow-[1px_1px_11px_-6px_rgba(0,0,0,0.75)] pointer-events-all'
+          class='cursor-crosshair bg-[#e38b29] w-3 h-3 rounded-full mt-3 shadow-[1px_1px_11px_-6px_rgba(0,0,0,0.75)]'
+          style='pointer-events: all;'
           onMouseDown={event => {
             event.stopPropagation();
             service.send('DESELECT');

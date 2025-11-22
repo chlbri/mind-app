@@ -1,5 +1,5 @@
 import type { inferT } from '@bemedev/app-ts/lib/utils/typings';
-import { Component, createEffect, onMount } from 'solid-js';
+import { Component } from 'solid-js';
 import type { edgeJSON, nodeJSON } from '../../services/main.types';
 import { EdgesBoard } from './EdgesBoard';
 import { useFlow } from './FlowChart.context';
@@ -53,16 +53,6 @@ export const FlowChart: Component<Props> = props => {
       edges: primaryEdges,
     },
   });
-
-  createEffect(() => {
-    // console.log('nodes', service.select('context.data.nodes', dequal)());
-    // console.log('edges', edgesPositions());
-    // console.log('selected', service.select('context.selected')());
-  });
-
-  onMount(() => {});
-
-  // EDGE HANDLERS
 
   return (
     <div

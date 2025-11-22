@@ -25,5 +25,5 @@ export const createContext = <const T>(
 
   const _useContext = () => useContext(_context);
 
-  return [Provider, _useContext] as const;
+  return [Provider, _useContext, _context] as const;
 };

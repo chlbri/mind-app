@@ -60,7 +60,7 @@ export const EdgeComponent: Component<Props> = props => {
             e.stopPropagation();
             service.send({ type: 'DELETE', payload: props.id });
           }}
-          class='pointer-events-all'
+          style='pointer-events: all;'
         >
           <circle cx='0' cy='0' r='12' fill='rgba(168, 168, 168, 1)' />
           <svg
