@@ -10,9 +10,7 @@ export default defineConfig({
     port: 3000,
   },
   plugins: [
-    tailwindcss({
-      
-    }),
+    tailwindcss({}),
     tanstackStart({}),
     tsConfigPaths({
       projects: ['./tsconfig.json'],
