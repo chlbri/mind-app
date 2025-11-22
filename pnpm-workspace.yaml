@@ -1,3 +1,6 @@
+packages:
+  - 'showroom'
+
 onlyBuiltDependencies:
   - '@parcel/watcher'
   - '@tailwindcss/oxide'

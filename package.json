@@ -1,107 +1,143 @@
 {
-  "name": "tanstack-solid-start-example-bare",
-  "private": true,
-  "sideEffects": false,
+  "name": "@bemedev/mind-flow",
+  "version": "0.0.1",
+  "description": "Flow Chart UI library for Solid.js applications",
+  "author": {
+    "email": "bri_lvi@icloud.com",
+    "name": "chlbri",
+    "url": "https://bemedev.vercel.app"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/chlbri/mind-app"
+  },
+  "license": "MIT",
   "type": "module",
+  "main": "lib/index.es.js",
+  "types": "lib/index.d.ts",
+  "module": "lib/index.es.js",
+  "maintainers": [
+    {
+      "email": "bri_lvi@icloud.com",
+      "name": "chlbri",
+      "url": "https://bemedev.vercel.app"
+    }
+  ],
+  "contributors": [
+    {
+      "email": "bri_lvi@icloud.com",
+      "name": "chlbri",
+      "url": "https://bemedev.vercel.app"
+    }
+  ],
+  "keywords": [
+    "flowchart",
+    "solid-js",
+    "ui-library",
+    "flow",
+    "diagram"
+  ],
+  "files": [
+    "lib"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
-    "build": "vite build",
-    "ci": "pnpm run config:off && pnpm run lint && pnpm run test",
-    "ci:admin": "pnpm run rm && pnpm run upgrade:safe && pnpm run ci",
-    "config": "pnpm install",
+    "build": "pnpm rm:lib && pnpm run rollup",
+    "build:showroom": "cd showroom && pnpm run build",
+    "ci": "pnpm run config:off && pnpm run lint && pnpm run test && pnpm run prettier && pnpm run p-q",
+    "ci:admin": "pnpm run rm && pnpm run upgrade && pnpm run ci",
+    "clean": "pnpm run rm && pnpm run config",
+    "config": "pnpm install && cd showroom && pnpm install",
     "config:off": "pnpm run config --offline",
-    "dev": "vite dev",
-    "dev:host": "pnpm run dev -- --host",
+    "dev": "cd showroom && pnpm run dev",
+    "dev:host": "cd showroom && pnpm run dev:host",
     "eslint": "eslint \"{src/**/*,App}.{ts,tsx}\"",
-    "gen:app": "app-typings generate --watch",
-    "lint": "pnpm run prettier && pnpm run eslint --fix",
-    "lint:watch": "onchange --await-write-finish 5500 -d 50000 -v \"**/*.ts\" -- pnpm run lint",
-    "p-q": "pretty-quick",
+    "lint": "pnpm run prettier && pnpm run eslint --fix && cd showroom && pnpm run lint",
+    "lint:watch": "onchange --await-write-finish 5500 \"**/*\" -- pnpm run lint",
+    "prepublishOnly": "",
     "prepare": "husky",
-    "preview": "pnpm run build && vite start",
-    "prettier": "prettier --write \"src/**/*.{ts,tsx}\" --log-level silent",
+    "prettier": "prettier --write \"src/**/*.{ts,tsx}\"",
+    "p-q": "pretty-quick",
     "rinit": "pnpm run rm && pnpm run config",
     "rinit:off": "pnpm run rm && pnpm run config:off",
-    "rm": "pnpx rimraf ./node_modules ./pnpm-lock.yaml",
-    "rollup": "rollup -c",
-    "start": "vite start",
+    "rimraf": "pnpx rimraf -rf",
+    "rm": "pnpm run rimraf -- node_modules pnpm-lock.yaml",
+    "rm:lib": "pnpm run rimraf -- lib",
+    "rollup": "tsc && vite build && pnpm run build:css",
+    "size": "size-limit",
     "test": "pnpm run test:coverage --no-coverage",
     "test:coverage": "vitest run",
     "test:watch": "vitest",
-    "upgrade": "pnpm up --latest",
-    "upgrade:safe": "pnpm run upgrade && pnpm add @tanstack/solid-router@1.133.15 @tanstack/solid-start@1.133.15 && pnpm add -D @tanstack/nitro-v2-vite-plugin@1.133.17 @tanstack/solid-router-devtools@1.133.15"
+    "upgrade": "pnpm upgrade --latest",
+    "build:css": "pnpx @tailwindcss/cli -i ./input.css -o ../lib/output.css --minify --cwd ./src",
+    "buidl:css:watch": "pnpm run build:css --watch"
   },
+  "size-limit": [
+    {
+      "path": "lib/esm/*.js",
+      "limit": "50 KB"
+    },
+    {
+      "path": "lib/cjs/*.cjs",
+      "limit": "50 KB"
+    }
+  ],
   "dependencies": {
+    "dequal": "^2.0.3",
+    "nanoid": "^5.1.6"
+  },
+  "peerDependencies": {
     "@bemedev/app-solid": "^0.3.0",
     "@bemedev/app-ts": "^1.3.1",
-    "@bemedev/decompose": "^1.3.1",
-    "@bemedev/fsf": "^1.0.1",
-    "@bemedev/i18n": "^0.5.2",
-    "@bemedev/pipe": "^0.1.0",
-    "@bemedev/sleep": "^0.1.2",
-    "@kobalte/core": "^0.13.11",
-    "@solid-primitives/intersection-observer": "^2.2.2",
-    "@solid-primitives/storage": "^4.3.3",
-    "@tailwindcss/vite": "^4.1.17",
-    "@tanstack/solid-router": "1.133.15",
-    "@tanstack/solid-start": "1.133.15",
     "@thisbeyond/solid-dnd": "^0.7.5",
-    "class-variance-authority": "^0.7.1",
-    "clsx": "^2.1.1",
-    "color": "^5.0.3",
-    "dequal": "^2.0.3",
-    "lucide-solid": "^0.554.0",
-    "nanoid": "^5.1.6",
-    "nitro": "3.0.1-alpha.1",
-    "redaxios": "^0.5.1",
-    "solid-flow": "^1.0.4",
-    "solid-js": "^1.9.10",
-    "solid-motionone": "^1.0.4",
-    "solidjs-use": "^2.3.0",
-    "tailwind-merge": "^3.4.0",
-    "tailwindcss": "^4.1.17",
-    "tailwindcss-animate": "^1.0.7",
-    "tw-animate-css": "^1.4.0",
-    "valibot": "^1.1.0",
-    "vinxi": "0.5.8"
+    "solid-js": "^1.9.10"
   },
   "devDependencies": {
-    "@bemedev/app-cli": "^0.1.7",
-    "@bemedev/build-tests": "^0.1.2",
+    "@bemedev/app-solid": "^0.3.0",
+    "@bemedev/app-ts": "^1.3.1",
+    "@bemedev/fsf": "^0.8.0",
     "@bemedev/rollup-config": "^0.2.2",
     "@bemedev/vitest-alias": "^0.0.3",
     "@bemedev/vitest-exclude": "^0.1.1",
     "@bemedev/vitest-extended": "^1.5.3",
     "@eslint/eslintrc": "^3.3.1",
-    "@eslint/js": "^9.39.1",
-    "@solidjs/testing-library": "^0.8.10",
-    "@tanstack/devtools-vite": "^0.3.11",
-    "@tanstack/nitro-v2-vite-plugin": "1.133.17",
-    "@tanstack/solid-router-devtools": "1.133.15",
-    "@types/clone-deep": "^4.0.4",
-    "@types/node": "^24.10.1",
-    "@typescript-eslint/eslint-plugin": "^8.47.0",
-    "@typescript-eslint/parser": "^8.47.0",
-    "@vitest/browser-playwright": "4.0.13",
-    "@vitest/coverage-istanbul": "^4.0.13",
-    "combinate": "^1.1.11",
-    "eslint": "^9.39.1",
-    "glob": "^13.0.0",
-    "globals": "^16.5.0",
+    "@eslint/js": "^9.36.0",
+    "@rollup/plugin-babel": "^6.1.0",
+    "@rollup/plugin-node-resolve": "^16.0.3",
+    "@size-limit/file": "^11.2.0",
+    "@tailwindcss/cli": "^4.1.17",
+    "@tailwindcss/vite": "^4.1.17",
+    "@thisbeyond/solid-dnd": "^0.7.5",
+    "@types/node": "^24.5.2",
+    "@typescript-eslint/eslint-plugin": "^8.44.1",
+    "@typescript-eslint/parser": "^8.44.1",
+    "@vitest/coverage-v8": "^3.2.4",
+    "babel-preset-solid": "^1.9.10",
+    "eslint": "^9.36.0",
+    "glob": "^11.0.3",
+    "globals": "^16.4.0",
     "husky": "^9.1.7",
     "onchange": "^7.1.0",
-    "playwright": "^1.56.1",
     "prettier": "^3.6.2",
-    "prettier-plugin-tailwindcss": "^0.7.1",
     "pretty-quick": "^4.2.2",
-    "rimraf": "^6.1.2",
-    "tsx": "^4.20.6",
-    "typescript": "^5.9.3",
-    "vite": "npm:rolldown-vite@^7.2.7",
+    "rollup": "^4.52.3",
+    "rollup-preset-solid": "^3.0.0",
+    "size-limit": "^11.2.0",
+    "solid-js": "^1.9.10",
+    "tailwindcss": "^4.1.17",
+    "tslib": "^2.8.1",
+    "typescript": "^5.9.2",
+    "vite": "^7.2.4",
+    "vite-plugin-dts": "^4.5.4",
     "vite-plugin-solid": "^2.11.10",
     "vite-tsconfig-paths": "^5.1.4",
-    "vitest": "4.0.13"
+    "vitest": "^3.2.4"
   },
-  "overrides": {
-    "vite": "npm:rolldown-vite@latest"
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "esbuild"
+    ]
   }
 }
