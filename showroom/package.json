@@ -6,6 +6,7 @@
   "type": "module",
   "scripts": {
     "build": "vite build",
+    "build:libs": "cd .. && pnpm run build && cd showroom && vite build",
     "ci": "pnpm run config:off && pnpm run lint && pnpm run test",
     "config": "pnpm install",
     "config:off": "pnpm run config --offline",
