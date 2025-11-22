@@ -112,8 +112,6 @@ export const [Provider, useFlow] = createContext(
             }),
             voidAction({
               else: ({ pContext: { edges } }) => {
-                console.log('Building UI...');
-
                 setEdgesPositions(
                   produce(next => {
                     edges?.forEach(({ from, id, to }) => {

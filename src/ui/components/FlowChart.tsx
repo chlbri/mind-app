@@ -26,7 +26,7 @@ export const FlowChart: Component<Props> = props => {
   const DEFAULT_NODES: Record<string, NodeProps> = {
     'node-0': {
       data: {
-        content: 'Somme text',
+        content: 'Some text',
         label: 'Root node',
       },
       input: false,

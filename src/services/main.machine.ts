@@ -225,14 +225,11 @@ export const machine = createMachine(
       assign('context.data.nodes', {
         DELETE: ({ context: { data }, payload }) => {
           const out = { ...data?.nodes };
-          console.log('Nodes before deletion:', out);
-          console.log('Deleting node with ID:', payload);
 
           const out2 = Object.fromEntries(
             Object.entries(out).filter(([id]) => id !== payload),
           );
 
-          console.log('Nodes after deletion:', out2);
           return out2;
         },
       }),
@@ -240,7 +237,6 @@ export const machine = createMachine(
       assign('context.data.edges', {
         DELETE: ({ context: { data }, payload }) => {
           const out = { ...data?.edges };
-          console.log('Edges before deletion:', out);
 
           const entries = Object.entries(out).filter(([id, edge]) => {
             const check =
@@ -252,7 +248,6 @@ export const machine = createMachine(
           });
 
           const out2 = Object.fromEntries(entries);
-          console.log('Edges after deletion:', out2);
           return out2;
         },
       }),
