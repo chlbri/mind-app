@@ -1,6 +1,6 @@
 import { Component, createEffect, createSignal, Show } from 'solid-js';
 import { clickOutside } from '~ui/directives';
-import { useFlowContext } from './FlowChart.context';
+import { useFlow } from './FlowChart.context';
 import type { Vector } from '../services/main.types';
 
 export type EdgeProps = Vector & {
@@ -26,7 +26,7 @@ const EdgeComponent: Component<EdgeProps> = props => {
     });
   });
 
-  const { service } = useFlowContext();
+  const { service } = useFlow();
 
   // eslint-disable-next-line @typescript-eslint/no-unused-expressions
   clickOutside;

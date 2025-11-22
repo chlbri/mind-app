@@ -7,7 +7,7 @@ import type {
   Point,
 } from '../services/main.types';
 import EdgesBoard from './EdgesBoard.old';
-import { useFlowContext } from './FlowChart.context';
+import { useFlow } from './FlowChart.context';
 import NodesBoard from './NodesBoard.old';
 
 interface Vector {
@@ -182,7 +182,7 @@ export const FlowChart: Component<Props> = props => {
     service,
     newEdge: [newEdge, setNewEdge],
     edgesPositions: [edgesPositions2],
-  } = useFlowContext();
+  } = useFlow();
 
   const nodes = service.context(({ data }) => {
     const out = { ...data?.nodes };

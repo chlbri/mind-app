@@ -5,7 +5,7 @@ import {
 } from '@thisbeyond/solid-dnd';
 import { dequal } from 'dequal';
 import { Component, createSignal, For, onMount, Show } from 'solid-js';
-import { useFlowContext } from './FlowChart.context';
+import { useFlow } from './FlowChart.context';
 import { NodeComponent } from './NodeComponent';
 
 export const NodesBoard: Component = () => {
@@ -14,7 +14,7 @@ export const NodesBoard: Component = () => {
   const {
     board: [, setPoint],
     service,
-  } = useFlowContext();
+  } = useFlow();
 
   const selected = (id: string | number) =>
     service.context(ctx => ctx.selected)() === id;
@@ -77,8 +77,8 @@ export const NodesBoard: Component = () => {
           type: 'MOVE',
           payload: {
             id: `${id}`,
-            x: X,
-            y: Y,
+            x: X - 6,
+            y: Y - 6,
           },
         });
       }}
@@ -91,7 +91,7 @@ export const NodesBoard: Component = () => {
           service.send('DESELECT');
         }}
       >
-        <For each={nodes()}>{NodeComponent}</For>
+        <For each={nodes()} children={NodeComponent} />
       </div>
 
       <Show when={!id() || !selected(id())}>

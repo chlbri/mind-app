@@ -7,7 +7,7 @@ import {
   Show,
 } from 'solid-js';
 import { EdgeComponent } from './EdgeComponent';
-import { useFlowContext } from './FlowChart.context';
+import { useFlow } from './FlowChart.context';
 
 export const EdgesBoard: Component = () => {
   const [selected, setSelected] = createSignal<string>();
@@ -15,7 +15,7 @@ export const EdgesBoard: Component = () => {
   const {
     newEdge: [newEdge],
     edgesPositions: [edgesPositions],
-  } = useFlowContext();
+  } = useFlow();
 
   const datas = createMemo(() => {
     const entries = Object.entries(edgesPositions());

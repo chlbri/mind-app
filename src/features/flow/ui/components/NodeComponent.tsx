@@ -2,7 +2,7 @@
 import { createDraggable } from '@thisbeyond/solid-dnd';
 import { Component, createSignal, onMount, Show } from 'solid-js';
 import { produce } from 'solid-js/store';
-import { useFlowContext } from './FlowChart.context';
+import { useFlow } from './FlowChart.context';
 
 declare module 'solid-js' {
   namespace JSX {
@@ -32,7 +32,7 @@ export const NodeComponent: Component<Props> = props => {
     newEdge: [newEdge, setNewEdge],
     board: [board],
     service,
-  } = useFlowContext();
+  } = useFlow();
 
   const selected = service.context(ctx => ctx.selected === props.id);
 

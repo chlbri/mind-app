@@ -2,7 +2,7 @@ import type { inferT } from '@bemedev/app-ts/lib/utils/typings';
 import { Component, createEffect, onMount } from 'solid-js';
 import type { edgeJSON, nodeJSON } from '../services/main.types';
 import { EdgesBoard } from './EdgesBoard';
-import { useFlowContext } from './FlowChart.context';
+import { useFlow } from './FlowChart.context';
 import { NodesBoard } from './NodesBoard';
 
 export type NodeProps = inferT<typeof nodeJSON>;
@@ -44,7 +44,7 @@ export const FlowChart: Component<Props> = props => {
     service,
     newEdge: [newEdge, setNewEdge],
     board: [board],
-  } = useFlowContext();
+  } = useFlow();
 
   service.send({
     type: 'CONFIGURE',

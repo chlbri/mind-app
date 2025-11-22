@@ -4,7 +4,7 @@ import { produce } from 'solid-js/store';
 import { clickOutside } from '~ui/directives';
 import type { PropsOf } from '~ui/types';
 import type { Point } from '../services/main.types';
-import { useFlowContext } from './FlowChart.context';
+import { useFlow } from './FlowChart.context';
 
 declare module 'solid-js' {
   namespace JSX {
@@ -41,7 +41,7 @@ const NodeComponent: Component<Props> = props => {
     dimensions: [, setDimensions],
     newEdge: [newEdge, setNewEdge],
     service,
-  } = useFlowContext();
+  } = useFlow();
 
   onMount(() => {
     const input = inputRef

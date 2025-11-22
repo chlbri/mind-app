@@ -7,6 +7,10 @@ export const buildEdgeId = (out: string, _in: string) => {
   return `edge = ${out} => ${_in}`;
 };
 
+export const buildNodeID = (generated: string | null) => {
+  return `node-${generated}`;
+};
+
 export const machine = createMachine(
   {
     __tsSchema: SCHEMAS.machine.__tsSchema,
@@ -152,45 +156,55 @@ export const machine = createMachine(
 
     generateID: assign('pContext.generatedId', () => nanoid()),
 
-    linkChild: assign('context.data.edges', {
-      ADD_CHILD: ({
-        context: { data },
-        payload,
-        pContext: { generatedId },
-      }) => {
-        const out = { ...data?.edges };
-        const nodeID = `node-${generatedId}`;
-        const id = buildEdgeId(payload, nodeID);
+    linkChild: batch(
+      assign('context.data.edges', {
+        ADD_CHILD: ({
+          context: { data },
+          payload,
+          pContext: { generatedId },
+        }) => {
+          const out = { ...data?.edges };
+          const nodeID = buildNodeID(generatedId);
+          const id = buildEdgeId(payload, nodeID);
 
-        out[id] = {
-          from: payload,
-          to: nodeID,
-        };
+          out[id] = {
+            from: payload,
+            to: nodeID,
+          };
 
-        return out;
-      },
-    }),
+          return out;
+        },
+      }),
+      assign('context.selected', ({ pContext: { generatedId } }) =>
+        buildNodeID(generatedId),
+      ),
+    ),
 
-    linkSibling: assign('context.data.edges', {
-      ADD_SIBLING: ({
-        context: { data },
-        payload,
-        pContext: { edges, generatedId },
-      }) => {
-        const out = { ...data?.edges };
-        const from = edges?.find(({ to }) => to === payload)?.from;
-        if (!from) return out;
-        const nodeID = `node-${generatedId}`;
-        const id = buildEdgeId(from, nodeID);
+    linkSibling: batch(
+      assign('context.data.edges', {
+        ADD_SIBLING: ({
+          context: { data },
+          payload,
+          pContext: { edges, generatedId },
+        }) => {
+          const out = { ...data?.edges };
+          const from = edges?.find(({ to }) => to === payload)?.from;
+          if (!from) return out;
+          const nodeID = buildNodeID(generatedId);
+          const id = buildEdgeId(from, nodeID);
 
-        out[id] = {
-          from,
-          to: nodeID,
-        };
+          out[id] = {
+            from,
+            to: nodeID,
+          };
 
-        return out;
-      },
-    }),
+          return out;
+        },
+      }),
+      assign('context.selected', ({ pContext: { generatedId } }) =>
+        buildNodeID(generatedId),
+      ),
+    ),
 
     moveNode: assign('context.data.nodes', {
       MOVE: ({ context: { data }, payload: { id, x, y } }) => {

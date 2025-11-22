@@ -1,6 +1,6 @@
 import { Component, createEffect, createSignal, Show } from 'solid-js';
 import type { Vector } from '../services/main.types';
-import { useFlowContext } from './FlowChart.context';
+import { useFlow } from './FlowChart.context';
 
 type Props = {
   id: string;
@@ -13,7 +13,7 @@ export const EdgeComponent: Component<Props> = props => {
     y: props.y0 + (props.y1 - props.y0) / 2,
   });
 
-  const { service } = useFlowContext();
+  const { service } = useFlow();
 
   createEffect(() => {
     const middleX = props.x0 + (props.x1 - props.x0) / 2;

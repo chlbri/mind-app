@@ -1,7 +1,7 @@
 import { Component, createSignal, For, onMount } from 'solid-js';
 import { produce } from 'solid-js/store';
 import type { Point } from '../services/main.types';
-import { useFlowContext } from './FlowChart.context';
+import { useFlow } from './FlowChart.context';
 import NodeComponent from './NodeComponent.old';
 
 interface NodeProps {
@@ -58,7 +58,7 @@ const NodesBoard: Component<Props> = props => {
   const {
     dimensions: [, setDimensions],
     // service,
-  } = useFlowContext();
+  } = useFlow();
 
   onMount(() => {
     const rect = ref()!.getBoundingClientRect();
