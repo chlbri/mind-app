@@ -1,4 +1,9 @@
 {
   "buildCommand": "pnpm run build:showroom",
-  "outputDirectory": "showroom/.output/vercel/public"
+  "outputDirectory": "showroom/.output",
+  "functions": {
+    "showroom/.output/server/index.mjs": {
+      "runtime": "nodejs22.x"
+    }
+  }
 }
