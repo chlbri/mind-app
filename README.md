@@ -6,12 +6,13 @@ A flow chart UI library with a showroom application.
 
 This project is organized as a UI library with a showroom:
 
-- **`src/lib/`** - The Flow Chart UI library (self-contained, reusable)
-  - Services for state management
-  - UI components for flow charts
-  - Helper utilities
+- **`src/`** - The Flow Chart UI library (self-contained, reusable)
+  - `services/` - State management and business logic
+  - `ui/components/` - Solid.js components for flow charts
+  - `helpers/` - Utility functions
+  - `index.ts` - Public API exports
 
-- **`src/`** (rest) - The showroom application
+- **`showroom/`** - The showroom application demonstrating the library
   - `routes/` - Application routes demonstrating the library
   - `globals/` - Shared utilities, types, and UI components
   - `features/` - Other application features (e.g., mindmap)
@@ -37,10 +38,10 @@ pnpm run lint
 
 ## Library Usage
 
-The Flow Chart library can be imported from `~/lib`:
+The Flow Chart library can be imported from `~/`:
 
 ```tsx
-import { FlowChart, Provider } from '~/lib';
+import { FlowChart, Provider } from '~/';
 
 export const Demo = () => {
   return (
@@ -51,4 +52,4 @@ export const Demo = () => {
 };
 ```
 
-See `src/lib/README.md` for more details on the library API.
+See `src/README.md` for more details on the library API.

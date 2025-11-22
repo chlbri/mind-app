@@ -7,13 +7,14 @@ This is a self-contained UI library for creating interactive flow charts in Soli
 - `services/` - State management and business logic
 - `ui/components/` - Solid.js components for the flow chart
 - `helpers/` - Utility functions
+- `index.ts` - Public API exports
 
 ## Usage
 
-Import the library components from `~/lib`:
+Import the library components from `~/`:
 
 ```tsx
-import { FlowChart, Provider } from '~/lib';
+import { FlowChart, Provider } from '~/';
 
 export const MyComponent = () => {
   return (
