@@ -3,7 +3,7 @@ import { Component, createSignal, onMount, Show } from 'solid-js';
 import { produce } from 'solid-js/store';
 import { clickOutside } from '~ui/directives';
 import type { PropsOf } from '~ui/types';
-import type { Point } from '../services/main.types';
+import type { Point } from '../../services/main.types';
 import { useFlow } from './FlowChart.context';
 
 declare module 'solid-js' {

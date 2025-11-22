@@ -1,6 +1,6 @@
 import { Component, createSignal, For, onMount } from 'solid-js';
 import { produce } from 'solid-js/store';
-import type { Point } from '../services/main.types';
+import type { Point } from '../../services/main.types';
 import { useFlow } from './FlowChart.context';
 import NodeComponent from './NodeComponent.old';
 

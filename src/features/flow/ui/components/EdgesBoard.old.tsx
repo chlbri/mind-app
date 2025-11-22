@@ -1,5 +1,5 @@
 import { Component, createEffect, createSignal, For } from 'solid-js';
-import type { EdgeVector } from '../services/main.types';
+import type { EdgeVector } from '../../services/main.types';
 import EdgeComponent from './EdgeComponent.old';
 
 interface Vector {

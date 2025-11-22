@@ -1,11 +1,11 @@
 import { Component, createEffect, createSignal, onMount } from 'solid-js';
 import { createStore, produce } from 'solid-js/store';
-import { buildEdgeId } from '../services/main.machine';
+import { buildEdgeId } from '../../services/main.machine';
 import type {
   Extremities,
   NodeOffset,
   Point,
-} from '../services/main.types';
+} from '../../services/main.types';
 import EdgesBoard from './EdgesBoard.old';
 import { useFlow } from './FlowChart.context';
 import NodesBoard from './NodesBoard.old';
