@@ -15,6 +15,9 @@ importers:
         specifier: ^5.1.6
         version: 5.1.6
     devDependencies:
+      '@bemedev/app-cli':
+        specifier: ^0.1.7
+        version: 0.1.7(@bemedev/app-ts@1.3.1(@bemedev/types@0.4.2)(vitest@4.0.13))(@bemedev/types@0.4.2)(vitest@4.0.13)
       '@bemedev/app-solid':
         specifier: ^0.3.0
         version: 0.3.0(@bemedev/app-ts@1.3.1(@bemedev/types@0.4.2)(vitest@4.0.13))(@bemedev/decompose@1.3.1(@bemedev/types@0.4.2)(vitest@4.0.13))(@bemedev/types@0.4.2)(solid-js@1.9.10)

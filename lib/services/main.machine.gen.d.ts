@@ -20,7 +20,7 @@
  * This file is auto-generated. Do not edit manually.
  */
 export type _AllPaths = {
-    machine: '/' | '/idle' | '/working';
+    machine: '/' | '/idle' | '/construction' | '/working';
 };
 /**
 *
@@ -51,11 +51,14 @@ export declare const SCHEMAS: {
                 readonly idle: {
                     readonly targets: Exclude<_AllPaths["machine"], "/idle">;
                 };
+                readonly construction: {
+                    readonly targets: Exclude<_AllPaths["machine"], "/construction">;
+                };
                 readonly working: {
                     readonly targets: Exclude<_AllPaths["machine"], "/working">;
                 };
             };
-            readonly initial: "idle" | "working";
+            readonly initial: "idle" | "construction" | "working";
         };
     };
 };

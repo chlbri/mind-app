@@ -26,10 +26,18 @@ export const machine = createMachine(
         },
       },
 
+      construction: {
+        always: {
+          actions: ['buildArrays', 'buildUI'],
+          target: '/working',
+        },
+      },
+
       working: {
         on: {
           MOVE: {
             actions: ['moveNode', 'buildArrays', 'buildUI'],
+            target: '/construction',
           },
           MOVE_IMMEDIATE: {
             actions: [
@@ -45,9 +53,8 @@ export const machine = createMachine(
               'generateID',
               { name: 'placeChild', description: 'Must be in the ui' },
               'linkChild',
-              'buildArrays',
-              'buildUI',
             ],
+            target: '/construction',
           },
 
           ADD_SIBLING: {
@@ -55,17 +62,18 @@ export const machine = createMachine(
               'generateID',
               { name: 'placeSibling', description: 'Must be in the ui' },
               'linkSibling',
-              'buildArrays',
-              'buildUI',
             ],
+            target: '/construction',
           },
 
           ADD_EDGE: {
-            actions: ['addEdge', 'buildArrays', 'buildUI'],
+            actions: ['addEdge'],
+            target: '/construction',
           },
 
           DELETE: {
-            actions: ['delete', 'buildArrays', 'buildUI'],
+            actions: ['delete'],
+            target: '/construction',
           },
 
           SELECT: {

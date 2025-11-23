@@ -7,11 +7,14 @@ export declare const machine: import('@bemedev/app-ts').Machine<{
             readonly idle: {
                 readonly targets: Exclude<import('./main.machine.gen')._AllPaths["machine"], "/idle">;
             };
+            readonly construction: {
+                readonly targets: Exclude<import('./main.machine.gen')._AllPaths["machine"], "/construction">;
+            };
             readonly working: {
                 readonly targets: Exclude<import('./main.machine.gen')._AllPaths["machine"], "/working">;
             };
         };
-        readonly initial: "idle" | "working";
+        readonly initial: "idle" | "construction" | "working";
     };
     readonly initial: "idle";
     readonly states: {
@@ -24,10 +27,17 @@ export declare const machine: import('@bemedev/app-ts').Machine<{
                 readonly CONFIGURE_EMPTY: "/working";
             };
         };
+        readonly construction: {
+            readonly always: {
+                readonly actions: readonly ["buildArrays", "buildUI"];
+                readonly target: "/working";
+            };
+        };
         readonly working: {
             readonly on: {
                 readonly MOVE: {
                     readonly actions: readonly ["moveNode", "buildArrays", "buildUI"];
+                    readonly target: "/construction";
                 };
                 readonly MOVE_IMMEDIATE: {
                     readonly actions: readonly [{
@@ -39,19 +49,23 @@ export declare const machine: import('@bemedev/app-ts').Machine<{
                     readonly actions: readonly ["generateID", {
                         readonly name: "placeChild";
                         readonly description: "Must be in the ui";
-                    }, "linkChild", "buildArrays", "buildUI"];
+                    }, "linkChild"];
+                    readonly target: "/construction";
                 };
                 readonly ADD_SIBLING: {
                     readonly actions: readonly ["generateID", {
                         readonly name: "placeSibling";
                         readonly description: "Must be in the ui";
-                    }, "linkSibling", "buildArrays", "buildUI"];
+                    }, "linkSibling"];
+                    readonly target: "/construction";
                 };
                 readonly ADD_EDGE: {
-                    readonly actions: readonly ["addEdge", "buildArrays", "buildUI"];
+                    readonly actions: readonly ["addEdge"];
+                    readonly target: "/construction";
                 };
                 readonly DELETE: {
-                    readonly actions: readonly ["delete", "buildArrays", "buildUI"];
+                    readonly actions: readonly ["delete"];
+                    readonly target: "/construction";
                 };
                 readonly SELECT: {
                     readonly actions: readonly ["select"];
@@ -214,11 +228,14 @@ export declare const machine: import('@bemedev/app-ts').Machine<{
             readonly idle: {
                 readonly targets: Exclude<import('./main.machine.gen')._AllPaths["machine"], "/idle">;
             };
+            readonly construction: {
+                readonly targets: Exclude<import('./main.machine.gen')._AllPaths["machine"], "/construction">;
+            };
             readonly working: {
                 readonly targets: Exclude<import('./main.machine.gen')._AllPaths["machine"], "/working">;
             };
         };
-        readonly initial: "idle" | "working";
+        readonly initial: "idle" | "construction" | "working";
     };
     readonly initial: "idle";
     readonly states: {
@@ -231,10 +248,17 @@ export declare const machine: import('@bemedev/app-ts').Machine<{
                 readonly CONFIGURE_EMPTY: "/working";
             };
         };
+        readonly construction: {
+            readonly always: {
+                readonly actions: readonly ["buildArrays", "buildUI"];
+                readonly target: "/working";
+            };
+        };
         readonly working: {
             readonly on: {
                 readonly MOVE: {
                     readonly actions: readonly ["moveNode", "buildArrays", "buildUI"];
+                    readonly target: "/construction";
                 };
                 readonly MOVE_IMMEDIATE: {
                     readonly actions: readonly [{
@@ -246,19 +270,23 @@ export declare const machine: import('@bemedev/app-ts').Machine<{
                     readonly actions: readonly ["generateID", {
                         readonly name: "placeChild";
                         readonly description: "Must be in the ui";
-                    }, "linkChild", "buildArrays", "buildUI"];
+                    }, "linkChild"];
+                    readonly target: "/construction";
                 };
                 readonly ADD_SIBLING: {
                     readonly actions: readonly ["generateID", {
                         readonly name: "placeSibling";
                         readonly description: "Must be in the ui";
-                    }, "linkSibling", "buildArrays", "buildUI"];
+                    }, "linkSibling"];
+                    readonly target: "/construction";
                 };
                 readonly ADD_EDGE: {
-                    readonly actions: readonly ["addEdge", "buildArrays", "buildUI"];
+                    readonly actions: readonly ["addEdge"];
+                    readonly target: "/construction";
                 };
                 readonly DELETE: {
-                    readonly actions: readonly ["delete", "buildArrays", "buildUI"];
+                    readonly actions: readonly ["delete"];
+                    readonly target: "/construction";
                 };
                 readonly SELECT: {
                     readonly actions: readonly ["select"];
