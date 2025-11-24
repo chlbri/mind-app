@@ -8,97 +8,97 @@
 // You should NOT make any changes in this file as it will be overwritten.
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
-import { Route as rootRouteImport } from './routes/__root'
-import { Route as CountingRouteImport } from './routes/counting'
-import { Route as IndexRouteImport } from './routes/index'
-import { Route as DemoIndexRouteImport } from './routes/demo/index'
-import { Route as DemoDtagndropRouteImport } from './routes/demo/dtagndrop'
+import { Route as rootRouteImport } from './routes/__root';
+import { Route as CountingRouteImport } from './routes/counting';
+import { Route as IndexRouteImport } from './routes/index';
+import { Route as DemoIndexRouteImport } from './routes/demo/index';
+import { Route as DemoDtagndropRouteImport } from './routes/demo/dtagndrop';
 
 const CountingRoute = CountingRouteImport.update({
   id: '/counting',
   path: '/counting',
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const DemoIndexRoute = DemoIndexRouteImport.update({
   id: '/demo/',
   path: '/demo/',
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const DemoDtagndropRoute = DemoDtagndropRouteImport.update({
   id: '/demo/dtagndrop',
   path: '/demo/dtagndrop',
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 
 export interface FileRoutesByFullPath {
-  '/': typeof IndexRoute
-  '/counting': typeof CountingRoute
-  '/demo/dtagndrop': typeof DemoDtagndropRoute
-  '/demo': typeof DemoIndexRoute
+  '/': typeof IndexRoute;
+  '/counting': typeof CountingRoute;
+  '/demo/dtagndrop': typeof DemoDtagndropRoute;
+  '/demo': typeof DemoIndexRoute;
 }
 export interface FileRoutesByTo {
-  '/': typeof IndexRoute
-  '/counting': typeof CountingRoute
-  '/demo/dtagndrop': typeof DemoDtagndropRoute
-  '/demo': typeof DemoIndexRoute
+  '/': typeof IndexRoute;
+  '/counting': typeof CountingRoute;
+  '/demo/dtagndrop': typeof DemoDtagndropRoute;
+  '/demo': typeof DemoIndexRoute;
 }
 export interface FileRoutesById {
-  __root__: typeof rootRouteImport
-  '/': typeof IndexRoute
-  '/counting': typeof CountingRoute
-  '/demo/dtagndrop': typeof DemoDtagndropRoute
-  '/demo/': typeof DemoIndexRoute
+  __root__: typeof rootRouteImport;
+  '/': typeof IndexRoute;
+  '/counting': typeof CountingRoute;
+  '/demo/dtagndrop': typeof DemoDtagndropRoute;
+  '/demo/': typeof DemoIndexRoute;
 }
 export interface FileRouteTypes {
-  fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/counting' | '/demo/dtagndrop' | '/demo'
-  fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/counting' | '/demo/dtagndrop' | '/demo'
-  id: '__root__' | '/' | '/counting' | '/demo/dtagndrop' | '/demo/'
-  fileRoutesById: FileRoutesById
+  fileRoutesByFullPath: FileRoutesByFullPath;
+  fullPaths: '/' | '/counting' | '/demo/dtagndrop' | '/demo';
+  fileRoutesByTo: FileRoutesByTo;
+  to: '/' | '/counting' | '/demo/dtagndrop' | '/demo';
+  id: '__root__' | '/' | '/counting' | '/demo/dtagndrop' | '/demo/';
+  fileRoutesById: FileRoutesById;
 }
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute
-  CountingRoute: typeof CountingRoute
-  DemoDtagndropRoute: typeof DemoDtagndropRoute
-  DemoIndexRoute: typeof DemoIndexRoute
+  IndexRoute: typeof IndexRoute;
+  CountingRoute: typeof CountingRoute;
+  DemoDtagndropRoute: typeof DemoDtagndropRoute;
+  DemoIndexRoute: typeof DemoIndexRoute;
 }
 
 declare module '@tanstack/solid-router' {
   interface FileRoutesByPath {
     '/counting': {
-      id: '/counting'
-      path: '/counting'
-      fullPath: '/counting'
-      preLoaderRoute: typeof CountingRouteImport
-      parentRoute: typeof rootRouteImport
-    }
+      id: '/counting';
+      path: '/counting';
+      fullPath: '/counting';
+      preLoaderRoute: typeof CountingRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
     '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
+      id: '/';
+      path: '/';
+      fullPath: '/';
+      preLoaderRoute: typeof IndexRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
     '/demo/': {
-      id: '/demo/'
-      path: '/demo'
-      fullPath: '/demo'
-      preLoaderRoute: typeof DemoIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
+      id: '/demo/';
+      path: '/demo';
+      fullPath: '/demo';
+      preLoaderRoute: typeof DemoIndexRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
     '/demo/dtagndrop': {
-      id: '/demo/dtagndrop'
-      path: '/demo/dtagndrop'
-      fullPath: '/demo/dtagndrop'
-      preLoaderRoute: typeof DemoDtagndropRouteImport
-      parentRoute: typeof rootRouteImport
-    }
+      id: '/demo/dtagndrop';
+      path: '/demo/dtagndrop';
+      fullPath: '/demo/dtagndrop';
+      preLoaderRoute: typeof DemoDtagndropRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
   }
 }
 
@@ -107,16 +107,16 @@ const rootRouteChildren: RootRouteChildren = {
   CountingRoute: CountingRoute,
   DemoDtagndropRoute: DemoDtagndropRoute,
   DemoIndexRoute: DemoIndexRoute,
-}
+};
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
-  ._addFileTypes<FileRouteTypes>()
+  ._addFileTypes<FileRouteTypes>();
 
-import type { getRouter } from './router.tsx'
-import type { createStart } from '@tanstack/solid-start'
+import type { getRouter } from './router.tsx';
+import type { createStart } from '@tanstack/solid-start';
 declare module '@tanstack/solid-start' {
   interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
+    ssr: true;
+    router: Awaited<ReturnType<typeof getRouter>>;
   }
 }
