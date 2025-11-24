@@ -17,15 +17,15 @@ export declare const Provider: import('solid-js').ParentComponent, useFlow: () =
     readonly newEdge: import('solid-js').Signal<Edge | undefined>;
     readonly board: import('solid-js').Signal<Point | undefined>;
     readonly edgesPositions: readonly [import('solid-js').Accessor<Record<string, {
-        readonly x0: number;
-        readonly y0: number;
-        readonly x1: number;
-        readonly y1: number;
+        x0: number;
+        y0: number;
+        x1: number;
+        y1: number;
     }>>, import('solid-js').Setter<Record<string, {
-        readonly x0: number;
-        readonly y0: number;
-        readonly x1: number;
-        readonly y1: number;
+        x0: number;
+        y0: number;
+        x1: number;
+        y1: number;
     }>>];
     readonly service: {
         readonly contains: (...values: string[]) => () => boolean;
@@ -33,51 +33,51 @@ export declare const Provider: import('solid-js').ParentComponent, useFlow: () =
             data?: {
                 nodes: {
                     [x: string]: {
-                        readonly position: {
-                            readonly x: number;
-                            readonly y: number;
+                        position: {
+                            x: number;
+                            y: number;
                         };
-                        readonly data: {
-                            readonly content: string;
-                            readonly label?: string | undefined;
+                        data: {
+                            content: string;
+                            label?: string | undefined;
                         };
-                        readonly input: boolean;
+                        input: boolean;
                     };
                     [x: number]: {
-                        readonly position: {
-                            readonly x: number;
-                            readonly y: number;
+                        position: {
+                            x: number;
+                            y: number;
                         };
-                        readonly data: {
-                            readonly content: string;
-                            readonly label?: string | undefined;
+                        data: {
+                            content: string;
+                            label?: string | undefined;
                         };
-                        readonly input: boolean;
+                        input: boolean;
                     };
                     [x: symbol]: {
-                        readonly position: {
-                            readonly x: number;
-                            readonly y: number;
+                        position: {
+                            x: number;
+                            y: number;
                         };
-                        readonly data: {
-                            readonly content: string;
-                            readonly label?: string | undefined;
+                        data: {
+                            content: string;
+                            label?: string | undefined;
                         };
-                        readonly input: boolean;
+                        input: boolean;
                     };
                 };
                 edges: {
                     [x: string]: {
-                        readonly from: string;
-                        readonly to: string;
+                        from: string;
+                        to: string;
                     };
                     [x: number]: {
-                        readonly from: string;
-                        readonly to: string;
+                        from: string;
+                        to: string;
                     };
                     [x: symbol]: {
-                        readonly from: string;
-                        readonly to: string;
+                        from: string;
+                        to: string;
                     };
                 };
             } | undefined;
@@ -87,51 +87,51 @@ export declare const Provider: import('solid-js').ParentComponent, useFlow: () =
             data?: {
                 nodes: {
                     [x: string]: {
-                        readonly position: {
-                            readonly x: number;
-                            readonly y: number;
+                        position: {
+                            x: number;
+                            y: number;
                         };
-                        readonly data: {
-                            readonly content: string;
-                            readonly label?: string | undefined;
+                        data: {
+                            content: string;
+                            label?: string | undefined;
                         };
-                        readonly input: boolean;
+                        input: boolean;
                     };
                     [x: number]: {
-                        readonly position: {
-                            readonly x: number;
-                            readonly y: number;
+                        position: {
+                            x: number;
+                            y: number;
                         };
-                        readonly data: {
-                            readonly content: string;
-                            readonly label?: string | undefined;
+                        data: {
+                            content: string;
+                            label?: string | undefined;
                         };
-                        readonly input: boolean;
+                        input: boolean;
                     };
                     [x: symbol]: {
-                        readonly position: {
-                            readonly x: number;
-                            readonly y: number;
+                        position: {
+                            x: number;
+                            y: number;
                         };
-                        readonly data: {
-                            readonly content: string;
-                            readonly label?: string | undefined;
+                        data: {
+                            content: string;
+                            label?: string | undefined;
                         };
-                        readonly input: boolean;
+                        input: boolean;
                     };
                 };
                 edges: {
                     [x: string]: {
-                        readonly from: string;
-                        readonly to: string;
+                        from: string;
+                        to: string;
                     };
                     [x: number]: {
-                        readonly from: string;
-                        readonly to: string;
+                        from: string;
+                        to: string;
                     };
                     [x: symbol]: {
-                        readonly from: string;
-                        readonly to: string;
+                        from: string;
+                        to: string;
                     };
                 };
             } | undefined;
@@ -146,51 +146,51 @@ export declare const Provider: import('solid-js').ParentComponent, useFlow: () =
             data?: {
                 nodes: {
                     [x: string]: {
-                        readonly position: {
-                            readonly x: number;
-                            readonly y: number;
+                        position: {
+                            x: number;
+                            y: number;
                         };
-                        readonly data: {
-                            readonly content: string;
-                            readonly label?: string | undefined;
+                        data: {
+                            content: string;
+                            label?: string | undefined;
                         };
-                        readonly input: boolean;
+                        input: boolean;
                     };
                     [x: number]: {
-                        readonly position: {
-                            readonly x: number;
-                            readonly y: number;
+                        position: {
+                            x: number;
+                            y: number;
                         };
-                        readonly data: {
-                            readonly content: string;
-                            readonly label?: string | undefined;
+                        data: {
+                            content: string;
+                            label?: string | undefined;
                         };
-                        readonly input: boolean;
+                        input: boolean;
                     };
                     [x: symbol]: {
-                        readonly position: {
-                            readonly x: number;
-                            readonly y: number;
+                        position: {
+                            x: number;
+                            y: number;
                         };
-                        readonly data: {
-                            readonly content: string;
-                            readonly label?: string | undefined;
+                        data: {
+                            content: string;
+                            label?: string | undefined;
                         };
-                        readonly input: boolean;
+                        input: boolean;
                     };
                 };
                 edges: {
                     [x: string]: {
-                        readonly from: string;
-                        readonly to: string;
+                        from: string;
+                        to: string;
                     };
                     [x: number]: {
-                        readonly from: string;
-                        readonly to: string;
+                        from: string;
+                        to: string;
                     };
                     [x: symbol]: {
-                        readonly from: string;
-                        readonly to: string;
+                        from: string;
+                        to: string;
                     };
                 };
             } | undefined;
@@ -200,64 +200,64 @@ export declare const Provider: import('solid-js').ParentComponent, useFlow: () =
             CONFIGURE: {
                 nodes: {
                     [x: string]: {
-                        readonly position: {
-                            readonly x: number;
-                            readonly y: number;
+                        position: {
+                            x: number;
+                            y: number;
                         };
-                        readonly data: {
-                            readonly content: string;
-                            readonly label?: string | undefined;
+                        data: {
+                            content: string;
+                            label?: string | undefined;
                         };
-                        readonly input: boolean;
+                        input: boolean;
                     };
                     [x: number]: {
-                        readonly position: {
-                            readonly x: number;
-                            readonly y: number;
+                        position: {
+                            x: number;
+                            y: number;
                         };
-                        readonly data: {
-                            readonly content: string;
-                            readonly label?: string | undefined;
+                        data: {
+                            content: string;
+                            label?: string | undefined;
                         };
-                        readonly input: boolean;
+                        input: boolean;
                     };
                     [x: symbol]: {
-                        readonly position: {
-                            readonly x: number;
-                            readonly y: number;
+                        position: {
+                            x: number;
+                            y: number;
                         };
-                        readonly data: {
-                            readonly content: string;
-                            readonly label?: string | undefined;
+                        data: {
+                            content: string;
+                            label?: string | undefined;
                         };
-                        readonly input: boolean;
+                        input: boolean;
                     };
                 };
                 edges: {
                     [x: string]: {
-                        readonly from: string;
-                        readonly to: string;
+                        from: string;
+                        to: string;
                     };
                     [x: number]: {
-                        readonly from: string;
-                        readonly to: string;
+                        from: string;
+                        to: string;
                     };
                     [x: symbol]: {
-                        readonly from: string;
-                        readonly to: string;
+                        from: string;
+                        to: string;
                     };
                 };
             };
             CONFIGURE_EMPTY: {};
             MOVE: {
-                readonly id: string;
-                readonly x: number;
-                readonly y: number;
+                id: string;
+                x: number;
+                y: number;
             };
             MOVE_IMMEDIATE: {
-                readonly id: string;
-                readonly x: number;
-                readonly y: number;
+                id: string;
+                x: number;
+                y: number;
             };
             ADD_CHILD: string;
             ADD_SIBLING: string;
@@ -265,59 +265,59 @@ export declare const Provider: import('solid-js').ParentComponent, useFlow: () =
             SELECT: string;
             DESELECT: {};
             ADD_EDGE: {
-                readonly from: string;
-                readonly to: string;
+                from: string;
+                to: string;
             };
         }, {}>> | {
             context: {
                 data?: {
                     nodes: {
                         [x: string]: {
-                            readonly position: {
-                                readonly x: number;
-                                readonly y: number;
+                            position: {
+                                x: number;
+                                y: number;
                             };
-                            readonly data: {
-                                readonly content: string;
-                                readonly label?: string | undefined;
+                            data: {
+                                content: string;
+                                label?: string | undefined;
                             };
-                            readonly input: boolean;
+                            input: boolean;
                         };
                         [x: number]: {
-                            readonly position: {
-                                readonly x: number;
-                                readonly y: number;
+                            position: {
+                                x: number;
+                                y: number;
                             };
-                            readonly data: {
-                                readonly content: string;
-                                readonly label?: string | undefined;
+                            data: {
+                                content: string;
+                                label?: string | undefined;
                             };
-                            readonly input: boolean;
+                            input: boolean;
                         };
                         [x: symbol]: {
-                            readonly position: {
-                                readonly x: number;
-                                readonly y: number;
+                            position: {
+                                x: number;
+                                y: number;
                             };
-                            readonly data: {
-                                readonly content: string;
-                                readonly label?: string | undefined;
+                            data: {
+                                content: string;
+                                label?: string | undefined;
                             };
-                            readonly input: boolean;
+                            input: boolean;
                         };
                     };
                     edges: {
                         [x: string]: {
-                            readonly from: string;
-                            readonly to: string;
+                            from: string;
+                            to: string;
                         };
                         [x: number]: {
-                            readonly from: string;
-                            readonly to: string;
+                            from: string;
+                            to: string;
                         };
                         [x: symbol]: {
-                            readonly from: string;
-                            readonly to: string;
+                            from: string;
+                            to: string;
                         };
                     };
                 } | undefined;
@@ -330,64 +330,64 @@ export declare const Provider: import('solid-js').ParentComponent, useFlow: () =
                 CONFIGURE: {
                     nodes: {
                         [x: string]: {
-                            readonly position: {
-                                readonly x: number;
-                                readonly y: number;
+                            position: {
+                                x: number;
+                                y: number;
                             };
-                            readonly data: {
-                                readonly content: string;
-                                readonly label?: string | undefined;
+                            data: {
+                                content: string;
+                                label?: string | undefined;
                             };
-                            readonly input: boolean;
+                            input: boolean;
                         };
                         [x: number]: {
-                            readonly position: {
-                                readonly x: number;
-                                readonly y: number;
+                            position: {
+                                x: number;
+                                y: number;
                             };
-                            readonly data: {
-                                readonly content: string;
-                                readonly label?: string | undefined;
+                            data: {
+                                content: string;
+                                label?: string | undefined;
                             };
-                            readonly input: boolean;
+                            input: boolean;
                         };
                         [x: symbol]: {
-                            readonly position: {
-                                readonly x: number;
-                                readonly y: number;
+                            position: {
+                                x: number;
+                                y: number;
                             };
-                            readonly data: {
-                                readonly content: string;
-                                readonly label?: string | undefined;
+                            data: {
+                                content: string;
+                                label?: string | undefined;
                             };
-                            readonly input: boolean;
+                            input: boolean;
                         };
                     };
                     edges: {
                         [x: string]: {
-                            readonly from: string;
-                            readonly to: string;
+                            from: string;
+                            to: string;
                         };
                         [x: number]: {
-                            readonly from: string;
-                            readonly to: string;
+                            from: string;
+                            to: string;
                         };
                         [x: symbol]: {
-                            readonly from: string;
-                            readonly to: string;
+                            from: string;
+                            to: string;
                         };
                     };
                 };
                 CONFIGURE_EMPTY: {};
                 MOVE: {
-                    readonly id: string;
-                    readonly x: number;
-                    readonly y: number;
+                    id: string;
+                    x: number;
+                    y: number;
                 };
                 MOVE_IMMEDIATE: {
-                    readonly id: string;
-                    readonly x: number;
-                    readonly y: number;
+                    id: string;
+                    x: number;
+                    y: number;
                 };
                 ADD_CHILD: string;
                 ADD_SIBLING: string;
@@ -395,8 +395,8 @@ export declare const Provider: import('solid-js').ParentComponent, useFlow: () =
                 SELECT: string;
                 DESELECT: {};
                 ADD_EDGE: {
-                    readonly from: string;
-                    readonly to: string;
+                    from: string;
+                    to: string;
                 };
             }, {}>;
             tags?: (string | readonly string[]) | undefined;
@@ -407,51 +407,51 @@ export declare const Provider: import('solid-js').ParentComponent, useFlow: () =
                 data?: {
                     nodes: {
                         [x: string]: {
-                            readonly position: {
-                                readonly x: number;
-                                readonly y: number;
+                            position: {
+                                x: number;
+                                y: number;
                             };
-                            readonly data: {
-                                readonly content: string;
-                                readonly label?: string | undefined;
+                            data: {
+                                content: string;
+                                label?: string | undefined;
                             };
-                            readonly input: boolean;
+                            input: boolean;
                         };
                         [x: number]: {
-                            readonly position: {
-                                readonly x: number;
-                                readonly y: number;
+                            position: {
+                                x: number;
+                                y: number;
                             };
-                            readonly data: {
-                                readonly content: string;
-                                readonly label?: string | undefined;
+                            data: {
+                                content: string;
+                                label?: string | undefined;
                             };
-                            readonly input: boolean;
+                            input: boolean;
                         };
                         [x: symbol]: {
-                            readonly position: {
-                                readonly x: number;
-                                readonly y: number;
+                            position: {
+                                x: number;
+                                y: number;
                             };
-                            readonly data: {
-                                readonly content: string;
-                                readonly label?: string | undefined;
+                            data: {
+                                content: string;
+                                label?: string | undefined;
                             };
-                            readonly input: boolean;
+                            input: boolean;
                         };
                     };
                     edges: {
                         [x: string]: {
-                            readonly from: string;
-                            readonly to: string;
+                            from: string;
+                            to: string;
                         };
                         [x: number]: {
-                            readonly from: string;
-                            readonly to: string;
+                            from: string;
+                            to: string;
                         };
                         [x: symbol]: {
-                            readonly from: string;
-                            readonly to: string;
+                            from: string;
+                            to: string;
                         };
                     };
                 } | undefined;
@@ -464,64 +464,64 @@ export declare const Provider: import('solid-js').ParentComponent, useFlow: () =
                 CONFIGURE: {
                     nodes: {
                         [x: string]: {
-                            readonly position: {
-                                readonly x: number;
-                                readonly y: number;
+                            position: {
+                                x: number;
+                                y: number;
                             };
-                            readonly data: {
-                                readonly content: string;
-                                readonly label?: string | undefined;
+                            data: {
+                                content: string;
+                                label?: string | undefined;
                             };
-                            readonly input: boolean;
+                            input: boolean;
                         };
                         [x: number]: {
-                            readonly position: {
-                                readonly x: number;
-                                readonly y: number;
+                            position: {
+                                x: number;
+                                y: number;
                             };
-                            readonly data: {
-                                readonly content: string;
-                                readonly label?: string | undefined;
+                            data: {
+                                content: string;
+                                label?: string | undefined;
                             };
-                            readonly input: boolean;
+                            input: boolean;
                         };
                         [x: symbol]: {
-                            readonly position: {
-                                readonly x: number;
-                                readonly y: number;
+                            position: {
+                                x: number;
+                                y: number;
                             };
-                            readonly data: {
-                                readonly content: string;
-                                readonly label?: string | undefined;
+                            data: {
+                                content: string;
+                                label?: string | undefined;
                             };
-                            readonly input: boolean;
+                            input: boolean;
                         };
                     };
                     edges: {
                         [x: string]: {
-                            readonly from: string;
-                            readonly to: string;
+                            from: string;
+                            to: string;
                         };
                         [x: number]: {
-                            readonly from: string;
-                            readonly to: string;
+                            from: string;
+                            to: string;
                         };
                         [x: symbol]: {
-                            readonly from: string;
-                            readonly to: string;
+                            from: string;
+                            to: string;
                         };
                     };
                 };
                 CONFIGURE_EMPTY: {};
                 MOVE: {
-                    readonly id: string;
-                    readonly x: number;
-                    readonly y: number;
+                    id: string;
+                    x: number;
+                    y: number;
                 };
                 MOVE_IMMEDIATE: {
-                    readonly id: string;
-                    readonly x: number;
-                    readonly y: number;
+                    id: string;
+                    x: number;
+                    y: number;
                 };
                 ADD_CHILD: string;
                 ADD_SIBLING: string;
@@ -529,8 +529,8 @@ export declare const Provider: import('solid-js').ParentComponent, useFlow: () =
                 SELECT: string;
                 DESELECT: {};
                 ADD_EDGE: {
-                    readonly from: string;
-                    readonly to: string;
+                    from: string;
+                    to: string;
                 };
             }, {}>;
             tags?: (string | readonly string[]) | undefined;
@@ -550,159 +550,159 @@ export declare const Provider: import('solid-js').ParentComponent, useFlow: () =
                 data?: {
                     nodes: {
                         [x: string]: {
-                            readonly position: {
-                                readonly x: number;
-                                readonly y: number;
+                            position: {
+                                x: number;
+                                y: number;
                             };
-                            readonly data: {
-                                readonly content: string;
-                                readonly label?: string | undefined;
+                            data: {
+                                content: string;
+                                label?: string | undefined;
                             };
-                            readonly input: boolean;
+                            input: boolean;
                         };
                         [x: number]: {
-                            readonly position: {
-                                readonly x: number;
-                                readonly y: number;
+                            position: {
+                                x: number;
+                                y: number;
                             };
-                            readonly data: {
-                                readonly content: string;
-                                readonly label?: string | undefined;
+                            data: {
+                                content: string;
+                                label?: string | undefined;
                             };
-                            readonly input: boolean;
+                            input: boolean;
                         };
                         [x: symbol]: {
-                            readonly position: {
-                                readonly x: number;
-                                readonly y: number;
+                            position: {
+                                x: number;
+                                y: number;
                             };
-                            readonly data: {
-                                readonly content: string;
-                                readonly label?: string | undefined;
+                            data: {
+                                content: string;
+                                label?: string | undefined;
                             };
-                            readonly input: boolean;
+                            input: boolean;
                         };
                     };
                     edges: {
                         [x: string]: {
-                            readonly from: string;
-                            readonly to: string;
+                            from: string;
+                            to: string;
                         };
                         [x: number]: {
-                            readonly from: string;
-                            readonly to: string;
+                            from: string;
+                            to: string;
                         };
                         [x: symbol]: {
-                            readonly from: string;
-                            readonly to: string;
+                            from: string;
+                            to: string;
                         };
                     };
                 } | undefined;
                 selected?: string | undefined;
                 updatingUI?: boolean | undefined;
             };
-            "context.data.nodes": {
-                [x: string]: {
-                    readonly position: {
-                        readonly x: number;
-                        readonly y: number;
-                    };
-                    readonly data: {
-                        readonly content: string;
-                        readonly label?: string | undefined;
-                    };
-                    readonly input: boolean;
-                };
-                [x: number]: {
-                    readonly position: {
-                        readonly x: number;
-                        readonly y: number;
-                    };
-                    readonly data: {
-                        readonly content: string;
-                        readonly label?: string | undefined;
-                    };
-                    readonly input: boolean;
-                };
-                [x: symbol]: {
-                    readonly position: {
-                        readonly x: number;
-                        readonly y: number;
-                    };
-                    readonly data: {
-                        readonly content: string;
-                        readonly label?: string | undefined;
-                    };
-                    readonly input: boolean;
-                };
-            };
-            "context.data.edges": {
-                [x: string]: {
-                    readonly from: string;
-                    readonly to: string;
-                };
-                [x: number]: {
-                    readonly from: string;
-                    readonly to: string;
-                };
-                [x: symbol]: {
-                    readonly from: string;
-                    readonly to: string;
-                };
-            };
             "context.data": {
                 nodes: {
                     [x: string]: {
-                        readonly position: {
-                            readonly x: number;
-                            readonly y: number;
+                        position: {
+                            x: number;
+                            y: number;
                         };
-                        readonly data: {
-                            readonly content: string;
-                            readonly label?: string | undefined;
+                        data: {
+                            content: string;
+                            label?: string | undefined;
                         };
-                        readonly input: boolean;
+                        input: boolean;
                     };
                     [x: number]: {
-                        readonly position: {
-                            readonly x: number;
-                            readonly y: number;
+                        position: {
+                            x: number;
+                            y: number;
                         };
-                        readonly data: {
-                            readonly content: string;
-                            readonly label?: string | undefined;
+                        data: {
+                            content: string;
+                            label?: string | undefined;
                         };
-                        readonly input: boolean;
+                        input: boolean;
                     };
                     [x: symbol]: {
-                        readonly position: {
-                            readonly x: number;
-                            readonly y: number;
+                        position: {
+                            x: number;
+                            y: number;
                         };
-                        readonly data: {
-                            readonly content: string;
-                            readonly label?: string | undefined;
+                        data: {
+                            content: string;
+                            label?: string | undefined;
                         };
-                        readonly input: boolean;
+                        input: boolean;
                     };
                 };
                 edges: {
                     [x: string]: {
-                        readonly from: string;
-                        readonly to: string;
+                        from: string;
+                        to: string;
                     };
                     [x: number]: {
-                        readonly from: string;
-                        readonly to: string;
+                        from: string;
+                        to: string;
                     };
                     [x: symbol]: {
-                        readonly from: string;
-                        readonly to: string;
+                        from: string;
+                        to: string;
                     };
                 };
+            } | undefined;
+            "context.data.nodes": {
+                [x: string]: {
+                    position: {
+                        x: number;
+                        y: number;
+                    };
+                    data: {
+                        content: string;
+                        label?: string | undefined;
+                    };
+                    input: boolean;
+                };
+                [x: number]: {
+                    position: {
+                        x: number;
+                        y: number;
+                    };
+                    data: {
+                        content: string;
+                        label?: string | undefined;
+                    };
+                    input: boolean;
+                };
+                [x: symbol]: {
+                    position: {
+                        x: number;
+                        y: number;
+                    };
+                    data: {
+                        content: string;
+                        label?: string | undefined;
+                    };
+                    input: boolean;
+                };
             };
-            "context.selected": string;
-            "context.updatingUI": boolean;
+            "context.data.edges": {
+                [x: string]: {
+                    from: string;
+                    to: string;
+                };
+                [x: number]: {
+                    from: string;
+                    to: string;
+                };
+                [x: symbol]: {
+                    from: string;
+                    to: string;
+                };
+            };
+            "context.selected": string | undefined;
+            "context.updatingUI": boolean | undefined;
         }, K extends Extract<keyof D, string> = Extract<keyof D, string>, R = D[K]>(selector: K, equals?: ((prev: NoInfer<R>, next: NoInfer<R>) => boolean) | undefined) => import('solid-js').Accessor<R>;
         readonly send: (_event: "CONFIGURE_EMPTY" | "DESELECT" | {
             type: "CONFIGURE_EMPTY";
@@ -712,67 +712,67 @@ export declare const Provider: import('solid-js').ParentComponent, useFlow: () =
             payload: {
                 nodes: {
                     [x: string]: {
-                        readonly position: {
-                            readonly x: number;
-                            readonly y: number;
+                        position: {
+                            x: number;
+                            y: number;
                         };
-                        readonly data: {
-                            readonly content: string;
-                            readonly label?: string | undefined;
+                        data: {
+                            content: string;
+                            label?: string | undefined;
                         };
-                        readonly input: boolean;
+                        input: boolean;
                     };
                     [x: number]: {
-                        readonly position: {
-                            readonly x: number;
-                            readonly y: number;
+                        position: {
+                            x: number;
+                            y: number;
                         };
-                        readonly data: {
-                            readonly content: string;
-                            readonly label?: string | undefined;
+                        data: {
+                            content: string;
+                            label?: string | undefined;
                         };
-                        readonly input: boolean;
+                        input: boolean;
                     };
                     [x: symbol]: {
-                        readonly position: {
-                            readonly x: number;
-                            readonly y: number;
+                        position: {
+                            x: number;
+                            y: number;
                         };
-                        readonly data: {
-                            readonly content: string;
-                            readonly label?: string | undefined;
+                        data: {
+                            content: string;
+                            label?: string | undefined;
                         };
-                        readonly input: boolean;
+                        input: boolean;
                     };
                 };
                 edges: {
                     [x: string]: {
-                        readonly from: string;
-                        readonly to: string;
+                        from: string;
+                        to: string;
                     };
                     [x: number]: {
-                        readonly from: string;
-                        readonly to: string;
+                        from: string;
+                        to: string;
                     };
                     [x: symbol]: {
-                        readonly from: string;
-                        readonly to: string;
+                        from: string;
+                        to: string;
                     };
                 };
             };
         } | {
             type: "MOVE";
             payload: {
-                readonly id: string;
-                readonly x: number;
-                readonly y: number;
+                id: string;
+                x: number;
+                y: number;
             };
         } | {
             type: "MOVE_IMMEDIATE";
             payload: {
-                readonly id: string;
-                readonly x: number;
-                readonly y: number;
+                id: string;
+                x: number;
+                y: number;
             };
         } | {
             type: "ADD_CHILD";
@@ -783,8 +783,8 @@ export declare const Provider: import('solid-js').ParentComponent, useFlow: () =
         } | {
             type: "ADD_EDGE";
             payload: {
-                readonly from: string;
-                readonly to: string;
+                from: string;
+                to: string;
             };
         } | {
             type: "DELETE";
@@ -802,51 +802,51 @@ export declare const Provider: import('solid-js').ParentComponent, useFlow: () =
                 data?: {
                     nodes: {
                         [x: string]: {
-                            readonly position: {
-                                readonly x: number;
-                                readonly y: number;
+                            position: {
+                                x: number;
+                                y: number;
                             };
-                            readonly data: {
-                                readonly content: string;
-                                readonly label?: string | undefined;
+                            data: {
+                                content: string;
+                                label?: string | undefined;
                             };
-                            readonly input: boolean;
+                            input: boolean;
                         };
                         [x: number]: {
-                            readonly position: {
-                                readonly x: number;
-                                readonly y: number;
+                            position: {
+                                x: number;
+                                y: number;
                             };
-                            readonly data: {
-                                readonly content: string;
-                                readonly label?: string | undefined;
+                            data: {
+                                content: string;
+                                label?: string | undefined;
                             };
-                            readonly input: boolean;
+                            input: boolean;
                         };
                         [x: symbol]: {
-                            readonly position: {
-                                readonly x: number;
-                                readonly y: number;
+                            position: {
+                                x: number;
+                                y: number;
                             };
-                            readonly data: {
-                                readonly content: string;
-                                readonly label?: string | undefined;
+                            data: {
+                                content: string;
+                                label?: string | undefined;
                             };
-                            readonly input: boolean;
+                            input: boolean;
                         };
                     };
                     edges: {
                         [x: string]: {
-                            readonly from: string;
-                            readonly to: string;
+                            from: string;
+                            to: string;
                         };
                         [x: number]: {
-                            readonly from: string;
-                            readonly to: string;
+                            from: string;
+                            to: string;
                         };
                         [x: symbol]: {
-                            readonly from: string;
-                            readonly to: string;
+                            from: string;
+                            to: string;
                         };
                     };
                 } | undefined;
@@ -859,64 +859,64 @@ export declare const Provider: import('solid-js').ParentComponent, useFlow: () =
                 CONFIGURE: {
                     nodes: {
                         [x: string]: {
-                            readonly position: {
-                                readonly x: number;
-                                readonly y: number;
+                            position: {
+                                x: number;
+                                y: number;
                             };
-                            readonly data: {
-                                readonly content: string;
-                                readonly label?: string | undefined;
+                            data: {
+                                content: string;
+                                label?: string | undefined;
                             };
-                            readonly input: boolean;
+                            input: boolean;
                         };
                         [x: number]: {
-                            readonly position: {
-                                readonly x: number;
-                                readonly y: number;
+                            position: {
+                                x: number;
+                                y: number;
                             };
-                            readonly data: {
-                                readonly content: string;
-                                readonly label?: string | undefined;
+                            data: {
+                                content: string;
+                                label?: string | undefined;
                             };
-                            readonly input: boolean;
+                            input: boolean;
                         };
                         [x: symbol]: {
-                            readonly position: {
-                                readonly x: number;
-                                readonly y: number;
+                            position: {
+                                x: number;
+                                y: number;
                             };
-                            readonly data: {
-                                readonly content: string;
-                                readonly label?: string | undefined;
+                            data: {
+                                content: string;
+                                label?: string | undefined;
                             };
-                            readonly input: boolean;
+                            input: boolean;
                         };
                     };
                     edges: {
                         [x: string]: {
-                            readonly from: string;
-                            readonly to: string;
+                            from: string;
+                            to: string;
                         };
                         [x: number]: {
-                            readonly from: string;
-                            readonly to: string;
+                            from: string;
+                            to: string;
                         };
                         [x: symbol]: {
-                            readonly from: string;
-                            readonly to: string;
+                            from: string;
+                            to: string;
                         };
                     };
                 };
                 CONFIGURE_EMPTY: {};
                 MOVE: {
-                    readonly id: string;
-                    readonly x: number;
-                    readonly y: number;
+                    id: string;
+                    x: number;
+                    y: number;
                 };
                 MOVE_IMMEDIATE: {
-                    readonly id: string;
-                    readonly x: number;
-                    readonly y: number;
+                    id: string;
+                    x: number;
+                    y: number;
                 };
                 ADD_CHILD: string;
                 ADD_SIBLING: string;
@@ -924,8 +924,8 @@ export declare const Provider: import('solid-js').ParentComponent, useFlow: () =
                 SELECT: string;
                 DESELECT: {};
                 ADD_EDGE: {
-                    readonly from: string;
-                    readonly to: string;
+                    from: string;
+                    to: string;
                 };
             }, {}>;
             tags?: (string | readonly string[]) | undefined;
@@ -933,51 +933,51 @@ export declare const Provider: import('solid-js').ParentComponent, useFlow: () =
             data?: {
                 nodes: {
                     [x: string]: {
-                        readonly position: {
-                            readonly x: number;
-                            readonly y: number;
+                        position: {
+                            x: number;
+                            y: number;
                         };
-                        readonly data: {
-                            readonly content: string;
-                            readonly label?: string | undefined;
+                        data: {
+                            content: string;
+                            label?: string | undefined;
                         };
-                        readonly input: boolean;
+                        input: boolean;
                     };
                     [x: number]: {
-                        readonly position: {
-                            readonly x: number;
-                            readonly y: number;
+                        position: {
+                            x: number;
+                            y: number;
                         };
-                        readonly data: {
-                            readonly content: string;
-                            readonly label?: string | undefined;
+                        data: {
+                            content: string;
+                            label?: string | undefined;
                         };
-                        readonly input: boolean;
+                        input: boolean;
                     };
                     [x: symbol]: {
-                        readonly position: {
-                            readonly x: number;
-                            readonly y: number;
+                        position: {
+                            x: number;
+                            y: number;
                         };
-                        readonly data: {
-                            readonly content: string;
-                            readonly label?: string | undefined;
+                        data: {
+                            content: string;
+                            label?: string | undefined;
                         };
-                        readonly input: boolean;
+                        input: boolean;
                     };
                 };
                 edges: {
                     [x: string]: {
-                        readonly from: string;
-                        readonly to: string;
+                        from: string;
+                        to: string;
                     };
                     [x: number]: {
-                        readonly from: string;
-                        readonly to: string;
+                        from: string;
+                        to: string;
                     };
                     [x: symbol]: {
-                        readonly from: string;
-                        readonly to: string;
+                        from: string;
+                        to: string;
                     };
                 };
             } | undefined;
@@ -987,64 +987,64 @@ export declare const Provider: import('solid-js').ParentComponent, useFlow: () =
             CONFIGURE: {
                 nodes: {
                     [x: string]: {
-                        readonly position: {
-                            readonly x: number;
-                            readonly y: number;
+                        position: {
+                            x: number;
+                            y: number;
                         };
-                        readonly data: {
-                            readonly content: string;
-                            readonly label?: string | undefined;
+                        data: {
+                            content: string;
+                            label?: string | undefined;
                         };
-                        readonly input: boolean;
+                        input: boolean;
                     };
                     [x: number]: {
-                        readonly position: {
-                            readonly x: number;
-                            readonly y: number;
+                        position: {
+                            x: number;
+                            y: number;
                         };
-                        readonly data: {
-                            readonly content: string;
-                            readonly label?: string | undefined;
+                        data: {
+                            content: string;
+                            label?: string | undefined;
                         };
-                        readonly input: boolean;
+                        input: boolean;
                     };
                     [x: symbol]: {
-                        readonly position: {
-                            readonly x: number;
-                            readonly y: number;
+                        position: {
+                            x: number;
+                            y: number;
                         };
-                        readonly data: {
-                            readonly content: string;
-                            readonly label?: string | undefined;
+                        data: {
+                            content: string;
+                            label?: string | undefined;
                         };
-                        readonly input: boolean;
+                        input: boolean;
                     };
                 };
                 edges: {
                     [x: string]: {
-                        readonly from: string;
-                        readonly to: string;
+                        from: string;
+                        to: string;
                     };
                     [x: number]: {
-                        readonly from: string;
-                        readonly to: string;
+                        from: string;
+                        to: string;
                     };
                     [x: symbol]: {
-                        readonly from: string;
-                        readonly to: string;
+                        from: string;
+                        to: string;
                     };
                 };
             };
             CONFIGURE_EMPTY: {};
             MOVE: {
-                readonly id: string;
-                readonly x: number;
-                readonly y: number;
+                id: string;
+                x: number;
+                y: number;
             };
             MOVE_IMMEDIATE: {
-                readonly id: string;
-                readonly x: number;
-                readonly y: number;
+                id: string;
+                x: number;
+                y: number;
             };
             ADD_CHILD: string;
             ADD_SIBLING: string;
@@ -1052,59 +1052,59 @@ export declare const Provider: import('solid-js').ParentComponent, useFlow: () =
             SELECT: string;
             DESELECT: {};
             ADD_EDGE: {
-                readonly from: string;
-                readonly to: string;
+                from: string;
+                to: string;
             };
         }, {}>> | {
             context: {
                 data?: {
                     nodes: {
                         [x: string]: {
-                            readonly position: {
-                                readonly x: number;
-                                readonly y: number;
+                            position: {
+                                x: number;
+                                y: number;
                             };
-                            readonly data: {
-                                readonly content: string;
-                                readonly label?: string | undefined;
+                            data: {
+                                content: string;
+                                label?: string | undefined;
                             };
-                            readonly input: boolean;
+                            input: boolean;
                         };
                         [x: number]: {
-                            readonly position: {
-                                readonly x: number;
-                                readonly y: number;
+                            position: {
+                                x: number;
+                                y: number;
                             };
-                            readonly data: {
-                                readonly content: string;
-                                readonly label?: string | undefined;
+                            data: {
+                                content: string;
+                                label?: string | undefined;
                             };
-                            readonly input: boolean;
+                            input: boolean;
                         };
                         [x: symbol]: {
-                            readonly position: {
-                                readonly x: number;
-                                readonly y: number;
+                            position: {
+                                x: number;
+                                y: number;
                             };
-                            readonly data: {
-                                readonly content: string;
-                                readonly label?: string | undefined;
+                            data: {
+                                content: string;
+                                label?: string | undefined;
                             };
-                            readonly input: boolean;
+                            input: boolean;
                         };
                     };
                     edges: {
                         [x: string]: {
-                            readonly from: string;
-                            readonly to: string;
+                            from: string;
+                            to: string;
                         };
                         [x: number]: {
-                            readonly from: string;
-                            readonly to: string;
+                            from: string;
+                            to: string;
                         };
                         [x: symbol]: {
-                            readonly from: string;
-                            readonly to: string;
+                            from: string;
+                            to: string;
                         };
                     };
                 } | undefined;
@@ -1117,64 +1117,64 @@ export declare const Provider: import('solid-js').ParentComponent, useFlow: () =
                 CONFIGURE: {
                     nodes: {
                         [x: string]: {
-                            readonly position: {
-                                readonly x: number;
-                                readonly y: number;
+                            position: {
+                                x: number;
+                                y: number;
                             };
-                            readonly data: {
-                                readonly content: string;
-                                readonly label?: string | undefined;
+                            data: {
+                                content: string;
+                                label?: string | undefined;
                             };
-                            readonly input: boolean;
+                            input: boolean;
                         };
                         [x: number]: {
-                            readonly position: {
-                                readonly x: number;
-                                readonly y: number;
+                            position: {
+                                x: number;
+                                y: number;
                             };
-                            readonly data: {
-                                readonly content: string;
-                                readonly label?: string | undefined;
+                            data: {
+                                content: string;
+                                label?: string | undefined;
                             };
-                            readonly input: boolean;
+                            input: boolean;
                         };
                         [x: symbol]: {
-                            readonly position: {
-                                readonly x: number;
-                                readonly y: number;
+                            position: {
+                                x: number;
+                                y: number;
                             };
-                            readonly data: {
-                                readonly content: string;
-                                readonly label?: string | undefined;
+                            data: {
+                                content: string;
+                                label?: string | undefined;
                             };
-                            readonly input: boolean;
+                            input: boolean;
                         };
                     };
                     edges: {
                         [x: string]: {
-                            readonly from: string;
-                            readonly to: string;
+                            from: string;
+                            to: string;
                         };
                         [x: number]: {
-                            readonly from: string;
-                            readonly to: string;
+                            from: string;
+                            to: string;
                         };
                         [x: symbol]: {
-                            readonly from: string;
-                            readonly to: string;
+                            from: string;
+                            to: string;
                         };
                     };
                 };
                 CONFIGURE_EMPTY: {};
                 MOVE: {
-                    readonly id: string;
-                    readonly x: number;
-                    readonly y: number;
+                    id: string;
+                    x: number;
+                    y: number;
                 };
                 MOVE_IMMEDIATE: {
-                    readonly id: string;
-                    readonly x: number;
-                    readonly y: number;
+                    id: string;
+                    x: number;
+                    y: number;
                 };
                 ADD_CHILD: string;
                 ADD_SIBLING: string;
@@ -1182,8 +1182,8 @@ export declare const Provider: import('solid-js').ParentComponent, useFlow: () =
                 SELECT: string;
                 DESELECT: {};
                 ADD_EDGE: {
-                    readonly from: string;
-                    readonly to: string;
+                    from: string;
+                    to: string;
                 };
             }, {}>;
             tags?: (string | readonly string[]) | undefined;
@@ -1194,64 +1194,64 @@ export declare const Provider: import('solid-js').ParentComponent, useFlow: () =
             CONFIGURE: {
                 nodes: {
                     [x: string]: {
-                        readonly position: {
-                            readonly x: number;
-                            readonly y: number;
+                        position: {
+                            x: number;
+                            y: number;
                         };
-                        readonly data: {
-                            readonly content: string;
-                            readonly label?: string | undefined;
+                        data: {
+                            content: string;
+                            label?: string | undefined;
                         };
-                        readonly input: boolean;
+                        input: boolean;
                     };
                     [x: number]: {
-                        readonly position: {
-                            readonly x: number;
-                            readonly y: number;
+                        position: {
+                            x: number;
+                            y: number;
                         };
-                        readonly data: {
-                            readonly content: string;
-                            readonly label?: string | undefined;
+                        data: {
+                            content: string;
+                            label?: string | undefined;
                         };
-                        readonly input: boolean;
+                        input: boolean;
                     };
                     [x: symbol]: {
-                        readonly position: {
-                            readonly x: number;
-                            readonly y: number;
+                        position: {
+                            x: number;
+                            y: number;
                         };
-                        readonly data: {
-                            readonly content: string;
-                            readonly label?: string | undefined;
+                        data: {
+                            content: string;
+                            label?: string | undefined;
                         };
-                        readonly input: boolean;
+                        input: boolean;
                     };
                 };
                 edges: {
                     [x: string]: {
-                        readonly from: string;
-                        readonly to: string;
+                        from: string;
+                        to: string;
                     };
                     [x: number]: {
-                        readonly from: string;
-                        readonly to: string;
+                        from: string;
+                        to: string;
                     };
                     [x: symbol]: {
-                        readonly from: string;
-                        readonly to: string;
+                        from: string;
+                        to: string;
                     };
                 };
             };
             CONFIGURE_EMPTY: {};
             MOVE: {
-                readonly id: string;
-                readonly x: number;
-                readonly y: number;
+                id: string;
+                x: number;
+                y: number;
             };
             MOVE_IMMEDIATE: {
-                readonly id: string;
-                readonly x: number;
-                readonly y: number;
+                id: string;
+                x: number;
+                y: number;
             };
             ADD_CHILD: string;
             ADD_SIBLING: string;
@@ -1259,58 +1259,58 @@ export declare const Provider: import('solid-js').ParentComponent, useFlow: () =
             SELECT: string;
             DESELECT: {};
             ADD_EDGE: {
-                readonly from: string;
-                readonly to: string;
+                from: string;
+                to: string;
             };
         }, {}, {
             data?: {
                 nodes: {
                     [x: string]: {
-                        readonly position: {
-                            readonly x: number;
-                            readonly y: number;
+                        position: {
+                            x: number;
+                            y: number;
                         };
-                        readonly data: {
-                            readonly content: string;
-                            readonly label?: string | undefined;
+                        data: {
+                            content: string;
+                            label?: string | undefined;
                         };
-                        readonly input: boolean;
+                        input: boolean;
                     };
                     [x: number]: {
-                        readonly position: {
-                            readonly x: number;
-                            readonly y: number;
+                        position: {
+                            x: number;
+                            y: number;
                         };
-                        readonly data: {
-                            readonly content: string;
-                            readonly label?: string | undefined;
+                        data: {
+                            content: string;
+                            label?: string | undefined;
                         };
-                        readonly input: boolean;
+                        input: boolean;
                     };
                     [x: symbol]: {
-                        readonly position: {
-                            readonly x: number;
-                            readonly y: number;
+                        position: {
+                            x: number;
+                            y: number;
                         };
-                        readonly data: {
-                            readonly content: string;
-                            readonly label?: string | undefined;
+                        data: {
+                            content: string;
+                            label?: string | undefined;
                         };
-                        readonly input: boolean;
+                        input: boolean;
                     };
                 };
                 edges: {
                     [x: string]: {
-                        readonly from: string;
-                        readonly to: string;
+                        from: string;
+                        to: string;
                     };
                     [x: number]: {
-                        readonly from: string;
-                        readonly to: string;
+                        from: string;
+                        to: string;
                     };
                     [x: symbol]: {
-                        readonly from: string;
-                        readonly to: string;
+                        from: string;
+                        to: string;
                     };
                 };
             } | undefined;
@@ -1324,64 +1324,64 @@ export declare const Provider: import('solid-js').ParentComponent, useFlow: () =
             CONFIGURE: {
                 nodes: {
                     [x: string]: {
-                        readonly position: {
-                            readonly x: number;
-                            readonly y: number;
+                        position: {
+                            x: number;
+                            y: number;
                         };
-                        readonly data: {
-                            readonly content: string;
-                            readonly label?: string | undefined;
+                        data: {
+                            content: string;
+                            label?: string | undefined;
                         };
-                        readonly input: boolean;
+                        input: boolean;
                     };
                     [x: number]: {
-                        readonly position: {
-                            readonly x: number;
-                            readonly y: number;
+                        position: {
+                            x: number;
+                            y: number;
                         };
-                        readonly data: {
-                            readonly content: string;
-                            readonly label?: string | undefined;
+                        data: {
+                            content: string;
+                            label?: string | undefined;
                         };
-                        readonly input: boolean;
+                        input: boolean;
                     };
                     [x: symbol]: {
-                        readonly position: {
-                            readonly x: number;
-                            readonly y: number;
+                        position: {
+                            x: number;
+                            y: number;
                         };
-                        readonly data: {
-                            readonly content: string;
-                            readonly label?: string | undefined;
+                        data: {
+                            content: string;
+                            label?: string | undefined;
                         };
-                        readonly input: boolean;
+                        input: boolean;
                     };
                 };
                 edges: {
                     [x: string]: {
-                        readonly from: string;
-                        readonly to: string;
+                        from: string;
+                        to: string;
                     };
                     [x: number]: {
-                        readonly from: string;
-                        readonly to: string;
+                        from: string;
+                        to: string;
                     };
                     [x: symbol]: {
-                        readonly from: string;
-                        readonly to: string;
+                        from: string;
+                        to: string;
                     };
                 };
             };
             CONFIGURE_EMPTY: {};
             MOVE: {
-                readonly id: string;
-                readonly x: number;
-                readonly y: number;
+                id: string;
+                x: number;
+                y: number;
             };
             MOVE_IMMEDIATE: {
-                readonly id: string;
-                readonly x: number;
-                readonly y: number;
+                id: string;
+                x: number;
+                y: number;
             };
             ADD_CHILD: string;
             ADD_SIBLING: string;
@@ -1389,77 +1389,77 @@ export declare const Provider: import('solid-js').ParentComponent, useFlow: () =
             SELECT: string;
             DESELECT: {};
             ADD_EDGE: {
-                readonly from: string;
-                readonly to: string;
+                from: string;
+                to: string;
             };
         }, {}, {
             generatedId: string | null;
             nodes?: {
-                readonly position: {
-                    readonly x: number;
-                    readonly y: number;
+                position: {
+                    x: number;
+                    y: number;
                 };
-                readonly data: {
-                    readonly label: string | undefined;
-                    readonly content: string;
+                data: {
+                    content: string;
+                    label?: string | undefined;
                 };
-                readonly input: boolean;
-                readonly id: string;
+                input: boolean;
+                id: string;
             }[] | undefined;
             edges?: {
-                readonly from: string;
-                readonly to: string;
-                readonly id: string;
+                from: string;
+                to: string;
+                id: string;
             }[] | undefined;
         }, {
             data?: {
                 nodes: {
                     [x: string]: {
-                        readonly position: {
-                            readonly x: number;
-                            readonly y: number;
+                        position: {
+                            x: number;
+                            y: number;
                         };
-                        readonly data: {
-                            readonly content: string;
-                            readonly label?: string | undefined;
+                        data: {
+                            content: string;
+                            label?: string | undefined;
                         };
-                        readonly input: boolean;
+                        input: boolean;
                     };
                     [x: number]: {
-                        readonly position: {
-                            readonly x: number;
-                            readonly y: number;
+                        position: {
+                            x: number;
+                            y: number;
                         };
-                        readonly data: {
-                            readonly content: string;
-                            readonly label?: string | undefined;
+                        data: {
+                            content: string;
+                            label?: string | undefined;
                         };
-                        readonly input: boolean;
+                        input: boolean;
                     };
                     [x: symbol]: {
-                        readonly position: {
-                            readonly x: number;
-                            readonly y: number;
+                        position: {
+                            x: number;
+                            y: number;
                         };
-                        readonly data: {
-                            readonly content: string;
-                            readonly label?: string | undefined;
+                        data: {
+                            content: string;
+                            label?: string | undefined;
                         };
-                        readonly input: boolean;
+                        input: boolean;
                     };
                 };
                 edges: {
                     [x: string]: {
-                        readonly from: string;
-                        readonly to: string;
+                        from: string;
+                        to: string;
                     };
                     [x: number]: {
-                        readonly from: string;
-                        readonly to: string;
+                        from: string;
+                        to: string;
                     };
                     [x: symbol]: {
-                        readonly from: string;
-                        readonly to: string;
+                        from: string;
+                        to: string;
                     };
                 };
             } | undefined;
@@ -1545,64 +1545,64 @@ export declare const Provider: import('solid-js').ParentComponent, useFlow: () =
             CONFIGURE: {
                 nodes: {
                     [x: string]: {
-                        readonly position: {
-                            readonly x: number;
-                            readonly y: number;
+                        position: {
+                            x: number;
+                            y: number;
                         };
-                        readonly data: {
-                            readonly content: string;
-                            readonly label?: string | undefined;
+                        data: {
+                            content: string;
+                            label?: string | undefined;
                         };
-                        readonly input: boolean;
+                        input: boolean;
                     };
                     [x: number]: {
-                        readonly position: {
-                            readonly x: number;
-                            readonly y: number;
+                        position: {
+                            x: number;
+                            y: number;
                         };
-                        readonly data: {
-                            readonly content: string;
-                            readonly label?: string | undefined;
+                        data: {
+                            content: string;
+                            label?: string | undefined;
                         };
-                        readonly input: boolean;
+                        input: boolean;
                     };
                     [x: symbol]: {
-                        readonly position: {
-                            readonly x: number;
-                            readonly y: number;
+                        position: {
+                            x: number;
+                            y: number;
                         };
-                        readonly data: {
-                            readonly content: string;
-                            readonly label?: string | undefined;
+                        data: {
+                            content: string;
+                            label?: string | undefined;
                         };
-                        readonly input: boolean;
+                        input: boolean;
                     };
                 };
                 edges: {
                     [x: string]: {
-                        readonly from: string;
-                        readonly to: string;
+                        from: string;
+                        to: string;
                     };
                     [x: number]: {
-                        readonly from: string;
-                        readonly to: string;
+                        from: string;
+                        to: string;
                     };
                     [x: symbol]: {
-                        readonly from: string;
-                        readonly to: string;
+                        from: string;
+                        to: string;
                     };
                 };
             };
             CONFIGURE_EMPTY: {};
             MOVE: {
-                readonly id: string;
-                readonly x: number;
-                readonly y: number;
+                id: string;
+                x: number;
+                y: number;
             };
             MOVE_IMMEDIATE: {
-                readonly id: string;
-                readonly x: number;
-                readonly y: number;
+                id: string;
+                x: number;
+                y: number;
             };
             ADD_CHILD: string;
             ADD_SIBLING: string;
@@ -1610,77 +1610,77 @@ export declare const Provider: import('solid-js').ParentComponent, useFlow: () =
             SELECT: string;
             DESELECT: {};
             ADD_EDGE: {
-                readonly from: string;
-                readonly to: string;
+                from: string;
+                to: string;
             };
         }, {}, {
             generatedId: string | null;
             nodes?: {
-                readonly position: {
-                    readonly x: number;
-                    readonly y: number;
+                position: {
+                    x: number;
+                    y: number;
                 };
-                readonly data: {
-                    readonly label: string | undefined;
-                    readonly content: string;
+                data: {
+                    content: string;
+                    label?: string | undefined;
                 };
-                readonly input: boolean;
-                readonly id: string;
+                input: boolean;
+                id: string;
             }[] | undefined;
             edges?: {
-                readonly from: string;
-                readonly to: string;
-                readonly id: string;
+                from: string;
+                to: string;
+                id: string;
             }[] | undefined;
         }, {
             data?: {
                 nodes: {
                     [x: string]: {
-                        readonly position: {
-                            readonly x: number;
-                            readonly y: number;
+                        position: {
+                            x: number;
+                            y: number;
                         };
-                        readonly data: {
-                            readonly content: string;
-                            readonly label?: string | undefined;
+                        data: {
+                            content: string;
+                            label?: string | undefined;
                         };
-                        readonly input: boolean;
+                        input: boolean;
                     };
                     [x: number]: {
-                        readonly position: {
-                            readonly x: number;
-                            readonly y: number;
+                        position: {
+                            x: number;
+                            y: number;
                         };
-                        readonly data: {
-                            readonly content: string;
-                            readonly label?: string | undefined;
+                        data: {
+                            content: string;
+                            label?: string | undefined;
                         };
-                        readonly input: boolean;
+                        input: boolean;
                     };
                     [x: symbol]: {
-                        readonly position: {
-                            readonly x: number;
-                            readonly y: number;
+                        position: {
+                            x: number;
+                            y: number;
                         };
-                        readonly data: {
-                            readonly content: string;
-                            readonly label?: string | undefined;
+                        data: {
+                            content: string;
+                            label?: string | undefined;
                         };
-                        readonly input: boolean;
+                        input: boolean;
                     };
                 };
                 edges: {
                     [x: string]: {
-                        readonly from: string;
-                        readonly to: string;
+                        from: string;
+                        to: string;
                     };
                     [x: number]: {
-                        readonly from: string;
-                        readonly to: string;
+                        from: string;
+                        to: string;
                     };
                     [x: symbol]: {
-                        readonly from: string;
-                        readonly to: string;
+                        from: string;
+                        to: string;
                     };
                 };
             } | undefined;

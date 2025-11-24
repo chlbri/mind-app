@@ -1,1 +1,1 @@
-export { Provider, useFlow, FlowChart } from '@bemedev/mind-flow';
+export { Provider, useFlow, FlowChart } from '#main';

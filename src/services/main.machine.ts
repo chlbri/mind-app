@@ -134,9 +134,15 @@ export const machine = createMachine(
 ).provideOptions(({ assign, batch }) => ({
   actions: {
     configure: batch(
-      assign('context.data', () => ({})),
+      assign('context.data', () => ({
+        nodes: {},
+        edges: {},
+      })),
       assign('context.data.nodes', {
-        CONFIGURE: ({ payload: { nodes } }) => nodes,
+        CONFIGURE: ({ payload: { nodes } }) => {
+          console.log('from machine', '=>', nodes);
+          return nodes;
+        },
       }),
 
       assign('context.data.edges', {

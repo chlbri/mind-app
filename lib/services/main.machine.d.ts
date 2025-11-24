@@ -79,71 +79,71 @@ export declare const machine: import('@bemedev/app-ts').Machine<{
 }, {
     generatedId: string | null;
     nodes?: {
-        readonly position: {
-            readonly x: number;
-            readonly y: number;
+        position: {
+            x: number;
+            y: number;
         };
-        readonly data: {
-            readonly label: string | undefined;
-            readonly content: string;
+        data: {
+            content: string;
+            label?: string | undefined;
         };
-        readonly input: boolean;
-        readonly id: string;
+        input: boolean;
+        id: string;
     }[] | undefined;
     edges?: {
-        readonly from: string;
-        readonly to: string;
-        readonly id: string;
+        from: string;
+        to: string;
+        id: string;
     }[] | undefined;
 }, {
     data?: {
         nodes: {
             [x: string]: {
-                readonly position: {
-                    readonly x: number;
-                    readonly y: number;
+                position: {
+                    x: number;
+                    y: number;
                 };
-                readonly data: {
-                    readonly content: string;
-                    readonly label?: string | undefined;
+                data: {
+                    content: string;
+                    label?: string | undefined;
                 };
-                readonly input: boolean;
+                input: boolean;
             };
             [x: number]: {
-                readonly position: {
-                    readonly x: number;
-                    readonly y: number;
+                position: {
+                    x: number;
+                    y: number;
                 };
-                readonly data: {
-                    readonly content: string;
-                    readonly label?: string | undefined;
+                data: {
+                    content: string;
+                    label?: string | undefined;
                 };
-                readonly input: boolean;
+                input: boolean;
             };
             [x: symbol]: {
-                readonly position: {
-                    readonly x: number;
-                    readonly y: number;
+                position: {
+                    x: number;
+                    y: number;
                 };
-                readonly data: {
-                    readonly content: string;
-                    readonly label?: string | undefined;
+                data: {
+                    content: string;
+                    label?: string | undefined;
                 };
-                readonly input: boolean;
+                input: boolean;
             };
         };
         edges: {
             [x: string]: {
-                readonly from: string;
-                readonly to: string;
+                from: string;
+                to: string;
             };
             [x: number]: {
-                readonly from: string;
-                readonly to: string;
+                from: string;
+                to: string;
             };
             [x: symbol]: {
-                readonly from: string;
-                readonly to: string;
+                from: string;
+                to: string;
             };
         };
     } | undefined;
@@ -153,64 +153,64 @@ export declare const machine: import('@bemedev/app-ts').Machine<{
     CONFIGURE: {
         nodes: {
             [x: string]: {
-                readonly position: {
-                    readonly x: number;
-                    readonly y: number;
+                position: {
+                    x: number;
+                    y: number;
                 };
-                readonly data: {
-                    readonly content: string;
-                    readonly label?: string | undefined;
+                data: {
+                    content: string;
+                    label?: string | undefined;
                 };
-                readonly input: boolean;
+                input: boolean;
             };
             [x: number]: {
-                readonly position: {
-                    readonly x: number;
-                    readonly y: number;
+                position: {
+                    x: number;
+                    y: number;
                 };
-                readonly data: {
-                    readonly content: string;
-                    readonly label?: string | undefined;
+                data: {
+                    content: string;
+                    label?: string | undefined;
                 };
-                readonly input: boolean;
+                input: boolean;
             };
             [x: symbol]: {
-                readonly position: {
-                    readonly x: number;
-                    readonly y: number;
+                position: {
+                    x: number;
+                    y: number;
                 };
-                readonly data: {
-                    readonly content: string;
-                    readonly label?: string | undefined;
+                data: {
+                    content: string;
+                    label?: string | undefined;
                 };
-                readonly input: boolean;
+                input: boolean;
             };
         };
         edges: {
             [x: string]: {
-                readonly from: string;
-                readonly to: string;
+                from: string;
+                to: string;
             };
             [x: number]: {
-                readonly from: string;
-                readonly to: string;
+                from: string;
+                to: string;
             };
             [x: symbol]: {
-                readonly from: string;
-                readonly to: string;
+                from: string;
+                to: string;
             };
         };
     };
     CONFIGURE_EMPTY: {};
     MOVE: {
-        readonly id: string;
-        readonly x: number;
-        readonly y: number;
+        id: string;
+        x: number;
+        y: number;
     };
     MOVE_IMMEDIATE: {
-        readonly id: string;
-        readonly x: number;
-        readonly y: number;
+        id: string;
+        x: number;
+        y: number;
     };
     ADD_CHILD: string;
     ADD_SIBLING: string;
@@ -218,8 +218,8 @@ export declare const machine: import('@bemedev/app-ts').Machine<{
     SELECT: string;
     DESELECT: {};
     ADD_EDGE: {
-        readonly from: string;
-        readonly to: string;
+        from: string;
+        to: string;
     };
 }, {}, import('@bemedev/app-ts').MachineOptions<{
     readonly __tsSchema: {
@@ -301,64 +301,64 @@ export declare const machine: import('@bemedev/app-ts').Machine<{
     CONFIGURE: {
         nodes: {
             [x: string]: {
-                readonly position: {
-                    readonly x: number;
-                    readonly y: number;
+                position: {
+                    x: number;
+                    y: number;
                 };
-                readonly data: {
-                    readonly content: string;
-                    readonly label?: string | undefined;
+                data: {
+                    content: string;
+                    label?: string | undefined;
                 };
-                readonly input: boolean;
+                input: boolean;
             };
             [x: number]: {
-                readonly position: {
-                    readonly x: number;
-                    readonly y: number;
+                position: {
+                    x: number;
+                    y: number;
                 };
-                readonly data: {
-                    readonly content: string;
-                    readonly label?: string | undefined;
+                data: {
+                    content: string;
+                    label?: string | undefined;
                 };
-                readonly input: boolean;
+                input: boolean;
             };
             [x: symbol]: {
-                readonly position: {
-                    readonly x: number;
-                    readonly y: number;
+                position: {
+                    x: number;
+                    y: number;
                 };
-                readonly data: {
-                    readonly content: string;
-                    readonly label?: string | undefined;
+                data: {
+                    content: string;
+                    label?: string | undefined;
                 };
-                readonly input: boolean;
+                input: boolean;
             };
         };
         edges: {
             [x: string]: {
-                readonly from: string;
-                readonly to: string;
+                from: string;
+                to: string;
             };
             [x: number]: {
-                readonly from: string;
-                readonly to: string;
+                from: string;
+                to: string;
             };
             [x: symbol]: {
-                readonly from: string;
-                readonly to: string;
+                from: string;
+                to: string;
             };
         };
     };
     CONFIGURE_EMPTY: {};
     MOVE: {
-        readonly id: string;
-        readonly x: number;
-        readonly y: number;
+        id: string;
+        x: number;
+        y: number;
     };
     MOVE_IMMEDIATE: {
-        readonly id: string;
-        readonly x: number;
-        readonly y: number;
+        id: string;
+        x: number;
+        y: number;
     };
     ADD_CHILD: string;
     ADD_SIBLING: string;
@@ -366,77 +366,77 @@ export declare const machine: import('@bemedev/app-ts').Machine<{
     SELECT: string;
     DESELECT: {};
     ADD_EDGE: {
-        readonly from: string;
-        readonly to: string;
+        from: string;
+        to: string;
     };
 }, {}, {
     generatedId: string | null;
     nodes?: {
-        readonly position: {
-            readonly x: number;
-            readonly y: number;
+        position: {
+            x: number;
+            y: number;
         };
-        readonly data: {
-            readonly label: string | undefined;
-            readonly content: string;
+        data: {
+            content: string;
+            label?: string | undefined;
         };
-        readonly input: boolean;
-        readonly id: string;
+        input: boolean;
+        id: string;
     }[] | undefined;
     edges?: {
-        readonly from: string;
-        readonly to: string;
-        readonly id: string;
+        from: string;
+        to: string;
+        id: string;
     }[] | undefined;
 }, {
     data?: {
         nodes: {
             [x: string]: {
-                readonly position: {
-                    readonly x: number;
-                    readonly y: number;
+                position: {
+                    x: number;
+                    y: number;
                 };
-                readonly data: {
-                    readonly content: string;
-                    readonly label?: string | undefined;
+                data: {
+                    content: string;
+                    label?: string | undefined;
                 };
-                readonly input: boolean;
+                input: boolean;
             };
             [x: number]: {
-                readonly position: {
-                    readonly x: number;
-                    readonly y: number;
+                position: {
+                    x: number;
+                    y: number;
                 };
-                readonly data: {
-                    readonly content: string;
-                    readonly label?: string | undefined;
+                data: {
+                    content: string;
+                    label?: string | undefined;
                 };
-                readonly input: boolean;
+                input: boolean;
             };
             [x: symbol]: {
-                readonly position: {
-                    readonly x: number;
-                    readonly y: number;
+                position: {
+                    x: number;
+                    y: number;
                 };
-                readonly data: {
-                    readonly content: string;
-                    readonly label?: string | undefined;
+                data: {
+                    content: string;
+                    label?: string | undefined;
                 };
-                readonly input: boolean;
+                input: boolean;
             };
         };
         edges: {
             [x: string]: {
-                readonly from: string;
-                readonly to: string;
+                from: string;
+                to: string;
             };
             [x: number]: {
-                readonly from: string;
-                readonly to: string;
+                from: string;
+                to: string;
             };
             [x: symbol]: {
-                readonly from: string;
-                readonly to: string;
+                from: string;
+                to: string;
             };
         };
     } | undefined;
