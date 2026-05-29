@@ -1,7 +1,14 @@
 {
-  "include": ["src/**/*", "rollup.config.mjs", "eslint.config.mjs"],
+  "include": [
+    "src/**/*",
+    "rollup.config.mjs",
+    "eslint.config.mjs"
+  ],
   "compilerOptions": {
-    "lib": ["dom", "esnext"],
+    "lib": [
+      "dom",
+      "esnext"
+    ],
     "importHelpers": true,
     "target": "ESNext",
     "declaration": true,
@@ -15,7 +22,9 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "moduleResolution": "Bundler",
-    "types": ["vitest/globals"],
+    "types": [
+      "vitest/globals"
+    ],
     "jsx": "preserve",
     "jsxImportSource": "solid-js",
     "esModuleInterop": true,

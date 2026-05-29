@@ -39,7 +39,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/counting': typeof CountingRoute
   '/demo/dtagndrop': typeof DemoDtagndropRoute
-  '/demo': typeof DemoIndexRoute
+  '/demo/': typeof DemoIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -56,7 +56,7 @@ export interface FileRoutesById {
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/counting' | '/demo/dtagndrop' | '/demo'
+  fullPaths: '/' | '/counting' | '/demo/dtagndrop' | '/demo/'
   fileRoutesByTo: FileRoutesByTo
   to: '/' | '/counting' | '/demo/dtagndrop' | '/demo'
   id: '__root__' | '/' | '/counting' | '/demo/dtagndrop' | '/demo/'
@@ -88,7 +88,7 @@ declare module '@tanstack/solid-router' {
     '/demo/': {
       id: '/demo/'
       path: '/demo'
-      fullPath: '/demo'
+      fullPath: '/demo/'
       preLoaderRoute: typeof DemoIndexRouteImport
       parentRoute: typeof rootRouteImport
     }

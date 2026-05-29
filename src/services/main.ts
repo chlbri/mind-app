@@ -6,7 +6,7 @@ export const buildService = (machine = _machine) => {
     pContext: {
       generatedId: null,
     },
-  });
+  } as any);
 
   out.start();
   return out;

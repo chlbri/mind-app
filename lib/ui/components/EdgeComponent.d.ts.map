@@ -1,1 +1,0 @@
-{"version":3,"file":"EdgeComponent.d.ts","sourceRoot":"","sources":["../../../src/ui/components/EdgeComponent.tsx"],"names":[],"mappings":"AAAA,OAAO,EAAE,SAAS,EAAoC,MAAM,UAAU,CAAC;AACvE,OAAO,KAAK,EAAE,MAAM,EAAE,MAAM,2BAA2B,CAAC;AAGxD,KAAK,KAAK,GAAG;IACX,EAAE,EAAE,MAAM,CAAC;IACX,KAAK,CAAC,EAAE,OAAO,CAAC;CACjB,GAAG,MAAM,CAAC;AAEX,eAAO,MAAM,aAAa,EAAE,SAAS,CAAC,KAAK,CA0E1C,CAAC"}

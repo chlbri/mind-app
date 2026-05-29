@@ -145,6 +145,7 @@ yarn.lock
 # misc
 **/.DS_Store
 *.pem
+.pnpm-store
 
 #my
 build.npm.ts
