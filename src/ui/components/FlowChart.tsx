@@ -1,9 +1,9 @@
-import type { inferT } from '@bemedev/app/typings';
-import { Component, onMount } from 'solid-js';
-import type { edgeJSON, nodeJSON } from '../../services/main.typings';
-import { EdgesBoard } from './EdgesBoard';
-import { useFlow } from './FlowChart.context';
-import { NodesBoard } from './NodesBoard';
+import type { inferT } from "@bemedev/app/typings";
+import { Component, onMount } from "solid-js";
+import type { edgeJSON, nodeJSON } from "../../services/main.typings";
+import { EdgesBoard } from "./EdgesBoard";
+import { useFlow } from "./FlowChart.context";
+import { NodesBoard } from "./NodesBoard";
 
 export type NodeProps = inferT<typeof nodeJSON>;
 
@@ -22,13 +22,13 @@ interface Props {
 
 // const PARENT_CHILD_GAP_WIDTH = 75;
 
-export const FlowChart: Component<Props> = props => {
+export const FlowChart: Component<Props> = (props) => {
   const DEFAULT_NODES: (NodeProps & { id: string })[] = [
     {
-      id: 'node-0',
+      id: "node-0",
       data: {
-        content: 'Some text',
-        label: 'Root node',
+        content: "Some text",
+        label: "Root node",
       },
       input: false,
       position: {
@@ -49,7 +49,7 @@ export const FlowChart: Component<Props> = props => {
 
   onMount(() => {
     service.send({
-      type: 'CONFIGURE',
+      type: "CONFIGURE",
       payload: {
         nodes: primaryNodes,
         edges: primaryEdges ?? [],
@@ -59,7 +59,7 @@ export const FlowChart: Component<Props> = props => {
 
   return (
     <div
-      class='relative w-full h-full overflow-hidden'
+      class="relative w-full h-full overflow-hidden"
       onMouseUp={() => {
         setNewEdge();
       }}
@@ -74,13 +74,12 @@ export const FlowChart: Component<Props> = props => {
           });
       }}
     >
-      <div class='w-full h-full overflow-scroll'>
+      <div class="w-full h-full overflow-scroll">
         <div
-          class='relative h-[150vh] w-[2160px] bg-white bg-size-[30px_30px]'
+          class="relative h-[150vh] w-[2160px] bg-white bg-size-[30px_30px]"
           style={{
-            cursor: newEdge() ? 'inherit' : 'crosshair',
-            'background-image':
-              'radial-gradient(circle, #b8b8b8bf 1px, rgba(0, 0, 0, 0) 1px)',
+            cursor: newEdge() ? "inherit" : "crosshair",
+            "background-image": "radial-gradient(circle, #b8b8b8bf 1px, rgba(0, 0, 0, 0) 1px)",
           }}
         >
           <NodesBoard />
