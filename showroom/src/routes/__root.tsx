@@ -1,6 +1,6 @@
 /// <reference types="vite/client" />
 
-import { createRootRoute, HeadContent, Outlet, Scripts } from "@tanstack/solid-router";
+import { createRootRoute, HeadContent, Scripts } from "@tanstack/solid-router";
 import { HydrationScript } from "solid-js/web";
 
 import seo from "src/globals/ui/helpers/seo";
@@ -23,7 +23,7 @@ export const Route = createRootRoute({
     ],
   }),
 
-  component: () => {
+  shellComponent: ({ children }) => {
     return (
       <html lang="en">
         <head>
@@ -32,9 +32,7 @@ export const Route = createRootRoute({
         <body class="min-h-screenfont-sans  antialiased selection:bg-indigo-500 selection:text-white">
           <HeadContent />
           <HeadLinks />
-          <main class="p-2 w-full min-h-full text-center">
-            <Outlet />
-          </main>
+          <main class="p-2 w-full min-h-full text-center">{children}</main>
           <Scripts />
         </body>
       </html>
