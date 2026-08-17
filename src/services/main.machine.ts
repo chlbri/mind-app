@@ -1,7 +1,7 @@
-import { createMachine, typings } from '@bemedev/app-ts';
-import { SCHEMAS } from './main.machine.gen';
-import { edgeJSON, extremities, nodeJSON, point } from './main.types';
-import { nanoid } from 'nanoid';
+import { createMachine } from "@bemedev/app";
+import { type } from "@bemedev/app/bemedev";
+import { nanoid } from "nanoid";
+import { edgeJSON, extremities, nodeJSON } from "./main.typings";
 
 export const buildEdgeId = (out: string, _in: string) => {
   return `edge = ${out} => ${_in}`;
@@ -13,272 +13,227 @@ export const buildNodeID = (generated: string | null) => {
 
 export const machine = createMachine(
   {
-    __tsSchema: SCHEMAS.machine.__tsSchema,
-    initial: 'idle',
+    initial: "idle",
     states: {
       idle: {
         on: {
           CONFIGURE: {
-            actions: ['configure'],
-            target: '/working',
+            actions: ["configure"],
+            target: "/working",
           },
-          CONFIGURE_EMPTY: '/working',
+          CONFIGURE_EMPTY: "/working",
         },
       },
 
       construction: {
         always: {
-          actions: ['buildArrays', 'buildUI'],
-          target: '/working',
+          actions: ["buildArrays", "buildUI"],
+          target: "/working",
         },
       },
 
       working: {
         on: {
           MOVE: {
-            actions: ['moveNode', 'buildArrays', 'buildUI'],
-            target: '/construction',
+            actions: ["moveNode", "buildArrays", "buildUI"],
+            target: "/construction",
           },
           MOVE_IMMEDIATE: {
             actions: [
               {
-                name: 'buildImmediateUI',
-                description: 'Must be in the ui',
+                name: "buildImmediateUI",
+                description: "Must be in the ui",
               },
             ],
           },
 
           ADD_CHILD: {
             actions: [
-              'generateID',
-              { name: 'placeChild', description: 'Must be in the ui' },
-              'linkChild',
+              "generateID",
+              { name: "placeChild", description: "Must be in the ui" },
+              "linkChild",
             ],
-            target: '/construction',
+            target: "/construction",
           },
 
           ADD_SIBLING: {
             actions: [
-              'generateID',
-              { name: 'placeSibling', description: 'Must be in the ui' },
-              'linkSibling',
+              "generateID",
+              { name: "placeSibling", description: "Must be in the ui" },
+              "linkSibling",
             ],
-            target: '/construction',
+            target: "/construction",
           },
 
           ADD_EDGE: {
-            actions: ['addEdge'],
-            target: '/construction',
+            actions: ["addEdge"],
+            target: "/construction",
           },
 
           DELETE: {
-            actions: ['delete'],
-            target: '/construction',
+            actions: ["delete"],
+            target: "/construction",
           },
 
           SELECT: {
-            actions: ['select'],
+            actions: ["select"],
           },
 
           DESELECT: {
-            actions: ['deselect'],
+            actions: ["deselect"],
           },
         },
       },
     },
   },
-  typings({
-    eventsMap: {
+  {
+    eventsMap: type(({ intersection, use, array }) => ({
       CONFIGURE: {
-        nodes: typings.record(nodeJSON),
-        edges: typings.record(edgeJSON),
+        nodes: array(intersection(use(nodeJSON), { id: "string" })),
+        edges: array(intersection(use(edgeJSON), { id: "string" })),
       },
-      CONFIGURE_EMPTY: 'primitive',
-      MOVE: typings.intersection(
-        {
-          id: 'string',
-        },
-        point,
-      ),
-      MOVE_IMMEDIATE: typings.intersection(
-        {
-          id: 'string',
-        },
-        point,
-      ),
-      ADD_CHILD: 'string',
-      ADD_SIBLING: 'string',
-      DELETE: 'string',
-      SELECT: 'string',
-      DESELECT: 'primitive',
-      ADD_EDGE: extremities,
-    },
-    pContext: {
-      nodes: typings.maybe(
-        typings.array(typings.intersection(nodeJSON, { id: 'string' })),
-      ),
-      edges: typings.maybe(
-        typings.array(typings.intersection(edgeJSON, { id: 'string' })),
-      ),
-      generatedId: typings.union('string', 'null'),
-    },
-    context: typings.partial({
-      data: {
-        nodes: typings.record(nodeJSON),
-        edges: typings.record(edgeJSON),
+      CONFIGURE_EMPTY: "never",
+      MOVE: {
+        id: "string",
+        x: "number",
+        y: "number",
       },
-      selected: 'string',
-      updatingUI: 'boolean',
-    }),
-  }),
-).provideOptions(({ assign, batch }) => ({
+      MOVE_IMMEDIATE: {
+        id: "string",
+        x: "number",
+        y: "number",
+      },
+      ADD_CHILD: "string",
+      ADD_SIBLING: "string",
+      DELETE: "string",
+      SELECT: "string",
+      DESELECT: "never",
+      ADD_EDGE: use(extremities),
+    })),
+    pContext: type(({ optional, array, intersection, union, use }) => ({
+      nodes: optional(array(intersection(use(nodeJSON), { id: "string" }))),
+      edges: optional(array(intersection(use(edgeJSON), { id: "string" }))),
+      generatedId: union("string", "null"),
+    })),
+    context: type(({ optional, use, array }) => ({
+      data: optional({
+        nodes: array({ ...use(nodeJSON), id: "string" }),
+        edges: array({ ...use(edgeJSON), id: "string" }),
+      }),
+      selected: optional("string"),
+      updatingUI: optional("boolean"),
+    })),
+    sync: true,
+  },
+).provideOptions(({ assign, batch, erase }) => ({
   actions: {
     configure: batch(
-      assign('context.data', () => ({
-        nodes: {},
-        edges: {},
+      assign("context.data", () => ({
+        nodes: [],
+        edges: [],
       })),
-      assign('context.data.nodes', {
-        CONFIGURE: ({ payload: { nodes } }) => {
-          console.log('from machine', '=>', nodes);
-          return nodes;
-        },
+      assign("context.data.nodes", {
+        CONFIGURE: ({ payload: { nodes } }) => nodes,
       }),
 
-      assign('context.data.edges', {
+      assign("context.data.edges", {
         CONFIGURE: ({ payload: { edges } }) => edges,
       }),
-      assign('context.updatingUI', () => false),
-      assign('pContext.generatedId', () => null),
+      assign("context.updatingUI", () => false),
+      assign("pContext.generatedId", () => null),
     ),
 
     buildArrays: batch(
-      assign('pContext.nodes', ({ context: { data } }) => {
-        return Object.entries({ ...data?.nodes }).map(([id, node]) => ({
-          ...node,
-          id,
-        }));
+      assign("pContext.nodes", (params) => {
+        const data = params?.context?.data;
+        return data?.nodes ?? [];
       }),
-      assign('pContext.edges', ({ context: { data } }) => {
-        return Object.entries({ ...data?.edges }).map(([id, edge]) => ({
-          ...edge,
-          id,
-        }));
+      assign("pContext.edges", (params) => {
+        const data = params?.context?.data;
+        return data?.edges ?? [];
       }),
-      assign('pContext.generatedId', () => null),
+      assign("pContext.generatedId", () => null),
     ),
 
-    generateID: assign('pContext.generatedId', () => nanoid()),
+    generateID: assign("pContext.generatedId", () => nanoid()),
 
     linkChild: batch(
-      assign('context.data.edges', {
-        ADD_CHILD: ({
-          context: { data },
-          payload,
-          pContext: { generatedId },
-        }) => {
-          const out = { ...data?.edges };
-          const nodeID = buildNodeID(generatedId);
-          const id = buildEdgeId(payload, nodeID);
-
-          out[id] = {
-            from: payload,
-            to: nodeID,
-          };
-
-          return out;
+      assign("context.data.edges", {
+        ADD_CHILD: ({ context, pContext, payload }) => {
+          const data = context.data;
+          const from = payload;
+          const generatedId = pContext?.generatedId;
+          const to = buildNodeID(generatedId);
+          const id = buildEdgeId(from, to);
+          return [...(data?.edges ?? []), { id, from, to }];
         },
       }),
-      assign('context.selected', ({ pContext: { generatedId } }) =>
-        buildNodeID(generatedId),
-      ),
+      assign("context.selected", ({ pContext }) => {
+        return buildNodeID(pContext?.generatedId);
+      }),
     ),
 
     linkSibling: batch(
-      assign('context.data.edges', {
-        ADD_SIBLING: ({
-          context: { data },
-          payload,
-          pContext: { edges, generatedId },
-        }) => {
-          const out = { ...data?.edges };
+      assign("context.data.edges", {
+        ADD_SIBLING: (params) => {
+          const data = params?.context?.data;
+          const payload = params?.payload;
+          const edges = data?.edges;
+          const generatedId = params?.pContext?.generatedId;
+          const out = [...(data?.edges ?? [])];
           const from = edges?.find(({ to }) => to === payload)?.from;
           if (!from) return out;
-          const nodeID = buildNodeID(generatedId);
-          const id = buildEdgeId(from, nodeID);
-
-          out[id] = {
-            from,
-            to: nodeID,
-          };
+          const to = buildNodeID(generatedId);
+          const id = buildEdgeId(from, to);
+          out.push({ from, to, id });
 
           return out;
         },
       }),
-      assign('context.selected', ({ pContext: { generatedId } }) =>
-        buildNodeID(generatedId),
-      ),
+      assign("context.selected", (params) => buildNodeID(params?.pContext?.generatedId ?? null)),
     ),
 
-    moveNode: assign('context.data.nodes', {
-      MOVE: ({ context: { data }, payload: { id, x, y } }) => {
-        const out = { ...data?.nodes };
-        out[id] = {
-          ...out[id],
-          position: { x, y },
-        };
-        return out;
+    moveNode: assign("context.data.nodes", {
+      MOVE: (params) => {
+        const data = params?.context?.data;
+        const { id, x, y } = params?.payload ?? {};
+        if (!id) return data?.nodes ?? [];
+
+        return (
+          data?.nodes?.map((d) => {
+            if (d.id === id) {
+              return { ...d, position: { x, y } };
+            }
+            return d;
+          }) ?? []
+        );
       },
     }),
 
-    select: assign('context.selected', {
+    select: assign("context.selected", {
       SELECT: ({ payload }) => payload,
     }),
 
-    delete: batch(
-      assign('context.data.nodes', {
-        DELETE: ({ context: { data }, payload }) => {
-          const out = { ...data?.nodes };
+    delete: assign(["context.data.nodes", "context.data.edges"], {
+      DELETE: ({ context: { data }, payload }) => {
+        const nodes = data?.nodes?.filter(({ id }) => id !== payload);
+        const edges = data?.edges?.filter(
+          ({ id, from, to }) => id !== payload && from !== payload && to !== payload,
+        );
+        return [nodes, edges];
+      },
+    }),
 
-          const out2 = Object.fromEntries(
-            Object.entries(out).filter(([id]) => id !== payload),
-          );
-
-          return out2;
-        },
-      }),
-
-      assign('context.data.edges', {
-        DELETE: ({ context: { data }, payload }) => {
-          const out = { ...data?.edges };
-
-          const entries = Object.entries(out).filter(([id, edge]) => {
-            const check =
-              id === payload ||
-              edge.from === payload ||
-              edge.to === payload;
-
-            return !check;
-          });
-
-          const out2 = Object.fromEntries(entries);
-          return out2;
-        },
-      }),
-    ),
-
-    addEdge: assign('context.data.edges', {
-      ADD_EDGE: ({ context: { data }, payload: { from, to } }) => {
-        const out = { ...data?.edges };
+    addEdge: assign("context.data.edges", {
+      ADD_EDGE: ({ context, payload: { from, to } }) => {
+        const edges = context.data?.edges ?? [];
         const id = buildEdgeId(from, to);
-
-        out[id] = { from, to };
+        if (edges.some((e) => e.id === id)) return edges;
+        const out = [...edges, { id, from, to }];
         return out;
       },
     }),
 
-    deselect: assign('context', ({ context: { data } }) => ({
-      data,
-    })),
+    deselect: erase("context.selected"),
   },
 }));

@@ -1,31 +1,24 @@
-import { Link as _Link } from '@tanstack/solid-router';
-import { For, type Component } from 'solid-js';
-import {
-  createLinks,
-  formatLabel1 as formatLabel,
-} from 'src/globals/ui/signals/links';
-import type { PropsOf } from 'src/globals/ui/types';
+import { Link as _Link } from "@tanstack/solid-router";
+import { For, type Component } from "solid-js";
+import { createLinks, formatLabel1 as formatLabel } from "src/globals/ui/signals/links";
+import type { PropsOf } from "src/globals/ui/types";
 
-type LinkProps = Omit<
-  ReturnType<typeof createLinks>[number],
-  'children' | 'search'
-> &
-  Partial<Pick<ReturnType<typeof createLinks>[number], 'search'>> &
-  PropsOf<typeof _Link, 'children'>;
+type LinkProps = Omit<ReturnType<typeof createLinks>[number], "children" | "search"> &
+  Partial<Pick<ReturnType<typeof createLinks>[number], "search">> &
+  PropsOf<typeof _Link, "children">;
 
-const Link: Component<LinkProps> = ({
-  children,
-  to,
-  search = () => undefined,
-}) => {
+const Link: Component<LinkProps> = ({ children, to, search = () => undefined }) => {
   return (
     <_Link
       to={to}
       search={search()}
-      class={'text-gray-400 hover:underline hover:scale-105'}
+      class={"text-gray-400 hover:underline hover:scale-105"}
       activeProps={{
         class:
-          'text-yellow-900 font-semibold hover:no-underline! hover:scale-100! cursor-default text-xl',
+          "text-yellow-900 font-semibold hover:no-underline! hover:scale-100! cursor-default text-xl",
+      }}
+      activeOptions={{
+        exact: true,
       }}
     >
       {children}
@@ -35,12 +28,12 @@ const Link: Component<LinkProps> = ({
 
 const HeadLinks: Component = () => {
   const LINKS = createLinks({
-    filter: value => value === '/projects' || !value.includes('projects'),
+    filter: (value) => value === "/projects" || !value.includes("projects"),
     formatLabel,
   });
 
   return (
-    <header class='p-2 flex gap-2 text-lg justify-center w-full space-x-2'>
+    <header class="p-2 flex gap-2 text-lg justify-center w-full space-x-2">
       <For each={LINKS} children={Link} />
     </header>
   );

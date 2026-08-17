@@ -28,8 +28,10 @@ const Draggable: Component<Props> = props => {
   return (
     <div
       use:draggable
-      class='bg-blue-300 px-4 py-2 rounded-lg absolute'
-      classList={{ 'opacity-10': draggable.isActiveDraggable }}
+      class='bg-blue-300 px-4 py-2 rounded-lg absolute cursor-crosshair'
+      classList={{
+        'opacity-10 ring-2 ring-purple-500': draggable.isActiveDraggable,
+      }}
       style={{ top: props.top + 'px', left: props.left + 'px' }}
     >
       Draggable {props.id}

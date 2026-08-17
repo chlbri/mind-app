@@ -24,6 +24,8 @@ minimumReleaseAgeExclude:
   - '@tanstack/start-server-core@1.169.6'
   - '@tanstack/start-storage-context@1.167.9'
   - eslint@10.4.1
+  - '@bemedev/app-solidjs@1.10.0'
+  - '@bemedev/app@1.10.0'
 
 allowBuilds:
   '@parcel/watcher': true

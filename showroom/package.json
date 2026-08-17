@@ -26,8 +26,8 @@
     "upgrade:safe": "pnpm run upgrade && pnpm add @tanstack/solid-router@1.133.15 @tanstack/solid-start@1.133.15 && pnpm add -D @tanstack/nitro-v2-vite-plugin@1.133.17 @tanstack/solid-router-devtools@1.133.15"
   },
   "dependencies": {
-    "@bemedev/app-solid": "^0.5.1",
-    "@bemedev/app-ts": "^3.0.2",
+    "@bemedev/app": "^1.10.0",
+    "@bemedev/app-solidjs": "^1.10.0",
     "@bemedev/decompose": "^2.2.0",
     "@bemedev/fsf": "^1.0.1",
     "@bemedev/i18n": "^0.5.7",

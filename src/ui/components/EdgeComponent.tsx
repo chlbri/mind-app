@@ -1,11 +1,16 @@
+import { useState } from '@bemedev/app-solidjs';
 import { Component, createEffect, createSignal, Show } from 'solid-js';
-import type { Vector } from '../../services/main.types';
+import type { Vector } from '../../services/main.typings';
 import { useFlow } from './FlowChart.context';
 
 type Props = {
   id: string;
   isNew?: boolean;
 } & Vector;
+
+function calculateOffset(value: number) {
+  return (value * 100) / 200;
+}
 
 export const EdgeComponent: Component<Props> = props => {
   const [middlePoint, setMiddlePoint] = createSignal({
@@ -24,11 +29,9 @@ export const EdgeComponent: Component<Props> = props => {
     });
   });
 
-  const selected = service.context(ctx => ctx.selected === props.id);
-
-  function calculateOffset(value: number) {
-    return (value * 100) / 200;
-  }
+  const selected = useState(service, {
+    selector: s => s.context.selected === props.id,
+  });
 
   return (
     <>
@@ -41,17 +44,18 @@ export const EdgeComponent: Component<Props> = props => {
           'stroke-[rgba(168,168,168,0.8)] stroke-3':
             !selected() && !props.isNew,
         }}
-        style='pointer-events: all;'
+        style={{ 'pointer-events': props.isNew ? 'none' : 'all' }}
         d={`M ${props.x0} ${props.y0} C ${
           props.x0 + calculateOffset(Math.abs(props.x1 - props.x0))
         } ${props.y0}, ${
           props.x1 - calculateOffset(Math.abs(props.x1 - props.x0))
         } ${props.y1}, ${props.x1} ${props.y1}`}
         onClick={e => {
+          if (props.isNew) return;
           e.stopPropagation();
           service.send({ type: 'SELECT', payload: props.id });
         }}
-      ></path>
+      />
       <Show when={selected()}>
         <g
           cursor='pointer'
@@ -67,7 +71,7 @@ export const EdgeComponent: Component<Props> = props => {
             fill='currentColor'
             stroke-width='0'
             xmlns='http://www.w3.org/2000/svg'
-            class='w-[100px] h-[100px] bg-white fill-white'
+            class='w-25 h-25 bg-white fill-white'
             width='20'
             height='20'
             viewBox='0 0 20 20'

@@ -1,4 +1,4 @@
-import { interpret } from '@bemedev/app-solid';
+import { interpret } from '@bemedev/app';
 import { machine as _machine } from './main.machine';
 
 export const buildService = (machine = _machine) => {

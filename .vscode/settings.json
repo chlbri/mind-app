@@ -1,3 +1,4 @@
 {
-  "github-actions.workflows.pinned.workflows": [".github/workflows/ci.yml"]
+  "github-actions.workflows.pinned.workflows": [".github/workflows/ci.yml"],
+  "oxc.enable": true
 }

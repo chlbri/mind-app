@@ -1,1 +1,1 @@
-export { Provider, useFlow, FlowChart } from '#main';
+export { Provider, useFlow, FlowChart, Flow } from '#main';

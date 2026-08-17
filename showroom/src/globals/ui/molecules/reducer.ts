@@ -4,10 +4,8 @@ import type { RC } from 'src/globals/ui/types';
 export const reduceComponent = <
   const T extends Component<any>,
   K extends Partial<ComponentProps<T>> = never,
-  Keys extends
-    keyof ComponentProps<T> = keyof K extends keyof ComponentProps<T>
-    ? keyof K
-    : never,
+  Keys extends keyof ComponentProps<T> =
+    keyof K extends keyof ComponentProps<T> ? keyof K : never,
 >(
   Compt: T,
   props1?: K,

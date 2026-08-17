@@ -1,6 +1,6 @@
-import type { inferT } from '@bemedev/app-ts/lib/utils/typings';
-import { Component, createEffect } from 'solid-js';
-import type { edgeJSON, nodeJSON } from '../../services/main.types';
+import type { inferT } from '@bemedev/app/typings';
+import { Component, onMount } from 'solid-js';
+import type { edgeJSON, nodeJSON } from '../../services/main.typings';
 import { EdgesBoard } from './EdgesBoard';
 import { useFlow } from './FlowChart.context';
 import { NodesBoard } from './NodesBoard';
@@ -11,8 +11,8 @@ export type EdgeProps = inferT<typeof edgeJSON>;
 
 interface Props {
   config?: {
-    nodes?: Record<string, NodeProps>;
-    edges?: Record<string, EdgeProps>;
+    nodes?: (NodeProps & { id: string })[];
+    edges?: (EdgeProps & { id: string })[];
   };
   onNodeAdded?: (node: NodeProps) => void;
   onNodeDeleted?: (nodeId: string) => void;
@@ -23,8 +23,9 @@ interface Props {
 // const PARENT_CHILD_GAP_WIDTH = 75;
 
 export const FlowChart: Component<Props> = props => {
-  const DEFAULT_NODES: Record<string, NodeProps> = {
-    'node-0': {
+  const DEFAULT_NODES: (NodeProps & { id: string })[] = [
+    {
+      id: 'node-0',
       data: {
         content: 'Some text',
         label: 'Root node',
@@ -35,10 +36,10 @@ export const FlowChart: Component<Props> = props => {
         y: 100,
       },
     },
-  };
+  ];
 
   const primaryNodes = props.config?.nodes ?? DEFAULT_NODES;
-  const primaryEdges = { ...props.config?.edges };
+  const primaryEdges = props.config?.edges;
 
   const {
     service,
@@ -46,17 +47,14 @@ export const FlowChart: Component<Props> = props => {
     board: [board],
   } = useFlow();
 
-  service.send({
-    type: 'CONFIGURE',
-    payload: {
-      nodes: primaryNodes,
-      edges: primaryEdges,
-    },
-  });
-
-  createEffect(() => {
-    console.log('value', service.value());
-    console.log('nodes', service.select('context.data.nodes')());
+  onMount(() => {
+    service.send({
+      type: 'CONFIGURE',
+      payload: {
+        nodes: primaryNodes,
+        edges: primaryEdges ?? [],
+      },
+    });
   });
 
   return (
@@ -86,7 +84,6 @@ export const FlowChart: Component<Props> = props => {
           }}
         >
           <NodesBoard />
-
           <EdgesBoard />
         </div>
       </div>
