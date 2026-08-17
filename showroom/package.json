@@ -46,7 +46,7 @@
     "color": "^5.0.3",
     "dequal": "^2.0.3",
     "lucide-solid": "^1.17.0",
-    "nanoid": "^5.1.11",
+    "nanoid": "^5.1.16",
     "nitro": "3.0.260522-beta",
     "redaxios": "^0.5.1",
     "solid-flow": "^1.0.4",

@@ -12,8 +12,8 @@ importers:
         specifier: ^2.0.3
         version: 2.0.3
       nanoid:
-        specifier: ^6.0.1
-        version: 6.0.1
+        specifier: ^5.1.16
+        version: 5.1.16
     devDependencies:
       '@bemedev/app':
         specifier: ^1.10.0
@@ -211,8 +211,8 @@ importers:
         specifier: ^1.17.0
         version: 1.17.0(solid-js@1.9.13)
       nanoid:
-        specifier: ^5.1.11
-        version: 5.1.11
+        specifier: ^5.1.16
+        version: 5.1.16
       nitro:
         specifier: 3.0.260522-beta
         version: 3.0.260522-beta(chokidar@5.0.0)(dotenv@17.4.2)(giget@3.2.0)(ioredis@5.11.0)(jiti@2.7.0)(lru-cache@11.5.2)(rollup@4.62.4)(vite@8.0.14(@types/node@25.9.1)(esbuild@0.28.0)(jiti@2.7.0)(terser@5.49.2))
@@ -5107,14 +5107,9 @@ packages:
     engines: {node: ^10 || ^12 || ^13.7 || ^14 || >=15.0.1}
     hasBin: true
 
-  nanoid@5.1.11:
-    resolution: {integrity: sha512-v+KEsUv2ps74PaSKv0gHTxTCgMXOIfBEbaqa6w6ISIGC7ZsvHN4N9oJ8d4cmf0n5oTzQz2SLmThbQWhjd/8eKg==}
+  nanoid@5.1.16:
+    resolution: {integrity: sha512-kVrnsrJqMR8+oLJnGEmSWw9BivK5mt7H3FZatVRjrc5wGqFYuBxX1yG7+A7Gi5AefkX6t/oCkizcQgpu0cY1dQ==}
     engines: {node: ^18 || >=20}
-    hasBin: true
-
-  nanoid@6.0.1:
-    resolution: {integrity: sha512-3wVS3i51pE2pi1k5FFL/95BGfVS0kSsvDVuGXHOtxox/TywUmtgq+3qiTOTbs9J7KfHaXPiN171k/A6dBnaXFw==}
-    engines: {node: ^22 || ^24 || >=26}
     hasBin: true
 
   nanospinner@1.2.2:
@@ -11233,9 +11228,7 @@ snapshots:
 
   nanoid@3.3.18: {}
 
-  nanoid@5.1.11: {}
-
-  nanoid@6.0.1: {}
+  nanoid@5.1.16: {}
 
   nanospinner@1.2.2:
     dependencies:
