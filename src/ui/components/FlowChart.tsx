@@ -1,5 +1,5 @@
 import type { inferT } from "@bemedev/app/typings";
-import { Component, onMount } from "solid-js";
+import { Component, createSignal, onMount } from "solid-js";
 import type { edgeJSON, nodeJSON } from "../../services/main.typings";
 import { EdgesBoard } from "./EdgesBoard";
 import { useFlow } from "./FlowChart.context";
@@ -57,9 +57,11 @@ export const FlowChart: Component<Props> = (props) => {
     });
   });
 
+  const [zoom, setZoom] = createSignal(2);
+
   return (
     <div
-      class="relative w-full h-full overflow-hidden"
+      class="relative w-full h-full"
       onMouseUp={() => {
         setNewEdge();
       }}
@@ -73,18 +75,17 @@ export const FlowChart: Component<Props> = (props) => {
             y1: y - _board.y,
           });
       }}
+      style={{}}
     >
-      <div class="w-full h-full overflow-scroll">
-        <div
-          class="relative h-[150vh] w-[2160px] bg-white bg-size-[30px_30px]"
-          style={{
-            cursor: newEdge() ? "inherit" : "crosshair",
-            "background-image": "radial-gradient(circle, #b8b8b8bf 1px, rgba(0, 0, 0, 0) 1px)",
-          }}
-        >
-          <NodesBoard />
-          <EdgesBoard />
-        </div>
+      <div
+        class="relative h-full w-full bg-white bg-size-[30px_30px]"
+        style={{
+          cursor: newEdge() ? "inherit" : "crosshair",
+          "background-image": "radial-gradient(circle, #b8b8b8bf 1px, rgba(0, 0, 0, 0) 1px)",
+        }}
+      >
+        <NodesBoard />
+        <EdgesBoard />
       </div>
     </div>
   );

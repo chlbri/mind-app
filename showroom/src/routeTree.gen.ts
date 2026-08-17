@@ -9,11 +9,17 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as ZoomRouteImport } from './routes/zoom'
 import { Route as CountingRouteImport } from './routes/counting'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as DemoIndexRouteImport } from './routes/demo/index'
 import { Route as DemoDtagndropRouteImport } from './routes/demo/dtagndrop'
 
+const ZoomRoute = ZoomRouteImport.update({
+  id: '/zoom',
+  path: '/zoom',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const CountingRoute = CountingRouteImport.update({
   id: '/counting',
   path: '/counting',
@@ -38,12 +44,14 @@ const DemoDtagndropRoute = DemoDtagndropRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/counting': typeof CountingRoute
+  '/zoom': typeof ZoomRoute
   '/demo/dtagndrop': typeof DemoDtagndropRoute
   '/demo/': typeof DemoIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/counting': typeof CountingRoute
+  '/zoom': typeof ZoomRoute
   '/demo/dtagndrop': typeof DemoDtagndropRoute
   '/demo': typeof DemoIndexRoute
 }
@@ -51,26 +59,35 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/counting': typeof CountingRoute
+  '/zoom': typeof ZoomRoute
   '/demo/dtagndrop': typeof DemoDtagndropRoute
   '/demo/': typeof DemoIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/counting' | '/demo/dtagndrop' | '/demo/'
+  fullPaths: '/' | '/counting' | '/zoom' | '/demo/dtagndrop' | '/demo/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/counting' | '/demo/dtagndrop' | '/demo'
-  id: '__root__' | '/' | '/counting' | '/demo/dtagndrop' | '/demo/'
+  to: '/' | '/counting' | '/zoom' | '/demo/dtagndrop' | '/demo'
+  id: '__root__' | '/' | '/counting' | '/zoom' | '/demo/dtagndrop' | '/demo/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   CountingRoute: typeof CountingRoute
+  ZoomRoute: typeof ZoomRoute
   DemoDtagndropRoute: typeof DemoDtagndropRoute
   DemoIndexRoute: typeof DemoIndexRoute
 }
 
 declare module '@tanstack/solid-router' {
   interface FileRoutesByPath {
+    '/zoom': {
+      id: '/zoom'
+      path: '/zoom'
+      fullPath: '/zoom'
+      preLoaderRoute: typeof ZoomRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/counting': {
       id: '/counting'
       path: '/counting'
@@ -105,6 +122,7 @@ declare module '@tanstack/solid-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   CountingRoute: CountingRoute,
+  ZoomRoute: ZoomRoute,
   DemoDtagndropRoute: DemoDtagndropRoute,
   DemoIndexRoute: DemoIndexRoute,
 }

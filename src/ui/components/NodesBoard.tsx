@@ -2,6 +2,7 @@ import { useState } from "@bemedev/app-solidjs";
 import { DragDropProvider, DragDropSensors, DragOverlay } from "@thisbeyond/solid-dnd";
 import { dequal } from "dequal";
 import { Component, createSignal, For, onMount, Show } from "solid-js";
+import { DragBounds } from "./Bounds";
 import { useFlow } from "./FlowChart.context";
 import { NodeComponent } from "./NodeComponent";
 
@@ -82,9 +83,11 @@ export const NodesBoard: Component = () => {
             y: Y - 6,
           },
         });
+        setTransform({ x: 0, y: 0 });
       }}
     >
       <DragDropSensors />
+      <DragBounds ref={ref} />
       <div ref={setRef} class="w-full h-full relative" onMouseDown={() => service.send("DESELECT")}>
         <For each={nodes()} children={NodeComponent} />
       </div>
