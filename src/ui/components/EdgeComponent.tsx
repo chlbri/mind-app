@@ -8,21 +8,25 @@ type Props = {
   isNew?: boolean;
 } & Vector;
 
-function calculateOffset(value: number) {
-  return (value * 100) / 200;
-}
+const calculateOffset = (value: number) => (value * 100) / 200;
 
-export const EdgeComponent: Component<Props> = (props) => {
+const draw = ({ x0, y0, x1, y1 }: Vector) => {
+  return `M ${x0} ${y0} C ${x0 + calculateOffset(Math.abs(x1 - x0))} ${y0}, ${x1 - calculateOffset(Math.abs(x1 - x0))} ${y1}, ${x1} ${y1}`;
+};
+
+export const EdgeComponent: Component<Props> = ({ id: payload, isNew, ...rest }) => {
+  const { x0, y0, x1, y1 } = rest;
+
   const [middlePoint, setMiddlePoint] = createSignal({
-    x: props.x0 + (props.x1 - props.x0) / 2,
-    y: props.y0 + (props.y1 - props.y0) / 2,
+    x: x0 + (x1 - x0) / 2,
+    y: y0 + (y1 - y0) / 2,
   });
 
   const { service } = useFlow();
 
   createEffect(() => {
-    const middleX = props.x0 + (props.x1 - props.x0) / 2;
-    const middleY = props.y0 + (props.y1 - props.y0) / 2;
+    const middleX = x0 + (x1 - x0) / 2;
+    const middleY = y0 + (y1 - y0) / 2;
     setMiddlePoint({
       x: middleX,
       y: middleY,
@@ -30,7 +34,7 @@ export const EdgeComponent: Component<Props> = (props) => {
   });
 
   const selected = useState(service, {
-    selector: (s) => s.context.selected === props.id,
+    selector: (s) => s.context.selected === payload,
   });
 
   return (
@@ -38,31 +42,23 @@ export const EdgeComponent: Component<Props> = (props) => {
       <path
         class="fill-transparent cursor-pointer relative"
         classList={{
-          "stroke-[rgba(168,168,168,0.4)] stroke-3": !!props.isNew,
-          "stroke-[rgba(168,168,168,1)] stroke-4 z-100": selected() && !props.isNew,
-          "stroke-[rgba(168,168,168,0.8)] stroke-3": !selected() && !props.isNew,
+          "stroke-[rgba(168,168,168,0.4)] stroke-3": !!isNew,
+          "stroke-[rgba(168,168,168,1)] stroke-4 z-100": selected() && !isNew,
+          "stroke-[rgba(168,168,168,0.8)] stroke-3": !selected() && !isNew,
         }}
-        style={{ "pointer-events": props.isNew ? "none" : "all" }}
-        d={`M ${props.x0} ${props.y0} C ${
-          props.x0 + calculateOffset(Math.abs(props.x1 - props.x0))
-        } ${props.y0}, ${
-          props.x1 - calculateOffset(Math.abs(props.x1 - props.x0))
-        } ${props.y1}, ${props.x1} ${props.y1}`}
-        onClick={(e) => {
-          if (props.isNew) return;
-          e.stopPropagation();
-          service.send({ type: "SELECT", payload: props.id });
-        }}
+        style={{ "pointer-events": isNew ? "none" : "all" }}
+        d={draw(rest)}
+        onClick={() => service.send({ type: "SELECT", payload })}
       />
       <Show when={selected()}>
         <g
           cursor="pointer"
           transform={`translate(${middlePoint().x}, ${middlePoint().y})`}
-          onClick={(e) => {
-            e.stopPropagation();
-            service.send({ type: "DELETE", payload: props.id });
+          onMouseDown={() => service.send({ type: "DELETE", payload })}
+          style={{
+            "pointer-events": "all",
+            "z-index": "30",
           }}
-          style="pointer-events: all;"
         >
           <circle cx="0" cy="0" r="12" fill="rgba(168, 168, 168, 1)" />
           <svg
