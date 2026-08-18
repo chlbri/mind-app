@@ -35,6 +35,7 @@ export const NodeComponent: Component<Props> = props => {
   const {
     dimensions: [dimensions, setDimensions],
     newEdge: [newEdge, setNewEdge],
+    zoom: [zoom],
     getBoardPoint,
 
     service,
@@ -51,20 +52,24 @@ export const NodeComponent: Component<Props> = props => {
 
     if (!_outputRef || !_rootRef) return;
 
+    const currentZoom = zoom();
     const rootRect = _rootRef.getBoundingClientRect();
     const outputRect = _outputRef.getBoundingClientRect();
     const inputRect = _inputRef?.getBoundingClientRect();
 
     const outputOffsetX =
-      outputRect.left - rootRect.left + outputRect.width / 2;
+      (outputRect.left - rootRect.left + outputRect.width / 2) /
+      currentZoom;
     const outputOffsetY =
-      outputRect.top - rootRect.top + outputRect.height / 2;
+      (outputRect.top - rootRect.top + outputRect.height / 2) /
+      currentZoom;
 
     const inputOffsetX = inputRect
-      ? inputRect.left - rootRect.left + inputRect.width / 2
+      ? (inputRect.left - rootRect.left + inputRect.width / 2) /
+        currentZoom
       : -10.5;
     const inputOffsetY = inputRect
-      ? inputRect.top - rootRect.top + inputRect.height / 2
+      ? (inputRect.top - rootRect.top + inputRect.height / 2) / currentZoom
       : 18;
 
     const output = {
@@ -80,8 +85,8 @@ export const NodeComponent: Component<Props> = props => {
     setDimensions(
       produce(data => {
         data[props.id] = {
-          width: rootRect.width,
-          height: rootRect.height,
+          width: rootRect.width / currentZoom,
+          height: rootRect.height / currentZoom,
           output,
           input,
           outputOffset: { x: outputOffsetX, y: outputOffsetY },
@@ -101,7 +106,6 @@ export const NodeComponent: Component<Props> = props => {
 
   createEffect(() => {});
 
-  // @ts-expect-error solid-js directive
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const draggable = createDraggable(props.id);
 

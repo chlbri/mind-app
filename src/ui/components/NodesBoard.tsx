@@ -14,6 +14,7 @@ export const NodesBoard: Component = () => {
   const {
     board: [, setRef],
     service,
+    zoom: [zoom, setZoom],
     newEdge: [newEdge],
   } = useFlow();
 
@@ -48,9 +49,8 @@ export const NodesBoard: Component = () => {
       onDragMove={({ draggable: { transform: _transform, node, id } }) => {
         setId(id);
         if (selected(id)) {
-          setTransform({ ..._transform });
-          const X = node.offsetLeft + transform().x;
-          const Y = node.offsetTop + transform().y;
+          const X = node.offsetLeft + _transform.x;
+          const Y = node.offsetTop + _transform.y;
           service.send({
             type: "MOVE_IMMEDIATE",
             payload: {
@@ -59,6 +59,7 @@ export const NodesBoard: Component = () => {
               y: Y,
             },
           });
+          setTransform({ ..._transform });
         }
       }}
       onDragEnd={({ draggable: { node, id } }) => {
@@ -69,28 +70,41 @@ export const NodesBoard: Component = () => {
         node.style.setProperty("top", Y + "px");
         node.style.setProperty("left", X + "px");
 
-        service.send({
-          type: "MOVE",
-          payload: {
-            id: `${id}`,
-            x: X,
-            y: Y,
-          },
-        });
-        setTransform({ x: 0, y: 0 });
+        setTimeout(() => {
+          service.send({
+            type: "MOVE",
+            payload: {
+              id: `${id}`,
+              x: X,
+              y: Y,
+            },
+          });
+          setTransform({ x: 0, y: 0 });
+        }, 0);
       }}
     >
       <div class="relative w-[calc(100vw-32px)] h-[calc(100vh-64px)] mx-auto">
         <div
           ref={(el) => (containerRef = el)}
           class="w-full h-full border-2 border-gray-600 overflow-scroll rounded-lg relative"
+          onWheel={(e) => {
+            if (e.ctrlKey || e.metaKey) {
+              e.preventDefault();
+              const delta = e.deltaY < 0 ? 0.1 : -0.1;
+              setZoom((prev) => Math.min(Math.max(Number((prev + delta).toFixed(2)), 0.2), 3));
+            }
+          }}
         >
           <DragDropSensors />
           <DragBounds />
           <div
             ref={setRef}
-            class="w-[350vw] h-[350vh] relative cursor-crosshair"
+            class="w-[350vw] h-[350vh] relative cursor-crosshair origin-top-left"
             classList={{ "cursor-grabbing": isPanning() }}
+            style={{
+              "transform-origin": "0 0",
+              scale: zoom(),
+            }}
 
             onMouseDown={(e) => {
               if (newEdge() || e.button !== 0) return;
@@ -135,6 +149,34 @@ export const NodesBoard: Component = () => {
 
         {/* Panel */}
         <div class="absolute bottom-4 right-4 z-50 flex items-center gap-2 bg-white/90 backdrop-blur-md p-2 rounded-xl shadow-lg border border-gray-200">
+          <button
+            type="button"
+            class="flex items-center justify-center size-9 bg-gray-100 hover:bg-gray-200 active:scale-95 text-gray-700 rounded-lg shadow-sm transition-all duration-150 cursor-pointer font-bold text-lg"
+            onClick={() => setZoom((prev) => Math.max(0.2, Number((prev - 0.1).toFixed(2))))}
+            title="Zoom out"
+            aria-label="Zoom out"
+          >
+            -
+          </button>
+          <button
+            type="button"
+            class="px-2 h-9 text-xs font-semibold text-gray-700 hover:bg-gray-100 rounded-lg transition-colors cursor-pointer"
+            onClick={() => setZoom(1)}
+            title="Reset zoom"
+            aria-label="Reset zoom"
+          >
+            {Math.round(zoom() * 100)}%
+          </button>
+          <button
+            type="button"
+            class="flex items-center justify-center size-9 bg-gray-100 hover:bg-gray-200 active:scale-95 text-gray-700 rounded-lg shadow-sm transition-all duration-150 cursor-pointer font-bold text-lg"
+            onClick={() => setZoom((prev) => Math.min(3, Number((prev + 0.1).toFixed(2))))}
+            title="Zoom in"
+            aria-label="Zoom in"
+          >
+            +
+          </button>
+          <div class="h-5 w-px bg-gray-300" />
           <button
             type="button"
             class="flex items-center justify-center size-9 bg-blue-600 hover:bg-blue-700 active:scale-95 text-white rounded-lg shadow transition-all duration-150 cursor-pointer"

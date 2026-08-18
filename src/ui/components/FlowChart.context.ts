@@ -42,14 +42,16 @@ export const [Provider, useFlow] = createContext(
 
     const newEdge = createSignal<Edge>();
     const [boardRef, setBoardRef] = createSignal<HTMLDivElement>();
+    const [zoom, setZoom] = createSignal(1);
 
     const getBoardPoint = (clientX: number, clientY: number): Point => {
       const el = boardRef();
       if (!el) return { x: clientX, y: clientY };
       const rect = el.getBoundingClientRect();
+      const currentZoom = zoom();
       return {
-        x: clientX - rect.left,
-        y: clientY - rect.top,
+        x: (clientX - rect.left) / currentZoom,
+        y: (clientY - rect.top) / currentZoom,
       };
     };
 
@@ -96,8 +98,9 @@ export const [Provider, useFlow] = createContext(
             const scrollTop = container?.scrollTop ?? 0;
             const width = container?.clientWidth ?? 0;
             const height = container?.clientHeight ?? 0;
-            const x = scrollLeft + width / 2;
-            const y = scrollTop + height / 2;
+            const currentZoom = zoom();
+            const x = (scrollLeft + width / 2) / currentZoom;
+            const y = (scrollTop + height / 2) / currentZoom;
 
             return [
               ...nodes,
@@ -309,6 +312,7 @@ export const [Provider, useFlow] = createContext(
       dimensions: [dimensions, setDimensions] as const,
       newEdge,
       board: [boardRef, setBoardRef] as const,
+      zoom: [zoom, setZoom] as const,
       getBoardPoint,
       edgesPositions: [edgesPositions, setEdgesPositions] as const,
       service,
