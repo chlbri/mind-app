@@ -6,6 +6,7 @@ import { DragBounds } from "./Bounds";
 import { EdgesBoard } from "./EdgesBoard";
 import { useFlow } from "./FlowChart.context";
 import { NodeComponent } from "./NodeComponent";
+import { CANVAS_FACTOR } from "./FlowChart.data";
 
 export const NodesBoard: Component = () => {
   let containerRef: HTMLDivElement | undefined;
@@ -14,8 +15,8 @@ export const NodesBoard: Component = () => {
   const {
     board: [, setRef],
     service,
-    zoom: [zoom, setZoom],
     newEdge: [newEdge],
+    zoom: [zoom, setZoom],
   } = useFlow();
 
   const selectedId = useState(service, {
@@ -26,14 +27,14 @@ export const NodesBoard: Component = () => {
 
   const nodes = useState(service, {
     selector: (s) => {
-      const list = s.context?.data?.nodes ?? [];
+      const list = s.context.data?.nodes ?? [];
       return list.map((item) => ({
         id: item.id,
-        x: item.position?.x ?? 0,
-        y: item.position?.y ?? 0,
-        label: item.data?.label,
-        content: item.data?.content ?? "",
-        input: item.input ?? false,
+        x: item.position.x,
+        y: item.position.y,
+        label: item.data.label,
+        content: item.data.content ?? "",
+        input: item.input,
       }));
     },
     equals: dequal,
@@ -44,68 +45,81 @@ export const NodesBoard: Component = () => {
   let cleanupPanning = () => {};
   onCleanup(cleanupPanning);
 
+  const cDim = () => {
+    const _zoom = zoom();
+    if (_zoom < 1) {
+      return CANVAS_FACTOR * 100 * _zoom;
+    }
+    return CANVAS_FACTOR * 100;
+  };
+
   return (
     <DragDropProvider
-      onDragMove={({ draggable: { transform: _transform, node, id } }) => {
+      onDragMove={({ draggable: { transform: _transform, node, id }, overlay }) => {
         setId(id);
         if (selected(id)) {
-          const X = node.offsetLeft + _transform.x;
-          const Y = node.offsetTop + _transform.y;
-          service.send({
-            type: "MOVE_IMMEDIATE",
-            payload: {
-              id: `${id}`,
-              x: X,
-              y: Y,
-            },
-          });
+          const x = node.offsetLeft + _transform.x / zoom();
+          const y = node.offsetTop + _transform.y / zoom();
+          overlay?.node.style.setProperty("top", y * 2 + "px");
+          overlay?.node.style.setProperty("left", x * 2 + "px");
+          const deltaX = _transform.x / zoom();
+          const deltaY = _transform.y / zoom();
+          // Directly update the draggable node's CSS transform adjusted for zoom:
+          node.style.setProperty("transform", `translate3d(${deltaX}px, ${deltaY}px, 0)`);
+
+          service.send({ type: "MOVE_IMMEDIATE", payload: { id: `${id}`, x, y } });
           setTransform({ ..._transform });
         }
       }}
+
       onDragEnd={({ draggable: { node, id } }) => {
         if (!selected(id)) return;
 
-        const X = node.offsetLeft + transform().x;
-        const Y = node.offsetTop + transform().y;
+        const X = node.offsetLeft + transform().x / zoom();
+        const Y = node.offsetTop + transform().y / zoom();
         node.style.setProperty("top", Y + "px");
         node.style.setProperty("left", X + "px");
+        node.style.removeProperty("transform");
 
         setTimeout(() => {
-          service.send({
-            type: "MOVE",
-            payload: {
-              id: `${id}`,
-              x: X,
-              y: Y,
-            },
-          });
+          service.send({ type: "MOVE", payload: { id: `${id}`, x: X, y: Y } });
           setTransform({ x: 0, y: 0 });
         }, 0);
       }}
     >
-      <div class="relative w-[calc(100vw-32px)] h-[calc(100vh-64px)] mx-auto">
+      <div
+        ref={(el) => {
+          return (containerRef = el);
+        }}
+
+        onWheel={(e) => {
+          if (e.ctrlKey || e.metaKey) {
+            e.preventDefault();
+            const delta = e.deltaY < 0 ? 0.1 : -0.1;
+            setZoom((prev) => Math.min(Math.max(Number((prev + delta).toFixed(2)), 0.2), 3));
+          }
+        }}
+
+        class="relative w-[calc(100vw-32px)] h-[calc(100vh-64px)] mx-auto"
+      >
         <div
-          ref={(el) => (containerRef = el)}
-          class="w-full h-full border-2 border-gray-600 overflow-scroll rounded-lg relative"
-          onWheel={(e) => {
-            if (e.ctrlKey || e.metaKey) {
-              e.preventDefault();
-              const delta = e.deltaY < 0 ? 0.1 : -0.1;
-              setZoom((prev) => Math.min(Math.max(Number((prev + delta).toFixed(2)), 0.2), 3));
-            }
+          ref={(el) => {
+            return (containerRef = el);
           }}
+          class="w-full h-full border-2 border-gray-600 rounded-lg overflow-scroll relative"
         >
           <DragDropSensors />
           <DragBounds />
           <div
             ref={setRef}
-            class="w-[350vw] h-[350vh] relative cursor-crosshair origin-top-left"
+            class="relative cursor-crosshair"
             classList={{ "cursor-grabbing": isPanning() }}
             style={{
-              "transform-origin": "0 0",
+              height: `${cDim()}vh`,
+              width: `${cDim()}vw`,
               scale: zoom(),
+              "transform-origin": "top left",
             }}
-
             onMouseDown={(e) => {
               if (newEdge() || e.button !== 0) return;
               if (!containerRef) return;
@@ -177,6 +191,7 @@ export const NodesBoard: Component = () => {
             +
           </button>
           <div class="h-5 w-px bg-gray-300" />
+
           <button
             type="button"
             class="flex items-center justify-center size-9 bg-blue-600 hover:bg-blue-700 active:scale-95 text-white rounded-lg shadow transition-all duration-150 cursor-pointer"

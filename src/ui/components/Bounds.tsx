@@ -1,11 +1,7 @@
 import { useDragDropContext, type Transformer } from "@thisbeyond/solid-dnd";
 import { type Component } from "solid-js";
+import { BOUNDS_CONSTRAINTS } from "./FlowChart.data";
 import { useFlow } from "./FlowChart.context";
-
-const CONSTRAINTS = {
-  horizontal: 20,
-  vertical: 35,
-};
 
 export const DragBounds: Component = () => {
   const {
@@ -23,33 +19,36 @@ export const DragBounds: Component = () => {
       const container = ref()?.parentElement;
       const activeDraggable = state.active.draggable;
       if (!container || !activeDraggable) return transform;
-      const containerRect = container.getBoundingClientRect();
       const draggableLayout = activeDraggable.layout;
-      const currentZoom = zoom();
+
+      // #region Inner visible boundaries (excluding borders and scrollbars)
+      const containerRect = container.getBoundingClientRect();
+      const innerLeft = containerRect.left + container.clientLeft;
+      const innerTop = containerRect.top + container.clientTop;
+      const innerRight = innerLeft + container.clientWidth;
+      const innerBottom = innerTop + container.clientHeight;
+      // #endregion
 
       // #region Convert boundaries to board coordinate space
-      const minX =
-        (containerRect.left - draggableLayout.left) / currentZoom + CONSTRAINTS.horizontal;
+      const currentZoom = zoom();
+      const minX = innerLeft - draggableLayout.left + BOUNDS_CONSTRAINTS.horizontal * currentZoom;
 
       const maxX = Math.max(
         minX,
-        (containerRect.right - draggableLayout.right) / currentZoom - CONSTRAINTS.horizontal,
+        innerRight - draggableLayout.right - BOUNDS_CONSTRAINTS.horizontal * currentZoom,
       );
 
-      const minY = (containerRect.top - draggableLayout.top) / currentZoom + CONSTRAINTS.vertical;
+      const minY = innerTop - draggableLayout.top + BOUNDS_CONSTRAINTS.vertical * currentZoom;
 
       const maxY = Math.max(
         minY,
-        (containerRect.bottom - draggableLayout.bottom) / currentZoom - CONSTRAINTS.vertical,
+        innerBottom - draggableLayout.bottom - BOUNDS_CONSTRAINTS.vertical * currentZoom,
       );
       // #endregion
 
-      const targetX = transform.x / currentZoom;
-      const targetY = transform.y / currentZoom;
-
       return {
-        x: Math.min(Math.max(targetX, minX), maxX),
-        y: Math.min(Math.max(targetY, minY), maxY),
+        x: Math.min(Math.max(transform.x, minX), maxX),
+        y: Math.min(Math.max(transform.y, minY), maxY),
       };
     },
   };

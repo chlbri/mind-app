@@ -18,6 +18,7 @@ export default defineConfig({
       fileName: (format, entry) => `${entry}.${format}.js`,
       formats: ["es", "cjs", "umd"],
     },
+
     rollupOptions: {
       external: globals,
       output: {
