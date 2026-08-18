@@ -3,7 +3,7 @@ import { type Component } from "solid-js";
 import { useFlow } from "./FlowChart.context";
 
 const CONSTRAINTS = {
-  horizontal: 5,
+  horizontal: 20,
   vertical: 35,
 };
 
