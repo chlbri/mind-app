@@ -1,7 +1,7 @@
 import { useState } from "@bemedev/app-solidjs";
 import { DragDropProvider, DragDropSensors, DragOverlay } from "@thisbeyond/solid-dnd";
 import { dequal } from "dequal";
-import { Component, createSignal, For, onCleanup, Show } from "solid-js";
+import { Component, createEffect, createSignal, For, on, onCleanup, Show } from "solid-js";
 import { DragBounds } from "./Bounds";
 import { EdgesBoard } from "./EdgesBoard";
 import { useFlow } from "./FlowChart.context";
@@ -11,6 +11,13 @@ import { CANVAS_FACTOR } from "./FlowChart.data";
 export const NodesBoard: Component = () => {
   let containerRef: HTMLDivElement | undefined;
   const [isPanning, setIsPanning] = createSignal(false);
+  const [transform, setTransform] = createSignal({ x: 0, y: 0 });
+  const [id, setId] = createSignal<string | number>("");
+  const [previousZoom, setPreviousZoom] = createSignal<number>();
+  let cleanupPanning = () => {};
+  onCleanup(cleanupPanning);
+  let percentX = 0;
+  let percentY = 0;
 
   const {
     board: [, setRef],
@@ -18,6 +25,28 @@ export const NodesBoard: Component = () => {
     newEdge: [newEdge],
     zoom: [zoom, setZoom],
   } = useFlow();
+
+  const updateScrollPercentages = () => {
+    if (!containerRef) return;
+    const maxScrollX = containerRef.scrollWidth - containerRef.clientWidth;
+    const maxScrollY = containerRef.scrollHeight - containerRef.clientHeight;
+    percentX = maxScrollX > 0 ? containerRef.scrollLeft / maxScrollX : 0;
+    percentY = maxScrollY > 0 ? containerRef.scrollTop / maxScrollY : 0;
+  };
+
+  createEffect(
+    on(
+      zoom,
+      () => {
+        if (!containerRef) return;
+        const maxScrollX = containerRef.scrollWidth - containerRef.clientWidth;
+        const maxScrollY = containerRef.scrollHeight - containerRef.clientHeight;
+        if (maxScrollX > 0) containerRef.scrollLeft = percentX * maxScrollX;
+        if (maxScrollY > 0) containerRef.scrollTop = percentY * maxScrollY;
+      },
+      { defer: true },
+    ),
+  );
 
   const selectedId = useState(service, {
     selector: (s) => s.context?.selected,
@@ -39,11 +68,6 @@ export const NodesBoard: Component = () => {
     },
     equals: dequal,
   });
-
-  const [transform, setTransform] = createSignal({ x: 0, y: 0 });
-  const [id, setId] = createSignal<string | number>("");
-  let cleanupPanning = () => {};
-  onCleanup(cleanupPanning);
 
   const cDim = () => {
     const _zoom = zoom();
@@ -88,13 +112,10 @@ export const NodesBoard: Component = () => {
       }}
     >
       <div
-        ref={(el) => {
-          return (containerRef = el);
-        }}
-
         onWheel={(e) => {
           if (e.ctrlKey || e.metaKey) {
             e.preventDefault();
+            updateScrollPercentages();
             const delta = e.deltaY < 0 ? 0.1 : -0.1;
             setZoom((prev) => Math.min(Math.max(Number((prev + delta).toFixed(2)), 0.2), 3));
           }
@@ -106,6 +127,7 @@ export const NodesBoard: Component = () => {
           ref={(el) => {
             return (containerRef = el);
           }}
+          onScroll={updateScrollPercentages}
           class="w-full h-full border-2 border-gray-600 rounded-lg overflow-scroll relative"
         >
           <DragDropSensors />
@@ -136,10 +158,12 @@ export const NodesBoard: Component = () => {
               setIsPanning(true);
 
               const handleMouseMove = (moveEvent: MouseEvent) => {
+                if (!containerRef) return;
                 const dx = moveEvent.clientX - startX;
                 const dy = moveEvent.clientY - startY;
-                containerRef!.scrollLeft = startScrollLeft - dx * 3;
-                containerRef!.scrollTop = startScrollTop - dy * 3;
+                containerRef.scrollLeft = startScrollLeft - dx * 3;
+                containerRef.scrollTop = startScrollTop - dy * 3;
+                updateScrollPercentages();
               };
 
               const handleMouseUp = () => {
@@ -166,7 +190,11 @@ export const NodesBoard: Component = () => {
           <button
             type="button"
             class="flex items-center justify-center size-9 bg-gray-100 hover:bg-gray-200 active:scale-95 text-gray-700 rounded-lg shadow-sm transition-all duration-150 cursor-pointer font-bold text-lg"
-            onClick={() => setZoom((prev) => Math.max(0.2, Number((prev - 0.1).toFixed(2))))}
+            onClick={() => {
+              updateScrollPercentages();
+              setPreviousZoom(undefined);
+              setZoom((prev) => Math.max(0.2, Number((prev - 0.1).toFixed(2))));
+            }}
             title="Zoom out"
             aria-label="Zoom out"
           >
@@ -175,7 +203,16 @@ export const NodesBoard: Component = () => {
           <button
             type="button"
             class="px-2 h-9 text-xs font-semibold text-gray-700 hover:bg-gray-100 rounded-lg transition-colors cursor-pointer"
-            onClick={() => setZoom(1)}
+            onClick={() => {
+              updateScrollPercentages();
+              if (previousZoom()) {
+                setZoom(previousZoom()!);
+                setPreviousZoom(undefined);
+              } else {
+                setPreviousZoom(zoom());
+                setZoom(1);
+              }
+            }}
             title="Reset zoom"
             aria-label="Reset zoom"
           >
@@ -184,7 +221,11 @@ export const NodesBoard: Component = () => {
           <button
             type="button"
             class="flex items-center justify-center size-9 bg-gray-100 hover:bg-gray-200 active:scale-95 text-gray-700 rounded-lg shadow-sm transition-all duration-150 cursor-pointer font-bold text-lg"
-            onClick={() => setZoom((prev) => Math.min(3, Number((prev + 0.1).toFixed(2))))}
+            onClick={() => {
+              updateScrollPercentages();
+              setPreviousZoom(undefined);
+              setZoom((prev) => Math.min(3, Number((prev + 0.1).toFixed(2))));
+            }}
             title="Zoom in"
             aria-label="Zoom in"
           >
