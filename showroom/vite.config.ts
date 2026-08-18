@@ -7,9 +7,12 @@ import viteSolid from "vite-plugin-solid";
 export default defineConfig({
   server: {
     port: 3000,
-    host: true,
   },
   resolve: { tsconfigPaths: true },
-  plugins: [tailwindcss({}), tanstackStart({}), nitro({}), viteSolid({ ssr: true }) as any],
-  nitro: {},
+  plugins: [
+    tailwindcss({}),
+    tanstackStart({}),
+    nitro({}),
+    viteSolid({ ssr: true, extensions: [".js", ".ts", ".jsx", ".tsx"] }),
+  ],
 });

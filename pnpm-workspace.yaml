@@ -1,32 +1,17 @@
 packages:
-  - 'showroom'
+  - "showroom"
 
 onlyBuiltDependencies:
-  - '@parcel/watcher'
-  - '@tailwindcss/oxide'
+  - "@parcel/watcher"
+  - "@tailwindcss/oxide"
   - esbuild
   - lefthook
 
 minimalReleaseAge: 600
 
 minimumReleaseAgeExclude:
-  - '@eslint/plugin-kit@0.7.2'
-  - '@rollup/plugin-babel@7.1.0'
-  - '@tanstack/router-core@1.171.7'
-  - '@tanstack/router-generator@1.167.11'
-  - '@tanstack/router-plugin@1.168.12'
-  - '@tanstack/solid-router@1.170.9'
-  - '@tanstack/solid-start-client@1.168.6'
-  - '@tanstack/solid-start-server@1.167.11'
-  - '@tanstack/solid-start@1.168.16'
-  - '@tanstack/start-client-core@1.170.5'
-  - '@tanstack/start-plugin-core@1.171.8'
-  - '@tanstack/start-server-core@1.169.6'
-  - '@tanstack/start-storage-context@1.167.9'
-  - eslint@10.4.1
-  - '@bemedev/app-solidjs@1.10.0'
-  - '@bemedev/app@1.10.0'
+  - "@bemedev/*"
 
 allowBuilds:
-  '@parcel/watcher': true
+  "@parcel/watcher": true
   esbuild: true

@@ -9,15 +9,15 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as ZoomRouteImport } from './routes/zoom'
-import { Route as CountingRouteImport } from './routes/counting'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as CountingRouteImport } from './routes/counting'
+import { Route as ZoomRouteImport } from './routes/zoom'
 import { Route as DemoIndexRouteImport } from './routes/demo/index'
 import { Route as DemoDtagndropRouteImport } from './routes/demo/dtagndrop'
 
-const ZoomRoute = ZoomRouteImport.update({
-  id: '/zoom',
-  path: '/zoom',
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CountingRoute = CountingRouteImport.update({
@@ -25,9 +25,9 @@ const CountingRoute = CountingRouteImport.update({
   path: '/counting',
   getParentRoute: () => rootRouteImport,
 } as any)
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
+const ZoomRoute = ZoomRouteImport.update({
+  id: '/zoom',
+  path: '/zoom',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DemoIndexRoute = DemoIndexRouteImport.update({
@@ -81,11 +81,11 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/solid-router' {
   interface FileRoutesByPath {
-    '/zoom': {
-      id: '/zoom'
-      path: '/zoom'
-      fullPath: '/zoom'
-      preLoaderRoute: typeof ZoomRouteImport
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/counting': {
@@ -95,11 +95,11 @@ declare module '@tanstack/solid-router' {
       preLoaderRoute: typeof CountingRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
+    '/zoom': {
+      id: '/zoom'
+      path: '/zoom'
+      fullPath: '/zoom'
+      preLoaderRoute: typeof ZoomRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/demo/': {

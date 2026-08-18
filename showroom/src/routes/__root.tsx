@@ -4,7 +4,7 @@ import { createRootRoute, HeadContent, Scripts } from "@tanstack/solid-router";
 import { HydrationScript } from "solid-js/web";
 
 import seo from "src/globals/ui/helpers/seo";
-import appCss from "tailwind.css?url";
+import appCss from "../../tailwind.css?url";
 import HeadLinks from "~ui/organisms/HeadLinks";
 
 export const Route = createRootRoute({
