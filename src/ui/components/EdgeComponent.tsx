@@ -42,7 +42,7 @@ export const EdgeComponent: Component<Props> = ({ id: payload, isNew, ...rest })
       <path
         class="fill-transparent cursor-pointer relative"
         classList={{
-          "stroke-[rgba(168,168,168,0.4)] stroke-3": !!isNew,
+          "stroke-[rgba(168,168,168,0.4)] stroke-3 z-200": !!isNew,
           "stroke-[rgba(168,168,168,1)] stroke-4 z-100": selected() && !isNew,
           "stroke-[rgba(168,168,168,0.8)] stroke-3": !selected() && !isNew,
         }}
@@ -54,7 +54,10 @@ export const EdgeComponent: Component<Props> = ({ id: payload, isNew, ...rest })
         <g
           cursor="pointer"
           transform={`translate(${middlePoint().x}, ${middlePoint().y})`}
-          onMouseDown={() => service.send({ type: "DELETE", payload })}
+          onMouseDown={(e) => {
+            e.stopPropagation();
+            service.send({ type: "DELETE", payload });
+          }}
           style={{
             "pointer-events": "all",
             "z-index": "30",

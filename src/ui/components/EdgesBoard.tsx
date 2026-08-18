@@ -1,13 +1,6 @@
-import {
-  Component,
-  createEffect,
-  createMemo,
-  createSignal,
-  For,
-  Show,
-} from 'solid-js';
-import { EdgeComponent } from './EdgeComponent';
-import { useFlow } from './FlowChart.context';
+import { Component, createEffect, createMemo, createSignal, For, Show } from "solid-js";
+import { EdgeComponent } from "./EdgeComponent";
+import { useFlow } from "./FlowChart.context";
 
 export const EdgesBoard: Component = () => {
   const [selected, setSelected] = createSignal<string>();
@@ -27,11 +20,11 @@ export const EdgesBoard: Component = () => {
   });
 
   return (
-    <svg class='pointer-events-none absolute w-full h-full'>
+    <svg class="pointer-events-none absolute w-full h-full">
       <Show when={newEdge()}>
-        {value => (
+        {(value) => (
           <EdgeComponent
-            id='__#new-edge#__TEMP'
+            id="__#new-edge#__TEMP"
             isNew
             x0={value().x0}
             y0={value().y0}
