@@ -133,6 +133,7 @@ export const NodesBoard: Component = () => {
           </div>
         </div>
 
+        {/* Panel */}
         <div class="absolute bottom-4 right-4 z-50 flex items-center gap-2 bg-white/90 backdrop-blur-md p-2 rounded-xl shadow-lg border border-gray-200">
           <button
             type="button"
