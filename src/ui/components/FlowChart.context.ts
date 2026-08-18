@@ -12,6 +12,8 @@ type Dimensions = {
   height: number;
   output: Point;
   input?: Point;
+  outputOffset?: Point;
+  inputOffset?: Point;
 };
 
 export type Edge = {
@@ -37,7 +39,17 @@ export const [Provider, useFlow] = createContext(
     );
 
     const newEdge = createSignal<Edge>();
-    const board = createSignal<Point>();
+    const [boardRef, setBoardRef] = createSignal<HTMLDivElement>();
+
+    const getBoardPoint = (clientX: number, clientY: number): Point => {
+      const el = boardRef();
+      if (!el) return { x: clientX, y: clientY };
+      const rect = el.getBoundingClientRect();
+      return {
+        x: clientX - rect.left,
+        y: clientY - rect.top,
+      };
+    };
 
     const [edgesPositions, setEdgesPositions] = createSignal<Record<string, Vector>>(
       {},
@@ -120,14 +132,14 @@ export const [Provider, useFlow] = createContext(
                   edges?.forEach(({ from, id, to }) => {
                     const output = dimensions()[from]?.output;
                     const input = dimensions()[to]?.input;
-                    const _board = board[0]();
-                    if (output && input && _board)
+                    if (output && input) {
                       next[id] = {
-                        x0: output.x - _board.x + 6,
-                        y0: output.y - _board.y + 6,
-                        x1: input.x - _board.x + 6,
-                        y1: input.y - _board.y + 6,
+                        x0: output.x,
+                        y0: output.y,
+                        x1: input.x,
+                        y1: input.y,
                       };
+                    }
                   });
                 }),
               );
@@ -141,10 +153,12 @@ export const [Provider, useFlow] = createContext(
                 produce((next) => {
                   edges?.forEach(({ from, to, id }) => {
                     if (from === payload.id) {
-                      const width = dimensions()[payload.id].width;
-                      const x0 = payload.x + width + 4.5;
-                      const y0 = payload.y + 13.5;
-                      const _board = board[0]();
+                      const offset = dimensions()[payload.id]?.outputOffset ?? {
+                        x: (dimensions()[payload.id]?.width ?? 0) + 10.5,
+                        y: 18,
+                      };
+                      const x0 = payload.x + offset.x;
+                      const y0 = payload.y + offset.y;
                       next[id] = {
                         ...next[id],
                         x0,
@@ -155,19 +169,19 @@ export const [Provider, useFlow] = createContext(
                           if (data[payload.id]) {
                             data[payload.id] = {
                               ...data[payload.id],
-                              output: {
-                                x: x0 + (_board?.x ?? 0),
-                                y: y0 + (_board?.y ?? 0),
-                              },
+                              output: { x: x0, y: y0 },
                             };
                           }
                         }),
                       );
                     }
                     if (to === payload.id) {
-                      const x1 = payload.x - 15;
-                      const y1 = payload.y + 13.5;
-                      const _board = board[0]();
+                      const offset = dimensions()[payload.id]?.inputOffset ?? {
+                        x: -10.5,
+                        y: 18,
+                      };
+                      const x1 = payload.x + offset.x;
+                      const y1 = payload.y + offset.y;
                       next[id] = {
                         ...next[id],
                         x1,
@@ -178,10 +192,7 @@ export const [Provider, useFlow] = createContext(
                           if (data[payload.id]) {
                             data[payload.id] = {
                               ...data[payload.id],
-                              input: {
-                                x: x1 + (_board?.x ?? 0),
-                                y: y1 + (_board?.y ?? 0),
-                              },
+                              input: { x: x1, y: y1 },
                             };
                           }
                         }),
@@ -205,10 +216,12 @@ export const [Provider, useFlow] = createContext(
               produce((next) => {
                 edges?.forEach(({ from, to, id }) => {
                   if (from === payload.id) {
-                    const width = dimensions()[payload.id]?.width ?? 0;
-                    const x0 = payload.x + width + 4.5;
-                    const y0 = payload.y + 13.5;
-                    const _board = board[0]();
+                    const offset = dimensions()[payload.id]?.outputOffset ?? {
+                      x: (dimensions()[payload.id]?.width ?? 0) + 10.5,
+                      y: 18,
+                    };
+                    const x0 = payload.x + offset.x;
+                    const y0 = payload.y + offset.y;
                     next[id] = {
                       ...next[id],
                       x0,
@@ -219,19 +232,19 @@ export const [Provider, useFlow] = createContext(
                         if (data[payload.id]) {
                           data[payload.id] = {
                             ...data[payload.id],
-                            output: {
-                              x: x0 + (_board?.x ?? 0),
-                              y: y0 + (_board?.y ?? 0),
-                            },
+                            output: { x: x0, y: y0 },
                           };
                         }
                       }),
                     );
                   }
                   if (to === payload.id) {
-                    const x1 = payload.x - 15;
-                    const y1 = payload.y + 13.5;
-                    const _board = board[0]();
+                    const offset = dimensions()[payload.id]?.inputOffset ?? {
+                      x: -10.5,
+                      y: 18,
+                    };
+                    const x1 = payload.x + offset.x;
+                    const y1 = payload.y + offset.y;
                     next[id] = {
                       ...next[id],
                       x1,
@@ -242,10 +255,7 @@ export const [Provider, useFlow] = createContext(
                         if (data[payload.id]) {
                           data[payload.id] = {
                             ...data[payload.id],
-                            input: {
-                              x: x1 + (_board?.x ?? 0),
-                              y: y1 + (_board?.y ?? 0),
-                            },
+                            input: { x: x1, y: y1 },
                           };
                         }
                       }),
@@ -264,7 +274,8 @@ export const [Provider, useFlow] = createContext(
     return {
       dimensions: [dimensions, setDimensions] as const,
       newEdge,
-      board,
+      board: [boardRef, setBoardRef] as const,
+      getBoardPoint,
       edgesPositions: [edgesPositions, setEdgesPositions] as const,
       service,
     };

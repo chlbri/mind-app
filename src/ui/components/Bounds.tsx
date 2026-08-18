@@ -1,9 +1,12 @@
 import { useDragDropContext, type Transformer } from "@thisbeyond/solid-dnd";
 import type { Component } from "solid-js";
+import { useFlow } from "./FlowChart.context";
 
-export const DragBounds: Component<{
-  ref: () => HTMLDivElement | undefined;
-}> = (props) => {
+export const DragBounds: Component = () => {
+  const {
+    board: [ref],
+  } = useFlow();
+
   const [state, { addTransformer, removeTransformer, onDragStart, onDragEnd }] =
     useDragDropContext()!;
 
@@ -11,7 +14,7 @@ export const DragBounds: Component<{
     id: "clamp-to-container",
     order: 100,
     callback: (transform) => {
-      const container = props.ref();
+      const container = ref();
       const activeDraggable = state.active.draggable;
       if (!container || !activeDraggable) return transform;
 

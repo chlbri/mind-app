@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-namespace */
 import { useState } from "@bemedev/app-solidjs";
 import { createDraggable } from "@thisbeyond/solid-dnd";
-import { Component, createSignal, onMount, Show } from "solid-js";
+import { Component, createEffect, createSignal, onMount, Show } from "solid-js";
 import { produce } from "solid-js/store";
 import { useFlow } from "./FlowChart.context";
 
@@ -29,7 +29,7 @@ export const NodeComponent: Component<Props> = (props) => {
   const {
     dimensions: [dimensions, setDimensions],
     newEdge: [newEdge, setNewEdge],
-    board: [board],
+    getBoardPoint,
 
     service,
   } = useFlow();
@@ -45,23 +45,28 @@ export const NodeComponent: Component<Props> = (props) => {
 
     if (!_outputRef || !_rootRef) return;
 
-    const inputRect = _inputRef?.getBoundingClientRect();
-    const outputRect = _outputRef.getBoundingClientRect();
     const rootRect = _rootRef.getBoundingClientRect();
+    const outputRect = _outputRef.getBoundingClientRect();
+    const inputRect = _inputRef?.getBoundingClientRect();
 
-    const input = inputRect
-      ? {
-          x: inputRect.x,
-          y: inputRect.y,
-        }
-      : {
-          x: rootRect.x - 18,
-          y: rootRect.y + rootRect.height / 2 - 6,
-        };
+    const outputOffsetX = outputRect.left - rootRect.left + outputRect.width / 2;
+    const outputOffsetY = outputRect.top - rootRect.top + outputRect.height / 2;
+
+    const inputOffsetX = inputRect
+      ? inputRect.left - rootRect.left + inputRect.width / 2
+      : -10.5;
+    const inputOffsetY = inputRect
+      ? inputRect.top - rootRect.top + inputRect.height / 2
+      : 18;
 
     const output = {
-      x: outputRect.x,
-      y: outputRect.y,
+      x: props.x + outputOffsetX,
+      y: props.y + outputOffsetY,
+    };
+
+    const input = {
+      x: props.x + inputOffsetX,
+      y: props.y + inputOffsetY,
     };
 
     setDimensions(
@@ -71,6 +76,8 @@ export const NodeComponent: Component<Props> = (props) => {
           height: rootRect.height,
           output,
           input,
+          outputOffset: { x: outputOffsetX, y: outputOffsetY },
+          inputOffset: { x: inputOffsetX, y: inputOffsetY },
         };
       }),
     );
@@ -83,6 +90,8 @@ export const NodeComponent: Component<Props> = (props) => {
       return Object.values(edges).some((edge) => edge.to === props.id);
     },
   });
+
+  createEffect(() => {});
 
   // @ts-expect-error solid-js directive
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -213,14 +222,14 @@ export const NodeComponent: Component<Props> = (props) => {
           onMouseDown={(event) => {
             event.stopPropagation();
             service.send("DESELECT");
-            const _board = board();
             const output = dimensions()[props.id]?.output;
-            if (_board && output)
+            const boardPoint = getBoardPoint(event.clientX, event.clientY);
+            if (output)
               setNewEdge({
-                x0: output.x - _board.x + 6,
-                y0: output.y - _board.y + 6,
-                x1: event.x - _board.x,
-                y1: event.y - _board.y,
+                x0: output.x,
+                y0: output.y,
+                x1: boardPoint.x,
+                y1: boardPoint.y,
                 from: props.id,
               });
           }}

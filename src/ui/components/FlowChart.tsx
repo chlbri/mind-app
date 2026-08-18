@@ -1,7 +1,6 @@
 import type { inferT } from "@bemedev/app/typings";
-import { Component, createSignal, onMount } from "solid-js";
+import { Component, onMount } from "solid-js";
 import type { edgeJSON, nodeJSON } from "../../services/main.typings";
-import { EdgesBoard } from "./EdgesBoard";
 import { useFlow } from "./FlowChart.context";
 import { NodesBoard } from "./NodesBoard";
 
@@ -44,7 +43,7 @@ export const FlowChart: Component<Props> = (props) => {
   const {
     service,
     newEdge: [newEdge, setNewEdge],
-    board: [board],
+    getBoardPoint,
   } = useFlow();
 
   onMount(() => {
@@ -57,23 +56,22 @@ export const FlowChart: Component<Props> = (props) => {
     });
   });
 
-  const [zoom, setZoom] = createSignal(2);
-
   return (
     <div
       class="relative w-full h-full"
       onMouseUp={() => {
         setNewEdge();
       }}
-      onMouseMove={({ x, y }) => {
+      onMouseMove={(event) => {
         const edge = newEdge();
-        const _board = board();
-        if (edge && _board)
+        if (edge) {
+          const boardPoint = getBoardPoint(event.clientX, event.clientY);
           setNewEdge({
             ...edge,
-            x1: x - _board.x,
-            y1: y - _board.y,
+            x1: boardPoint.x,
+            y1: boardPoint.y,
           });
+        }
       }}
       style={{}}
     >
@@ -85,7 +83,7 @@ export const FlowChart: Component<Props> = (props) => {
         }}
       >
         <NodesBoard />
-        <EdgesBoard />
+       
       </div>
     </div>
   );

@@ -20,7 +20,7 @@ export const EdgesBoard: Component = () => {
   });
 
   return (
-    <svg class="pointer-events-none absolute top-0 w-full h-full">
+    <svg class="pointer-events-none absolute w-full h-full">
       <Show when={newEdge()}>
         {(value) => (
           <EdgeComponent

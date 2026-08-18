@@ -1,16 +1,17 @@
 import { useState } from "@bemedev/app-solidjs";
 import { DragDropProvider, DragDropSensors, DragOverlay } from "@thisbeyond/solid-dnd";
 import { dequal } from "dequal";
-import { Component, createSignal, For, onMount, Show } from "solid-js";
+import { Component, createSignal, For, Show } from "solid-js";
 import { DragBounds } from "./Bounds";
+import { EdgesBoard } from "./EdgesBoard";
 import { useFlow } from "./FlowChart.context";
 import { NodeComponent } from "./NodeComponent";
 
 export const NodesBoard: Component = () => {
-  const [ref, setRef] = createSignal<HTMLDivElement>();
+  // const [ref, setRef] = createSignal<HTMLDivElement>();
 
   const {
-    board: [, setPoint],
+    board: [, setRef],
     service,
   } = useFlow();
 
@@ -34,18 +35,6 @@ export const NodesBoard: Component = () => {
     equals: dequal,
   });
 
-  onMount(() => {
-    const element = ref();
-    if (!element) return;
-
-    const rect = element.getBoundingClientRect();
-
-    setPoint({
-      x: rect.x,
-      y: rect.y,
-    });
-  });
-
   const [transform, setTransform] = createSignal({ x: 0, y: 0 });
   const [id, setId] = createSignal<string | number>("");
 
@@ -55,8 +44,8 @@ export const NodesBoard: Component = () => {
         setId(id);
         if (selected(id)) {
           setTransform({ ..._transform });
-          const X = node.offsetLeft + transform().x + 6;
-          const Y = node.offsetTop + transform().y + 6;
+          const X = node.offsetLeft + transform().x;
+          const Y = node.offsetTop + transform().y;
           service.send({
             type: "MOVE_IMMEDIATE",
             payload: {
@@ -70,8 +59,8 @@ export const NodesBoard: Component = () => {
       onDragEnd={({ draggable: { node, id } }) => {
         if (!selected(id)) return;
 
-        const X = node.offsetLeft + transform().x + 6;
-        const Y = node.offsetTop + transform().y + 6;
+        const X = node.offsetLeft + transform().x;
+        const Y = node.offsetTop + transform().y;
         node.style.setProperty("top", Y + "px");
         node.style.setProperty("left", X + "px");
 
@@ -79,17 +68,24 @@ export const NodesBoard: Component = () => {
           type: "MOVE",
           payload: {
             id: `${id}`,
-            x: X - 6,
-            y: Y - 6,
+            x: X,
+            y: Y,
           },
         });
         setTransform({ x: 0, y: 0 });
       }}
     >
-      <DragDropSensors />
-      <DragBounds ref={ref} />
-      <div ref={setRef} class="w-full h-full relative" onMouseDown={() => service.send("DESELECT")}>
-        <For each={nodes()} children={NodeComponent} />
+      <div class="w-[calc(100vw-32px)] h-[calc(100vh-64px)] border-2 border-gray-600 overflow-scroll rounded-lg mx-auto relative">
+        <DragDropSensors />
+        <DragBounds />
+        <div
+          ref={setRef}
+          class="w-[350vw] h-[350vh] relative"
+          onMouseDown={() => service.send("DESELECT")}
+        >
+          <EdgesBoard />
+          <For each={nodes()} children={NodeComponent} />
+        </div>
       </div>
 
       <Show when={!id() || !selected(id())}>
