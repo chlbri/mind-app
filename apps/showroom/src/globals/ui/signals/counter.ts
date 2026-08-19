@@ -1,8 +1,7 @@
 import { createSignal } from 'solid-js';
 
 /**
- * Creates a reactive numeric counter store with increment/decrement
- * helpers.
+ * Creates a reactive numeric counter store with increment/decrement helpers.
  *
  * @param intitial - The initial counter value. Defaults to `0`.
  *
@@ -25,12 +24,5 @@ export const createCounter = (intitial = 0) => {
   };
   const decrement = decrementFn();
 
-  return {
-    count,
-    decrement,
-    increment,
-    incrementFn,
-    decrementFn,
-    setCount,
-  };
+  return { count, decrement, increment, incrementFn, decrementFn, setCount };
 };

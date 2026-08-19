@@ -1,6 +1,8 @@
 import type { Component } from 'solid-js';
-import { TypingText } from '~/globals/ui/molecules/TypingText';
+
 import { cn } from '~/globals/ui/cn/utils';
+import { TypingText } from '~/globals/ui/molecules/TypingText';
+
 import { FadingDots } from '../molecules/FadingDots';
 
 /** Properties for the {@linkcode LoadingFallback} component. */
@@ -24,8 +26,8 @@ interface LoadingFallbackProps {
 /**
  * LoadingFallback - Composant de fallback avec spinner et texte animé
  *
- * Affiche un spinner animé accompagné d'un texte avec effet de typing pour
- * améliorer l'expérience utilisateur pendant les chargements.
+ * Affiche un spinner animé accompagné d'un texte avec effet de typing pour améliorer
+ * l'expérience utilisateur pendant les chargements.
  *
  * @example
  *   ```tsx

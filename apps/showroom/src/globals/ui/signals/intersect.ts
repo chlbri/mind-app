@@ -1,13 +1,8 @@
-import {
-  createDeferred,
-  createSignal,
-  onCleanup,
-  onMount,
-} from 'solid-js';
+import { createDeferred, createSignal, onCleanup, onMount } from 'solid-js';
 
 /**
- * Creates an intersection observer signal that detects when a DOM element
- * enters the viewport.
+ * Creates an intersection observer signal that detects when a DOM element enters the
+ * viewport.
  *
  * @example
  *   ```tsx
@@ -20,11 +15,11 @@ import {
  *   );
  *   ```;
  *
- * @param options - Configuration options for the `IntersectionObserver`.
- *   Defaults to `{ threshold: 0.1 }`.
+ * @param options - Configuration options for the `IntersectionObserver`. Defaults to
+ *   `{ threshold: 0.1 }`.
  *
- * @returns A tuple containing the deferred boolean visibility signal and
- *   the ref setter callback.
+ * @returns A tuple containing the deferred boolean visibility signal and the ref
+ *   setter callback.
  */
 export const createIntersect = (
   options: IntersectionObserverInit = { threshold: 0.1 },

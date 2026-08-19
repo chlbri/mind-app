@@ -1,17 +1,15 @@
-import {
-  useDragDropContext,
-  type Transformer,
-} from '@thisbeyond/solid-dnd';
+import { useDragDropContext, type Transformer } from '@thisbeyond/solid-dnd';
 import { type Component } from 'solid-js';
-import { BOUNDS_CONSTRAINTS } from './FlowChart.data';
+
 import { useFlow } from './FlowChart.context';
+import { BOUNDS_CONSTRAINTS } from './FlowChart.data';
 
 /**
- * Drag boundary transformer component that clamps draggable nodes within
- * container scroll bounds.
+ * Drag boundary transformer component that clamps draggable nodes within container
+ * scroll bounds.
  *
- * @returns `null` as this component performs side-effect transformer
- *   registrations only.
+ * @returns `null` as this component performs side-effect transformer registrations
+ *   only.
  */
 export const DragBounds: Component = () => {
   const {
@@ -19,10 +17,8 @@ export const DragBounds: Component = () => {
     zoom: [zoom],
   } = useFlow();
 
-  const [
-    state,
-    { addTransformer, removeTransformer, onDragStart, onDragEnd },
-  ] = useDragDropContext()!;
+  const [state, { addTransformer, removeTransformer, onDragStart, onDragEnd }] =
+    useDragDropContext()!;
 
   const transformer: Transformer = {
     id: 'clamp-to-container',

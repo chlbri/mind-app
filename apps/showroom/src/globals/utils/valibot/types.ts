@@ -13,8 +13,7 @@ export type ObjectS = v.ObjectSchema<
 export type ArrayS = v.ArraySchema<any, any>;
 
 /**
- * Extracts the inner schema if wrapped by optional, nullable, or custom
- * wrappers.
+ * Extracts the inner schema if wrapped by optional, nullable, or custom wrappers.
  *
  * @template T - The schema type to unwrap.
  */
@@ -43,10 +42,7 @@ export type InferSchemaOutput<T> =
  * @template T - Object structure record.
  * @template Prefix - Current property path prefix.
  */
-export type DotPaths<
-  T extends Record<string, any>,
-  Prefix extends string = '',
-> = {
+export type DotPaths<T extends Record<string, any>, Prefix extends string = ''> = {
   [K in keyof T]: K extends string
     ? UnwrapSchema<T[K]> extends v.ObjectSchema<infer Entries, any>
       ? Entries extends Record<string, any>
@@ -57,8 +53,8 @@ export type DotPaths<
 }[keyof T];
 
 /**
- * Decomposes a nested object schema record into a flattened dot-notation
- * schema shape.
+ * Decomposes a nested object schema record into a flattened dot-notation schema
+ * shape.
  *
  * @template T - Object entries map to decompose.
  */

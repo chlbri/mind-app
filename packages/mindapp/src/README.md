@@ -1,7 +1,7 @@
 # Flow Chart UI Library
 
-This is a self-contained UI library for creating interactive flow charts in
-Solid.js applications.
+This is a self-contained UI library for creating interactive flow charts in Solid.js
+applications.
 
 ## Structure
 

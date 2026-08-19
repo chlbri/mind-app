@@ -1,5 +1,6 @@
-import { describe, it, expect } from 'vitest';
 import * as v from 'valibot';
+import { describe, it, expect } from 'vitest';
+
 import { decomposeSchema } from './decomposeSchema';
 
 describe('#01 => decomposeSchema', () => {
@@ -37,10 +38,7 @@ describe('#01 => decomposeSchema', () => {
     it('#01 => should decompose nested object schemas with dot notation', () => {
       const schema = v.object({
         user: v.object({ name: v.string(), email: v.string() }),
-        settings: v.object({
-          theme: v.string(),
-          notifications: v.boolean(),
-        }),
+        settings: v.object({ theme: v.string(), notifications: v.boolean() }),
       });
 
       const result = decomposeSchema(schema);
@@ -58,10 +56,7 @@ describe('#01 => decomposeSchema', () => {
           address: v.object({
             street: v.string(),
             city: v.string(),
-            coordinates: v.object({
-              latitude: v.number(),
-              longitude: v.number(),
-            }),
+            coordinates: v.object({ latitude: v.number(), longitude: v.number() }),
           }),
         }),
       });
@@ -71,12 +66,8 @@ describe('#01 => decomposeSchema', () => {
 
       expect(entries).toHaveProperty('company.address.street');
       expect(entries).toHaveProperty('company.address.city');
-      expect(entries).toHaveProperty(
-        'company.address.coordinates.latitude',
-      );
-      expect(entries).toHaveProperty(
-        'company.address.coordinates.longitude',
-      );
+      expect(entries).toHaveProperty('company.address.coordinates.latitude');
+      expect(entries).toHaveProperty('company.address.coordinates.longitude');
     });
 
     it('#03 => should return all fields at each level of nesting', () => {
@@ -143,9 +134,7 @@ describe('#01 => decomposeSchema', () => {
       const schema = v.object({
         user: v.object({
           name: v.string(),
-          profile: v.optional(
-            v.object({ bio: v.string(), avatar: v.string() }),
-          ),
+          profile: v.optional(v.object({ bio: v.string(), avatar: v.string() })),
         }),
       });
 
@@ -163,10 +152,7 @@ describe('#01 => decomposeSchema', () => {
         metadata: v.object({
           createdAt: v.pipe(v.string(), v.isoTimestamp()),
           updatedAt: v.optional(v.pipe(v.string(), v.isoTimestamp())),
-          tags: v.object({
-            primary: v.string(),
-            secondary: v.optional(v.string()),
-          }),
+          tags: v.object({ primary: v.string(), secondary: v.optional(v.string()) }),
         }),
       });
 
@@ -262,10 +248,7 @@ describe('#01 => decomposeSchema', () => {
         server: v.object({
           host: v.string(),
           port: v.number(),
-          ssl: v.object({
-            enabled: v.boolean(),
-            cert: v.optional(v.string()),
-          }),
+          ssl: v.object({ enabled: v.boolean(), cert: v.optional(v.string()) }),
         }),
         database: v.object({
           url: v.string(),
@@ -303,12 +286,8 @@ describe('#01 => decomposeSchema', () => {
       const result = decomposeSchema(schema);
       const entries = result.entries;
 
-      expect(entries).toHaveProperty(
-        'level1.level2.level3.level4.level5.value',
-      );
-      expect(entries).toHaveProperty(
-        'level1.level2.level3.level4.level5.count',
-      );
+      expect(entries).toHaveProperty('level1.level2.level3.level4.level5.value');
+      expect(entries).toHaveProperty('level1.level2.level3.level4.level5.count');
     });
 
     it('#02 => should validate with empty object on deeply nested schema', () => {
@@ -341,9 +320,7 @@ describe('#01 => decomposeSchema', () => {
       });
 
       const decomposed = decomposeSchema(schema);
-      const partialData = {
-        'app.config.database.connection.host': 'localhost',
-      };
+      const partialData = { 'app.config.database.connection.host': 'localhost' };
 
       const result = v.safeParse(decomposed, partialData);
       expect(result.success).toBe(true);
@@ -369,13 +346,8 @@ describe('#01 => decomposeSchema', () => {
         api: v.object({
           v1: v.object({
             endpoints: v.object({
-              users: v.nullable(
-                v.object({ get: v.string(), post: v.string() }),
-              ),
-              posts: v.object({
-                get: v.string(),
-                delete: v.nullable(v.string()),
-              }),
+              users: v.nullable(v.object({ get: v.string(), post: v.string() })),
+              posts: v.object({ get: v.string(), delete: v.nullable(v.string()) }),
             }),
           }),
         }),
@@ -403,14 +375,8 @@ describe('#01 => decomposeSchema', () => {
           monitoring: v.object({
             alerts: v.object({
               thresholds: v.object({
-                cpu: v.object({
-                  warning: v.number(),
-                  critical: v.number(),
-                }),
-                memory: v.object({
-                  warning: v.number(),
-                  critical: v.number(),
-                }),
+                cpu: v.object({ warning: v.number(), critical: v.number() }),
+                memory: v.object({ warning: v.number(), critical: v.number() }),
               }),
             }),
           }),
@@ -452,10 +418,7 @@ describe('#01 => decomposeSchema', () => {
             modules: v.object({
               auth: v.object({
                 config: v.object({
-                  jwt: v.object({
-                    secret: v.string(),
-                    expiresIn: v.number(),
-                  }),
+                  jwt: v.object({ secret: v.string(), expiresIn: v.number() }),
                 }),
               }),
             }),
@@ -467,18 +430,15 @@ describe('#01 => decomposeSchema', () => {
 
       // Valid data with correct types
       const validResult = v.safeParse(decomposed, {
-        'workspace.project.modules.auth.config.jwt.secret':
-          'my-secret-key',
+        'workspace.project.modules.auth.config.jwt.secret': 'my-secret-key',
         'workspace.project.modules.auth.config.jwt.expiresIn': 3600,
       });
       expect(validResult.success).toBe(true);
 
       // Invalid data with wrong type
       const invalidResult = v.safeParse(decomposed, {
-        'workspace.project.modules.auth.config.jwt.secret':
-          'my-secret-key',
-        'workspace.project.modules.auth.config.jwt.expiresIn':
-          'not-a-number',
+        'workspace.project.modules.auth.config.jwt.secret': 'my-secret-key',
+        'workspace.project.modules.auth.config.jwt.expiresIn': 'not-a-number',
       });
       expect(invalidResult.success).toBe(false);
     });
@@ -492,10 +452,7 @@ describe('#01 => decomposeSchema', () => {
             connection: v.object({
               host: v.string(),
               port: v.number(),
-              credentials: v.object({
-                username: v.string(),
-                password: v.string(),
-              }),
+              credentials: v.object({ username: v.string(), password: v.string() }),
             }),
           }),
         }),
@@ -519,10 +476,7 @@ describe('#01 => decomposeSchema', () => {
       const schema = v.object({
         service: v.object({
           config: v.object({
-            settings: v.object({
-              timeout: v.number(),
-              retries: v.number(),
-            }),
+            settings: v.object({ timeout: v.number(), retries: v.number() }),
           }),
         }),
       });
@@ -578,9 +532,7 @@ describe('#01 => decomposeSchema', () => {
           list: v.object({
             items: v.object({
               user: v.object({
-                contact: v.object({
-                  email: v.pipe(v.string(), v.email()),
-                }),
+                contact: v.object({ email: v.pipe(v.string(), v.email()) }),
               }),
             }),
           }),
@@ -608,9 +560,7 @@ describe('#01 => decomposeSchema', () => {
           teams: v.object({
             engineering: v.object({
               members: v.object({
-                lead: v.object({
-                  name: v.pipe(v.string(), v.minLength(3)),
-                }),
+                lead: v.object({ name: v.pipe(v.string(), v.minLength(3)) }),
               }),
             }),
           }),
@@ -694,10 +644,7 @@ describe('#01 => decomposeSchema', () => {
         'system.monitoring.metrics.cpu.usage': 75.5,
         'system.monitoring.unknownService.data': 'value',
       };
-      const unknownResult = v.safeParse(
-        decomposed,
-        unknownIntermediateData,
-      );
+      const unknownResult = v.safeParse(decomposed, unknownIntermediateData);
       expect(unknownResult.success).toBe(false);
 
       if (!unknownResult.success) {
@@ -712,9 +659,7 @@ describe('#01 => decomposeSchema', () => {
       const schema = v.object({
         workspace: v.object({
           projects: v.object({
-            frontend: v.object({
-              config: v.object({ buildTool: v.string() }),
-            }),
+            frontend: v.object({ config: v.object({ buildTool: v.string() }) }),
           }),
         }),
       });
@@ -779,10 +724,7 @@ describe('#01 => decomposeSchema', () => {
           departments: v.object({
             engineering: v.object({
               teams: v.object({
-                backend: v.object({
-                  lead: v.string(),
-                  members: v.number(),
-                }),
+                backend: v.object({ lead: v.string(), members: v.number() }),
               }),
             }),
           }),
@@ -793,8 +735,7 @@ describe('#01 => decomposeSchema', () => {
 
       // Test with valid data only
       const validOnlyData = {
-        'organization.departments.engineering.teams.backend.lead':
-          'John Doe',
+        'organization.departments.engineering.teams.backend.lead': 'John Doe',
         'organization.departments.engineering.teams.backend.members': 5,
       };
       const validResult = v.safeParse(decomposed, validOnlyData);
@@ -802,8 +743,7 @@ describe('#01 => decomposeSchema', () => {
 
       // Test with unknown key at deepest level
       const withUnknownData = {
-        'organization.departments.engineering.teams.backend.lead':
-          'John Doe',
+        'organization.departments.engineering.teams.backend.lead': 'John Doe',
         'organization.departments.engineering.teams.backend.members': 5,
         'organization.departments.engineering.teams.backend.budget': 100000,
       };
@@ -849,9 +789,7 @@ describe('#01 => decomposeSchema', () => {
 
       if (!unknownResult.success) {
         const issues = v.flatten(unknownResult.issues);
-        expect(issues.nested).toHaveProperty(
-          'config.database.tertiary.host',
-        );
+        expect(issues.nested).toHaveProperty('config.database.tertiary.host');
       }
     });
 
@@ -931,10 +869,7 @@ describe('#01 => decomposeSchema', () => {
               v.object({ category: v.string(), priority: v.number() }),
             ),
             description: v.optional(
-              v.object({
-                short: v.string(),
-                long: v.optional(v.string()),
-              }),
+              v.object({ short: v.string(), long: v.optional(v.string()) }),
             ),
           }),
         }),
@@ -947,8 +882,7 @@ describe('#01 => decomposeSchema', () => {
         'project.metadata.tags.category': 'feature',
         'project.metadata.tags.priority': 1,
         'project.metadata.description.short': 'A project',
-        'project.metadata.description.long':
-          'A longer description of the project',
+        'project.metadata.description.long': 'A longer description of the project',
       };
 
       const result = v.safeParse(decomposed, fullData);

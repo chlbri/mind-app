@@ -1,4 +1,5 @@
 import { createSignal } from 'solid-js';
+
 import { circularDirection } from '../helpers';
 
 /**
@@ -8,7 +9,7 @@ import { circularDirection } from '../helpers';
  * @param index - Initial active index. Defaults to `0`.
  *
  * @returns An object with active index, direction, and step control
- *   methods.
+ * methods.
  */
 export const createCircular = (last: number, index = 0) => {
   const [direction, setDirection] = createSignal<1 | -1>(1);

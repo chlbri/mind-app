@@ -1,4 +1,5 @@
 import { createEffect, onCleanup, type Accessor } from 'solid-js';
+
 import { buildBoolean } from '../helpers';
 
 /** Options for setting up reactive interval execution. */
@@ -10,8 +11,7 @@ type Options = {
 };
 
 /**
- * Creates an interval timer controller with manual `start` and `stop`
- * methods.
+ * Creates an interval timer controller with manual `start` and `stop` methods.
  *
  * @param callback - The recurring function to execute on each interval.
  * @param delay - Interval delay in milliseconds. Defaults to 3000.
@@ -40,8 +40,7 @@ export const createInterval = (callback: () => void, delay = 3000) => {
 };
 
 /**
- * Automatically creates and manages a reactive interval driven by
- * condition signals.
+ * Automatically creates and manages a reactive interval driven by condition signals.
  *
  * @param callback - The recurring function to execute.
  * @param options - Configuration options of type {@linkcode Options}.

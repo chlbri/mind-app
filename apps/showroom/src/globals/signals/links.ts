@@ -2,8 +2,7 @@ import { identity } from '@bemedev/pipe/extensions';
 import { useRouter } from '@tanstack/solid-router';
 
 /**
- * Filter predicate function determining if a route path should be
- * included.
+ * Filter predicate function determining if a route path should be included.
  *
  * @param value - The route path string to test.
  *
@@ -58,8 +57,7 @@ export const formatLabel1 = (to: string) => {
 };
 
 /**
- * Generates an array of sorted navigation link objects from TanStack
- * Router routes.
+ * Generates an array of sorted navigation link objects from TanStack Router routes.
  *
  * @param args - Configuration arguments of type {@linkcode Args}.
  *

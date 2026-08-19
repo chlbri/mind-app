@@ -5,35 +5,26 @@ import {
   DragOverlay,
 } from '@thisbeyond/solid-dnd';
 import { dequal } from 'dequal';
-import {
-  Component,
-  createEffect,
-  createSignal,
-  For,
-  on,
-  onCleanup,
-  Show,
-} from 'solid-js';
+import { Component, createEffect, createSignal, For, on, Show } from 'solid-js';
+
+import { DragBounds } from './Bounds';
 import { EdgesBoard } from './EdgesBoard';
 import { useFlow } from './FlowChart.context';
-import { CANVAS_FACTOR } from './FlowChart.data';
+import { CANVAS_FACTOR, SCROLL_MULTIPLIER } from './FlowChart.data';
 import { NodeComponent } from './NodeComponent';
-import { DragBounds } from './Bounds';
 
 /**
- * Interactive board component containing the drag-drop viewport, zoom
- * controls, panning gestures, and rendered nodes/edges.
+ * Interactive board component containing the drag-drop viewport, zoom controls,
+ * panning gestures, and rendered nodes/edges.
  *
  * @returns The rendered Solid component.
  */
 export const NodesBoard: Component = () => {
-  let containerRef: HTMLDivElement | undefined;
+  let containerRef: HTMLDivElement;
   const [isPanning, setIsPanning] = createSignal(false);
   const [transform, setTransform] = createSignal({ x: 0, y: 0 });
   const [id, setId] = createSignal<string | number>('');
   const [previousZoom, setPreviousZoom] = createSignal<number>();
-  let cleanupPanning = () => {};
-  onCleanup(cleanupPanning);
   let percentX = 0;
   let percentY = 0;
 
@@ -45,10 +36,8 @@ export const NodesBoard: Component = () => {
   } = useFlow();
 
   const updateScrollPercentages = () => {
-    if (!containerRef) return;
     const maxScrollX = containerRef.scrollWidth - containerRef.clientWidth;
-    const maxScrollY =
-      containerRef.scrollHeight - containerRef.clientHeight;
+    const maxScrollY = containerRef.scrollHeight - containerRef.clientHeight;
     percentX = maxScrollX > 0 ? containerRef.scrollLeft / maxScrollX : 0;
     percentY = maxScrollY > 0 ? containerRef.scrollTop / maxScrollY : 0;
   };
@@ -57,22 +46,16 @@ export const NodesBoard: Component = () => {
     on(
       zoom,
       () => {
-        if (!containerRef) return;
-        const maxScrollX =
-          containerRef.scrollWidth - containerRef.clientWidth;
-        const maxScrollY =
-          containerRef.scrollHeight - containerRef.clientHeight;
-        if (maxScrollX > 0)
-          containerRef.scrollLeft = percentX * maxScrollX;
+        const maxScrollX = containerRef.scrollWidth - containerRef.clientWidth;
+        const maxScrollY = containerRef.scrollHeight - containerRef.clientHeight;
+        if (maxScrollX > 0) containerRef.scrollLeft = percentX * maxScrollX;
         if (maxScrollY > 0) containerRef.scrollTop = percentY * maxScrollY;
       },
       { defer: true },
     ),
   );
 
-  const selectedId = useState(service, {
-    selector: s => s.context?.selected,
-  });
+  const selectedId = useState(service, { selector: s => s.context?.selected });
 
   const selected = (id: string | number) => selectedId() === id;
 
@@ -91,7 +74,11 @@ export const NodesBoard: Component = () => {
     equals: dequal,
   });
 
-  const cDim = () => CANVAS_FACTOR * 100 * zoom();
+  const CANVAS_SIZE = CANVAS_FACTOR * 100;
+  const MARGIN_X = 53 * CANVAS_FACTOR;
+  const MARGIN_Y = 85 * CANVAS_FACTOR;
+  const cWidth = () => `calc((${CANVAS_SIZE}vw - ${MARGIN_X}px) * ${zoom()})`;
+  const cHeight = () => `calc((${CANVAS_SIZE}vh - ${MARGIN_Y}px) * ${zoom()})`;
 
   return (
     <div
@@ -109,26 +96,20 @@ export const NodesBoard: Component = () => {
       class='relative mx-auto h-[calc(100vh-64px)] w-[calc(100vw-32px)] overflow-hidden'
     >
       <DragDropProvider
-        onDragMove={({
-          draggable: { transform: _transform, node, id },
-        }) => {
+        onDragMove={({ draggable: { transform: _transform, node, id } }) => {
           setId(id);
           if (selected(id)) {
             const grandParent = node.parentElement?.parentElement;
             const currentZoom = zoom();
             const minX = 0;
             const maxX = grandParent
-              ? Math.max(
-                  0,
-                  grandParent.clientWidth / currentZoom - node.offsetWidth,
-                )
+              ? Math.max(0, grandParent.clientWidth / currentZoom - node.offsetWidth)
               : Infinity;
             const minY = 0;
             const maxY = grandParent
               ? Math.max(
                   0,
-                  grandParent.clientHeight / currentZoom -
-                    node.offsetHeight,
+                  grandParent.clientHeight / currentZoom - node.offsetHeight,
                 )
               : Infinity;
 
@@ -147,14 +128,8 @@ export const NodesBoard: Component = () => {
               `translate3d(${deltaX}px, ${deltaY}px, 0)`,
             );
 
-            service.send({
-              type: 'MOVE_IMMEDIATE',
-              payload: { id: `${id}`, x, y },
-            });
-            setTransform({
-              x: deltaX * currentZoom,
-              y: deltaY * currentZoom,
-            });
+            service.send({ type: 'MOVE_IMMEDIATE', payload: { id: `${id}`, x, y } });
+            setTransform({ x: deltaX * currentZoom, y: deltaY * currentZoom });
           }
         }}
 
@@ -165,17 +140,11 @@ export const NodesBoard: Component = () => {
           const currentZoom = zoom();
           const minX = 0;
           const maxX = grandParent
-            ? Math.max(
-                0,
-                grandParent.clientWidth / currentZoom - node.offsetWidth,
-              )
+            ? Math.max(0, grandParent.clientWidth / currentZoom - node.offsetWidth)
             : Infinity;
           const minY = 0;
           const maxY = grandParent
-            ? Math.max(
-                0,
-                grandParent.clientHeight / currentZoom - node.offsetHeight,
-              )
+            ? Math.max(0, grandParent.clientHeight / currentZoom - node.offsetHeight)
             : Infinity;
 
           const rawX = node.offsetLeft + transform().x / currentZoom;
@@ -188,10 +157,7 @@ export const NodesBoard: Component = () => {
           node.style.removeProperty('transform');
 
           setTimeout(() => {
-            service.send({
-              type: 'MOVE',
-              payload: { id: `${id}`, x: X, y: Y },
-            });
+            service.send({ type: 'MOVE', payload: { id: `${id}`, x: X, y: Y } });
             setTransform({ x: 0, y: 0 });
           }, 0);
         }}
@@ -206,16 +172,12 @@ export const NodesBoard: Component = () => {
           <DragDropSensors />
           <div
             ref={setRef}
-            class='relative cursor-crosshair overflow-hidden border-3 border-red-700'
+            class='relative cursor-crosshair overflow-hidden'
             classList={{ 'cursor-grabbing': isPanning() }}
-            style={{
-              height: `calc(${cDim()}vh - 85px)`,
-              width: `calc(${cDim()}vw - 53px)`,
-            }}
+            style={{ height: cHeight(), width: cWidth() }}
+
             onMouseDown={e => {
               if (newEdge() || e.button !== 0) return;
-              if (!containerRef) return;
-
               service.send('DESELECT');
 
               // #region Props
@@ -228,11 +190,10 @@ export const NodesBoard: Component = () => {
               setIsPanning(true);
 
               const handleMouseMove = (moveEvent: MouseEvent) => {
-                if (!containerRef) return;
                 const dx = moveEvent.clientX - startX;
                 const dy = moveEvent.clientY - startY;
-                containerRef.scrollLeft = startScrollLeft - dx * 3;
-                containerRef.scrollTop = startScrollTop - dy * 3;
+                containerRef.scrollLeft = startScrollLeft - dx * SCROLL_MULTIPLIER;
+                containerRef.scrollTop = startScrollTop - dy * SCROLL_MULTIPLIER;
                 updateScrollPercentages();
               };
 
@@ -240,11 +201,9 @@ export const NodesBoard: Component = () => {
                 window.removeEventListener('mousemove', handleMouseMove);
                 window.removeEventListener('mouseup', handleMouseUp);
                 setTimeout(() => setIsPanning(false), 200);
-                (cleanupPanning as any) = undefined;
               };
 
               // #region Attach Windows listeners
-              cleanupPanning = handleMouseUp;
               window.addEventListener('mousemove', handleMouseMove);
               window.addEventListener('mouseup', handleMouseUp);
               // #endregion
@@ -270,10 +229,7 @@ export const NodesBoard: Component = () => {
               updateScrollPercentages();
               setPreviousZoom(undefined);
               setZoom(prev =>
-                Math.max(
-                  1 / CANVAS_FACTOR,
-                  Number((prev - 0.1).toFixed(2)),
-                ),
+                Math.max(1 / CANVAS_FACTOR, Number((prev - 0.1).toFixed(2))),
               );
             }}
             title='Zoom out'

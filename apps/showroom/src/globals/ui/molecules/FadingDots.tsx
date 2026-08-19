@@ -1,16 +1,16 @@
 import { splitProps, type Component, JSX } from 'solid-js';
-import type { OmitPropsOf } from '../types';
+
 import { cn } from '../cn/utils';
+import type { OmitPropsOf } from '../types';
 
 /**
  * Loading animation component displaying animated pulsing dots.
  *
  * @param props - Fading dots configuration properties.
  * @param props.count - The number of dots to display.
- * @param props.duration - Animation duration in milliseconds. Defaults to
- *   500.
- * @param props.innerProps - Additional properties and CSS styles applied
- *   to dot elements.
+ * @param props.duration - Animation duration in milliseconds. Defaults to 500.
+ * @param props.innerProps - Additional properties and CSS styles applied to dot
+ *   elements.
  *
  * @returns Rendered animated dots container JSX element.
  */

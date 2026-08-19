@@ -1,4 +1,3 @@
-import { cn } from '~/globals/ui/cn/utils';
 import type {
   AccordionContentProps,
   AccordionItemProps,
@@ -6,17 +5,15 @@ import type {
 } from '@kobalte/core/accordion';
 import { Accordion as AccordionPrimitive } from '@kobalte/core/accordion';
 import type { PolymorphicProps } from '@kobalte/core/polymorphic';
-import {
-  type ParentProps,
-  type ValidComponent,
-  splitProps,
-} from 'solid-js';
+import { type ParentProps, type ValidComponent, splitProps } from 'solid-js';
+
+import { cn } from '~/globals/ui/cn/utils';
 
 /**
  * Root Accordion component providing collapsible panels.
  *
- * @template | {@linkcode ValidComponent} `T` - Underlying DOM element tag
- *   or component. Defaults to `'div'`.
+ * @template | {@linkcode ValidComponent} `T` - Underlying DOM element tag or
+ *   component. Defaults to `'div'`.
  *
  * @param props - Accordion primitive properties.
  *
@@ -30,14 +27,15 @@ export function Accordion<T extends ValidComponent = 'div'>(
 
 // #region Item
 /** Props for the {@linkcode AccordionItem} component. */
-type accordionItemProps<T extends ValidComponent = 'div'> =
-  AccordionItemProps<T> & { class?: string };
+type accordionItemProps<T extends ValidComponent = 'div'> = AccordionItemProps<T> & {
+  class?: string;
+};
 
 /**
  * Individual collapsible item within an Accordion container.
  *
- * @template | {@linkcode ValidComponent} `T` - Underlying DOM element tag
- *   or component. Defaults to `'div'`.
+ * @template | {@linkcode ValidComponent} `T` - Underlying DOM element tag or
+ *   component. Defaults to `'div'`.
  *
  * @param props - Polymorphic accordion item props of type
  *   {@linkcode accordionItemProps}.
@@ -49,26 +47,21 @@ const AccordionItem = <T extends ValidComponent = 'div'>(
 ) => {
   const [local, rest] = splitProps(props as accordionItemProps, ['class']);
 
-  return (
-    <AccordionPrimitive.Item
-      class={cn('border-b', local.class)}
-      {...rest}
-    />
-  );
+  return <AccordionPrimitive.Item class={cn('border-b', local.class)} {...rest} />;
 };
 // #endregion
 
 // #region Trigger
 /** Props for the {@linkcode AccordionTrigger} component. */
-type accordionTriggerProps<T extends ValidComponent = 'button'> =
-  ParentProps<AccordionTriggerProps<T> & { class?: string }>;
+type accordionTriggerProps<T extends ValidComponent = 'button'> = ParentProps<
+  AccordionTriggerProps<T> & { class?: string }
+>;
 
 /**
- * Interactive header button toggling the expanded state of an
- * AccordionItem.
+ * Interactive header button toggling the expanded state of an AccordionItem.
  *
- * @template | {@linkcode ValidComponent} `T` - Underlying DOM element tag
- *   or component. Defaults to `'button'`.
+ * @template | {@linkcode ValidComponent} `T` - Underlying DOM element tag or
+ *   component. Defaults to `'button'`.
  *
  * @param props - Polymorphic trigger props of type
  *   {@linkcode accordionTriggerProps}.
@@ -121,11 +114,10 @@ type accordionContentProps<T extends ValidComponent = 'div'> = ParentProps<
 >;
 
 /**
- * Collapsible content section revealed when the corresponding trigger is
- * active.
+ * Collapsible content section revealed when the corresponding trigger is active.
  *
- * @template | {@linkcode ValidComponent} `T` - Underlying DOM element tag
- *   or component. Defaults to `'div'`.
+ * @template | {@linkcode ValidComponent} `T` - Underlying DOM element tag or
+ *   component. Defaults to `'div'`.
  *
  * @param props - Polymorphic content props of type
  *   {@linkcode accordionContentProps}.

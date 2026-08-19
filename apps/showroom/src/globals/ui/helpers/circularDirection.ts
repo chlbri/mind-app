@@ -1,6 +1,6 @@
 /**
- * Determines the slide direction for animation. - 1 = slide to the right
- * (new tab to the right) - -1 = slide to the left (new tab to the left)
+ * Determines the slide direction for animation. - 1 = slide to the right (new tab to
+ * the right) - -1 = slide to the left (new tab to the left)
  *
  * Special case for circular navigation between the first and last tab.
  *

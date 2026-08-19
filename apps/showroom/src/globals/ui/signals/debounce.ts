@@ -1,8 +1,8 @@
 import { createSignal, type Accessor, type Setter } from 'solid-js';
 
 /**
- * Creates a debounced function that delays invoking `action` until after
- * `ms` milliseconds have elapsed since the last call.
+ * Creates a debounced function that delays invoking `action` until after `ms`
+ * milliseconds have elapsed since the last call.
  *
  * @template T - Argument type passed to the debounced action.
  *
@@ -39,8 +39,7 @@ type Options<T> = {
  * @template T - Type of the stored signal state.
  *
  * @param start - Initial signal state value.
- * @param options - Configuration options including the mandatory `end`
- *   state.
+ * @param options - Configuration options including the mandatory `end` state.
  *
  * @returns A tuple of `[Accessor<T>, { (): void; cancel: () => void }]`.
  */

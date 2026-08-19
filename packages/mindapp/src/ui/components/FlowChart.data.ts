@@ -1,9 +1,6 @@
 import type { NodeProps } from './FlowChart';
 
-/**
- * Horizontal gap in pixels between a parent node and newly created child
- * node.
- */
+/** Horizontal gap in pixels between a parent node and newly created child node. */
 export const PARENT_CHILD_GAP_WIDTH = 100;
 
 // #region Node & Handle Layout Constants & Formulas
@@ -41,10 +38,7 @@ export const DEFAULT_INPUT_OFFSET = {
   y: DEFAULT_INPUT_OFFSET_Y,
 };
 
-/**
- * Dimensions representing width and height of the flow chart container
- * canvas.
- */
+/** Dimensions representing width and height of the flow chart container canvas. */
 export const CONTAINER_DIMENSIONS = { WIDTH: 5000, HEIGHT: 3500 };
 
 /**
@@ -66,13 +60,16 @@ export const TOOLBAR_TOP_OFFSET = 30;
 export const TOOLBAR_BUFFER = 5;
 
 /**
- * Boundary padding constraints for node dragging and positioning within
- * the viewport.
+ * Boundary padding constraints for node dragging and positioning within the
+ * viewport.
  */
-export const BOUNDS_CONSTRAINTS = { horizontal: 70, vertical: 50 };
+export const BOUNDS_CONSTRAINTS = { horizontal: 55, vertical: 40 };
 
 /** Multiplier factor used to compute canvas virtual scroll dimensions. */
 export const CANVAS_FACTOR = 5;
+
+/** Multiplier factor used to compute canvas scroll dimensions. */
+export const SCROLL_MULTIPLIER = 3;
 // #endregion
 
 /** Default node items provided when no initial configuration is given. */

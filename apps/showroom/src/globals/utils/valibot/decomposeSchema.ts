@@ -1,10 +1,11 @@
 import * as v from 'valibot';
+
 import type { DecomposedOutput, ObjectS } from './types';
 
 /**
  * Decomposes a Valibot object schema into a flattened object schema with
- * dot-notation keys. Only decomposes {@linkcode ObjectS} schemas; other
- * schema types are preserved as values.
+ * dot-notation keys. Only decomposes {@linkcode ObjectS} schemas; other schema types
+ * are preserved as values.
  *
  * @example
  *   ```typescript
@@ -20,19 +21,15 @@ import type { DecomposedOutput, ObjectS } from './types';
  *   // Type: v.StrictObjectSchema<DecomposedObjectEntries<typeof schema.entries>, undefined>
  *   ```;
  *
- * @template | {@linkcode ObjectS} `T` - Valibot object schema type to
- *   decompose.
+ * @template | {@linkcode ObjectS} `T` - Valibot object schema type to decompose.
  *
  * @param schema - The Valibot object schema to flatten.
  *
- * @returns A strict object schema with strongly typed dot-notation keys
- *   and optional values.
+ * @returns A strict object schema with strongly typed dot-notation keys and optional
+ *   values.
  */
 export const decomposeSchema = <const T extends ObjectS>(schema: T) => {
-  const result: Record<
-    string,
-    v.BaseSchema<any, any, v.BaseIssue<any>>
-  > = {};
+  const result: Record<string, v.BaseSchema<any, any, v.BaseIssue<any>>> = {};
 
   // Vérifier si c'est un ObjectSchema
   if ('entries' in schema && typeof schema.entries === 'object') {

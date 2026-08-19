@@ -17,8 +17,7 @@ export const espace = (newText: string) => {
 /**
  * Generates a repeated sequence of non-breakable space characters.
  *
- * @param count - The number of non-breakable spaces to repeat. Defaults to
- *   1.
+ * @param count - The number of non-breakable spaces to repeat. Defaults to 1.
  *
  * @returns The non-breakable space string sequence.
  */

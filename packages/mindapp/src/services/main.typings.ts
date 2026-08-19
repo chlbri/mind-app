@@ -36,8 +36,8 @@ export const dimensions = type(({ optional, use }) => ({
 }));
 
 /**
- * Schema definition for a 2D line vector representing edge coordinates
- * `(x0, y0)` to `(x1, y1)`.
+ * Schema definition for a 2D line vector representing edge coordinates `(x0, y0)` to
+ * `(x1, y1)`.
  */
 export const vector = type({
   x0: 'number',

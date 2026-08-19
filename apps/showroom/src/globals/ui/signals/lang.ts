@@ -1,4 +1,5 @@
 import { createSignal } from 'solid-js';
+
 import { createDebounce } from './debounce';
 
 /** LocalStorage key for persisting the selected application language. */
@@ -11,8 +12,8 @@ export const LANGS = ['fr', 'en', 'es'] as const;
 export type Lang = (typeof LANGS)[number];
 
 /**
- * Creates the reactive language state synchronized with localStorage and
- * browser preferences.
+ * Creates the reactive language state synchronized with localStorage and browser
+ * preferences.
  *
  * @returns A tuple of `[langAccessor, debouncedSetLang]`.
  */

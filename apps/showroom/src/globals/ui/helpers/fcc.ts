@@ -1,8 +1,8 @@
 import Color from 'color';
 
 /**
- * Computes an accessible foreground color ('white' or 'black') contrasting
- * against a given background color.
+ * Computes an accessible foreground color ('white' or 'black') contrasting against a
+ * given background color.
  *
  * @param color - The background color string (hex, rgb, named).
  *

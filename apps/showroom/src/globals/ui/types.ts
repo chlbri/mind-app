@@ -1,9 +1,4 @@
-import type {
-  Component,
-  ComponentProps,
-  JSX,
-  ValidComponent,
-} from 'solid-js';
+import type { Component, ComponentProps, JSX, ValidComponent } from 'solid-js';
 
 /**
  * Extracts a subset of component props from a valid component.

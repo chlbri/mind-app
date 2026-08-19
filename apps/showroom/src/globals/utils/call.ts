@@ -2,8 +2,7 @@ import type { Accessor } from 'solid-js';
 
 // #region SubType
 /**
- * Utility type mapping matching keys whose property types satisfy a
- * condition.
+ * Utility type mapping matching keys whose property types satisfy a condition.
  *
  * @template Base - Target base object type.
  * @template Condition - Required condition type.
@@ -13,29 +12,23 @@ type FilterFlags<Base, Condition> = {
 };
 
 /**
- * Extracts allowed property names of a base type matching a specific
- * condition.
+ * Extracts allowed property names of a base type matching a specific condition.
  *
  * @template Base - Target base object type.
  * @template Condition - Required condition type.
  */
-type AllowedNames<Base, Condition> = FilterFlags<
-  Base,
-  Condition
->[keyof Base];
+type AllowedNames<Base, Condition> = FilterFlags<Base, Condition>[keyof Base];
 
 // #endregion
 
 /**
- * Extracts the inner unwrapped value type from a Solid {@linkcode Accessor}
- * or plain value.
+ * Extracts the inner unwrapped value type from a Solid {@linkcode Accessor} or plain
+ * value.
  *
  * @template T - The target type or accessor type.
  */
 type Getter<T> =
-  NonNullable<T> extends Accessor<infer U>
-    ? NonNullable<U>
-    : NonNullable<T>;
+  NonNullable<T> extends Accessor<infer U> ? NonNullable<U> : NonNullable<T>;
 
 /**
  * Safely calls a method on an object or reactive getter if it is defined.

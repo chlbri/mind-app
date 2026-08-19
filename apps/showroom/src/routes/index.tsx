@@ -1,4 +1,5 @@
 import { createFileRoute } from '@tanstack/solid-router';
+
 import AccordionQA from '~/globals/ui/molecules/AccordionQA';
 
 /** Home page route rendering the About Me section and Q&A accordion. */
@@ -16,8 +17,7 @@ export const Route = createFileRoute('/')({
               },
               {
                 question: "What's about my bio ?",
-                answer:
-                  'I am a software engineer and I like pineapple on pizza.',
+                answer: 'I am a software engineer and I like pineapple on pizza.',
               },
             ]}
           />

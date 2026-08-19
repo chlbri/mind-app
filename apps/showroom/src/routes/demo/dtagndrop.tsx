@@ -58,14 +58,8 @@ export const Route = createFileRoute('/demo/dtagndrop')({
         }}
         onDragEnd={({ draggable }) => {
           const node = draggable.node;
-          node.style.setProperty(
-            'top',
-            node.offsetTop + transform.y + 'px',
-          );
-          node.style.setProperty(
-            'left',
-            node.offsetLeft + transform.x + 'px',
-          );
+          node.style.setProperty('top', node.offsetTop + transform.y + 'px');
+          node.style.setProperty('left', node.offsetLeft + transform.x + 'px');
         }}
       >
         <DragDropSensors />

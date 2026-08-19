@@ -1,5 +1,6 @@
 import { Link as _Link } from '@tanstack/solid-router';
 import { For, type Component } from 'solid-js';
+
 import {
   createLinks,
   formatLabel1 as formatLabel,
@@ -15,11 +16,7 @@ type LinkProps = Omit<
   PropsOf<typeof _Link, 'children'>;
 
 /** Individual navigation header router link item component. */
-const Link: Component<LinkProps> = ({
-  children,
-  to,
-  search = () => undefined,
-}) => {
+const Link: Component<LinkProps> = ({ children, to, search = () => undefined }) => {
   return (
     <_Link
       to={to}
@@ -36,10 +33,7 @@ const Link: Component<LinkProps> = ({
   );
 };
 
-/**
- * Top navigation header component rendering links across registered router
- * routes.
- */
+/** Top navigation header component rendering links across registered router routes. */
 const HeadLinks: Component = () => {
   const LINKS = createLinks({
     filter: value => value === '/projects' || !value.includes('projects'),
