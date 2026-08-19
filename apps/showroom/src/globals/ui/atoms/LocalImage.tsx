@@ -11,34 +11,35 @@ import { useRessource } from '../signals';
 import type { OmitPropsOf } from '../types';
 
 /**
- * Cache global en mémoire pour les images en base64 Persiste pendant toute
- * la durée de vie de la session
+ * Props for the type-safe {@linkcode LocalImage} component.
+ *
+ * @template | `string` `T` - Valid image asset source URL string type.
  */
-
 type ImageProps<T extends string = string> = OmitPropsOf<
   'img',
   'src' | 'alt' | 'onload' | 'on:load' | 'onLoad'
 > & {
-  /** Source de l'image - doit être un chemin d'asset valide */
+  /** Source URL of the image asset. */
   src: T;
 
-  /** Texte alternatif pour l'image Required for accessibility compliance */
+  /** Alternative text description required for accessibility compliance. */
   alt: string;
 
-  /** Composant ou élément à afficher pendant le chargement */
+  /** Custom fallback component rendered while the image is loading. */
   fallback?: Component;
 
-  /** Composant ou élément à afficher en cas d'erreur */
+  /** Custom fallback component rendered if image loading fails. */
   errorFallback?: Component;
 
   /**
-   * Désactiver le cache
+   * Disables in-memory base64 caching when set to `true`.
    *
    * @default false
    */
   disableCache?: boolean;
 };
 
+/** Internal cached image rendering component. */
 const _LocalImage: Component<Omit<ImageProps, 'disableCache'>> = props => {
   const [local, rest] = splitProps(props, [
     'src',
@@ -172,7 +173,7 @@ const _LocalImage: Component<Omit<ImageProps, 'disableCache'>> = props => {
  *     fallback={() => <div class="animate-pulse bg-gray-200 w-full h-96" />}
  *     errorFallback={() => <div class="text-red-500">Erreur de chargement</div>}
  *   />
- *   ```
+ *   ```;
  */
 export function LocalImage<T extends string = string>(
   props: ImageProps<T>,

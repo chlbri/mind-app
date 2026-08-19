@@ -6,56 +6,67 @@ import {
 } from 'solid-js';
 
 /**
- * États possibles pour une ressource
+ * Lifecycle states for an asynchronously fetched or loaded resource.
  *
- * - `idle` : État initial, ressource non chargée
- * - `loading` : Ressource en cours de téléchargement
- * - `loaded` : Ressource chargée avec succès
- * - `errored` : Erreur lors du téléchargement
+ * - `idle`: Initial state before request has started.
+ * - `loading`: Resource is currently downloading/fetching.
+ * - `loaded`: Resource downloaded and cached successfully.
+ * - `errored`: An error occurred during download/fetch.
  */
 export type ResourceState = 'idle' | 'loading' | 'loaded' | 'errored';
 
-/** Information d'état pour une ressource spécifique */
+/**
+ * Status descriptor for a specific tracked resource.
+ *
+ * @template T - Type of the underlying resource payload.
+ */
 export interface ResourceStatus<T = unknown> {
+  /** Current lifecycle state of type {@linkcode ResourceState}. */
   state: ResourceState;
+  /** Optional resource payload data. */
   data?: T;
+  /** Optional error encountered during fetch of type {@linkcode Error}. */
   error?: Error;
 }
 
 /**
- * Fonction de téléchargement d'une ressource Doit retourner les données
- * téléchargées
+ * Async downloader function returning the fetched resource data.
+ *
+ * @template T - Type of the underlying resource payload.
  */
 export type ResourceDownloader<T = unknown> = () => Promise<T>;
 
-/** Callback appelée quand l'état de la ressource change */
+/**
+ * Subscriber callback invoked on resource state transitions.
+ *
+ * @template T - Type of the underlying resource payload.
+ *
+ * @param status - Current status of type {@linkcode ResourceStatus}.
+ */
 export type ResourceSubscriber<T = unknown> = (
   status: ResourceStatus<T>,
 ) => void;
 
 /**
- * Represents a single file resource entry
+ * Represents a cached file resource entry.
  *
- * - `key` : Unique identifier for the resource
- * - `data` : The resource content (can be any type: string, blob, object,
- *   etc.)
- * - `timestamp` : When the resource was added to the cache
+ * @template T - Type of the cached resource data.
  */
 export interface FileResource<T = unknown> {
+  /** Unique identifier for the resource. */
   key: string;
+  /** The resource content payload. */
   data: T;
+  /** Timestamp in milliseconds when the resource was cached. */
   timestamp: number;
 }
 
 /**
- * Context value for managing file resources
- *
- * Provides methods to: - Store and retrieve resources - Check resource
- * existence - Clear individual or all resources - Get all resources or by
- * key pattern
+ * Context value interface for managing global resource caching and
+ * subscriptions.
  */
 export interface ResourceContextValue {
-  /** Internal Map storing all resources by key */
+  /** Internal Map storing all resources by key. */
   resources: Map<string, unknown>;
 
   subscribe: (
@@ -71,7 +82,7 @@ export interface ResourceContextValue {
    *   ```tsx
    *   const { getState } = useResource();
    *   const state = getState('image-logo'); // 'loaded'
-   *   ```
+   *   ```;
    *
    * @param key - Resource identifier
    *
@@ -107,7 +118,7 @@ export const ResourceContext = createContext<
  *       </ResourceProvider>
  *     );
  *   };
- *   ```
+ *   ```;
  *
  * @returns An object containing:
  *
@@ -245,34 +256,34 @@ export const createResourceContext = () => {
  *
  * @example
  *   ```tsx
- *   import { useResource } from '~/globals/ui/signals/ressource';
- *   import { createEffect } from 'solid-js';
+ *       import { useResource } from '~/globals/ui/signals/ressource';
+ *       import { createEffect } from 'solid-js';
  *
- *   const MyComponent = () => {
- *     const { set, get, has, size } = useResource();
+ *       const MyComponent = () => {
+ *         const { set, get, has, size } = useResource();
  *
- *     createEffect(() => {
- *       console.log(`Total resources: ${size()}`);
- *     });
+ *         createEffect(() => {
+ *           console.log(`Total resources: ${size()}`);
+ *         });
  *
- *     const handleCache = () => {
- *       set('my-resource', { id: 1, name: 'Test' });
- *     };
+ *         const handleCache = () => {
+ *           set('my-resource', { id: 1, name: 'Test' });
+ *         };
  *
- *     const handleRetrieve = () => {
- *       const data = get('my-resource');
- *       console.log(data);
- *     };
+ *         const handleRetrieve = () => {
+ *           const data = get('my-resource');
+ *           console.log(data);
+ *         };
  *
- *     return (
- *       <div>
- *         <button onClick={handleCache}>Cache Resource</button>
- *         <button onClick={handleRetrieve}>Get Resource</button>
- *         <p>Cached items: {size()}</p>
- *       </div>
- *     );
- *   };
- *   ```
+ *         return (
+ *           <div>
+ *             <button onClick={handleCache}>Cache Resource</button>
+ *             <button onClick={handleRetrieve}>Get Resource</button>
+ *             <p>Cached items: {size()}</p>
+ *           </div>
+ *         );
+ *       };
+ *       ```
  *
  * @returns The resource context value with all methods and accessors
  *

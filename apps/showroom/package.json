@@ -22,7 +22,7 @@
     "preview": "pnpm run pretest && pnpm run start",
     "start": "vite start",
     "test": "pnpm run test:coverage --no-coverage",
-    "test:only": "pnpm run test",
+    "test:only": "pnpm run test:coverage --no-coverage",
     "test:coverage": "vitest run",
     "test:watch": "vitest",
     "upgrade": "pnpm up --latest"

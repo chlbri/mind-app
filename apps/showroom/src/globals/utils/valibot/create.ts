@@ -1,6 +1,19 @@
 import * as v from 'valibot';
 import type { Options } from './types';
 
+/**
+ * Creates a synchronous validator function wrapping a Valibot schema.
+ *
+ * @template | {@linkcode v.BaseSchema} `T` - Valibot schema type.
+ * @template | {@linkcode Options} `Ty` - Validation mode (`'typed'`,
+ *   `'strict'`, or `'low'`).
+ *
+ * @param schema - The Valibot schema instance to validate against.
+ * @param typed - Validation strictness mode. Defaults to `'typed'`.
+ *
+ * @returns A validator function returning the parsed output or safe parse
+ *   result.
+ */
 export const create = <
   const T extends v.BaseSchema<unknown, unknown, v.BaseIssue<unknown>>,
   Ty extends Options = 'typed',

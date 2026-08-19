@@ -6,6 +6,7 @@ import {
 } from '~/globals/ui/signals/links';
 import type { PropsOf } from '~/globals/ui/types';
 
+/** Props for individual navigation item {@linkcode Link}. */
 type LinkProps = Omit<
   ReturnType<typeof createLinks>[number],
   'children' | 'search'
@@ -13,6 +14,7 @@ type LinkProps = Omit<
   Partial<Pick<ReturnType<typeof createLinks>[number], 'search'>> &
   PropsOf<typeof _Link, 'children'>;
 
+/** Individual navigation header router link item component. */
 const Link: Component<LinkProps> = ({
   children,
   to,
@@ -34,6 +36,10 @@ const Link: Component<LinkProps> = ({
   );
 };
 
+/**
+ * Top navigation header component rendering links across registered router
+ * routes.
+ */
 const HeadLinks: Component = () => {
   const LINKS = createLinks({
     filter: value => value === '/projects' || !value.includes('projects'),

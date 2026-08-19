@@ -1,6 +1,12 @@
 import { createRouter as createTanStackRouter } from '@tanstack/solid-router';
 import { routeTree } from './routeTree.gen';
 
+/**
+ * Instantiates and configures the TanStack router instance for the
+ * application.
+ *
+ * @returns Configured TanStack Router instance.
+ */
 export function getRouter() {
   const router = createTanStackRouter({
     routeTree,

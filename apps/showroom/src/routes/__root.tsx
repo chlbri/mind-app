@@ -11,6 +11,10 @@ import seo from '~/globals/ui/helpers/seo';
 import appCss from '../../tailwind.css?url';
 import HeadLinks from '~ui/organisms/HeadLinks';
 
+/**
+ * Root route component defining global layout, HTML shell, and metadata
+ * headers.
+ */
 export const Route = createRootRoute({
   head: () => ({
     links: [{ rel: 'stylesheet', href: appCss }],

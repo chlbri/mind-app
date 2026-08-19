@@ -1,3 +1,10 @@
+/**
+ * Converts an HTML Image element into a base64 encoded PNG data URL.
+ *
+ * @param img - The HTML image element to render and encode.
+ *
+ * @returns Base64 data URL string, or `null` if conversion fails.
+ */
 export const convertToBase64 = (img: HTMLImageElement): string | null => {
   const canvas = document.createElement('canvas');
 

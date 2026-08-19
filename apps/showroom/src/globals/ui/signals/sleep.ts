@@ -1,13 +1,19 @@
 import { createSignal, onCleanup } from 'solid-js';
 
+/** Timer execution state lifecycle statuses. */
 type Status = 'idle' | 'paused' | 'started' | 'stopped';
 
 /**
- * Hook pour gérer un délai (sleep) avec contrôle avancé
+ * Solid hook to manage a sleep timer with pause, resume, restart, and skip
+ * controls.
  *
- * @param delay - Délai en millisecondes avant de passer à true
+ * @param delay - Delay in milliseconds before triggering completion.
+ *   Defaults to 1000.
+ * @param autoStart - Whether the timer starts immediately on
+ *   initialization. Defaults to `true`.
  *
- * @returns Un objet contenant l'état et les fonctions de contrôle
+ * @returns An object containing reactive state accessors and control
+ *   methods.
  */
 export const createSleep = (delay: number = 1000, autoStart = true) => {
   const [timed, setIsTimed] = createSignal(false);

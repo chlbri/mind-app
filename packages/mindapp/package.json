@@ -77,7 +77,7 @@
     "rm:lib": "pnpx rimraf -- lib",
     "size": "size-limit",
     "test": "pnpm run test:coverage --no-coverage",
-    "test:only": "pnpm run test",
+    "test:only": "pnpm run test:coverage --no-coverage",
     "test:coverage": "vitest run --passWithNoTests",
     "test:watch": "vitest"
   },

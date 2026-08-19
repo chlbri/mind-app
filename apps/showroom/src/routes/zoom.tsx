@@ -1,8 +1,13 @@
 import { createFileRoute } from '@tanstack/solid-router';
 import { createSignal } from 'solid-js';
 
+/**
+ * Zoom demonstration route testing canvas layout stability under dynamic
+ * scaling.
+ */
 export const Route = createFileRoute('/zoom')({ component: ZoomDemo });
 
+/** Interactive zoom preview component with a scale slider control. */
 function ZoomDemo() {
   const [zoom, setZoom] = createSignal(1);
 

@@ -2,13 +2,27 @@ import { createSignal, onCleanup } from 'solid-js';
 import { VISIBLE_ESPACE } from '../constants';
 import { espace } from '../helpers/espace';
 
+/** Typing animation options. */
 type Props = {
+  /** The text content to type out. */
   content: string;
+  /** Minimum delay interval between keystrokes in milliseconds. */
   min: number;
+  /** Whether the typing effect rewinds after completion. */
   rewind?: boolean;
+  /** Delay in milliseconds before rewinding or restarting. */
   rewindDelay?: number;
 };
 
+/**
+ * Creates a reactive typewriter effect signal with oscillatory typing
+ * delay and optional rewind.
+ *
+ * @param props - Configuration properties of type {@linkcode Props}.
+ *
+ * @returns An object containing the current text signal, type trigger, and
+ *   text setter.
+ */
 export const createTyping = ({ content, min, ...props }: Props) => {
   const rewind = props.rewind ?? false;
   const rewindDelay = (props as any).rewindDelay ?? 500;

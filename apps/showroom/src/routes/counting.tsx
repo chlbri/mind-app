@@ -3,6 +3,10 @@ import { createFileRoute } from '@tanstack/solid-router';
 import Counter from '~/globals/ui/molecules/Counter';
 import { reduceComponent } from '~/globals/ui/molecules/reducer';
 
+/**
+ * Counter demo route displaying multiple counter increment and decrement
+ * triggers.
+ */
 export const Route = createFileRoute('/counting')({
   // Test data from loader
   loader: () => 15,

@@ -8,16 +8,36 @@ import {
 import { createTyping } from '../signals/createTyping';
 import { VISIBLE_ESPACE } from '../constants';
 
+/** Base configuration properties for {@linkcode TypingText}. */
 type BaseProps = {
+  /** The text string to animate typing out. */
   children: string;
+  /** Optional container CSS class name. */
   class?: string;
+  /** Keystroke interval delay in milliseconds. Defaults to 62. */
   interval?: number;
+  /**
+   * Optional boolean accessor to disable typing and display text
+   * immediately.
+   */
   disabled?: Accessor<boolean>;
 };
 
+/**
+ * Props for the {@linkcode TypingText} component with optional rewind
+ * configuration.
+ */
 type Props = BaseProps &
   ({ rewind: true; rewindDelay: number } | { rewind?: false });
 
+/**
+ * Renders animated text with a typewriter keystroke animation effect.
+ *
+ * @param props - Component configuration properties of type
+ *   {@linkcode Props}.
+ *
+ * @returns Rendered animated typing text JSX container.
+ */
 export const TypingText: Component<Props> = props => {
   // #region Default values
   const min = props.interval ?? 62;

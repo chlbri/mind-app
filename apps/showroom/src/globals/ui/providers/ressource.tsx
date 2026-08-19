@@ -2,23 +2,23 @@ import type { ParentComponent } from 'solid-js';
 import { createResourceContext, ResourceContext } from '../signals';
 
 /**
- * Provider component for resource context
+ * Provider component for the global resource context.
  *
  * Wrap your application with this component to provide resource management
  * capabilities to all child components.
  *
  * @example
  *   ```tsx
- *   import { ResourceProvider } from '~/globals/ui/signals/ressource';
+ *   import { RessourcesProvider } from '~/globals/ui/providers';
  *
  *   export default function Root() {
  *     return (
- *       <ResourceProvider>
+ *       <RessourcesProvider>
  *         <Router />
- *       </ResourceProvider>
+ *       </RessourcesProvider>
  *     );
  *   }
- *   ```
+ *   ```;
  */
 export const RessourcesProvider: ParentComponent = props => {
   const value = createResourceContext();

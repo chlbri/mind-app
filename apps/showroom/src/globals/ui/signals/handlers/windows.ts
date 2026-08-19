@@ -16,7 +16,7 @@ import { useWindow } from '../window';
  *     },
  *     visible,
  *   );
- *   ```
+ *   ```;
  *
  * @template K - Type de l'événement window (keyof WindowEventMap)
  *
@@ -62,7 +62,7 @@ export const createWindowHandler = <K extends keyof WindowEventMap>(
  *   createWindowHandler.onMount('resize', () => {
  *     console.log('Window resized');
  *   });
- *   ```
+ *   ```;
  *
  * @template K - Type de l'événement window (keyof WindowEventMap)
  *

@@ -6,9 +6,8 @@ import {
 } from 'solid-js';
 
 /**
- * Crée un signal d'intersection qui détecte quand un élément entre dans le
- * viewport. Utilise l'API IntersectionObserver pour surveiller la
- * visibilité d'un élément.
+ * Creates an intersection observer signal that detects when a DOM element
+ * enters the viewport.
  *
  * @example
  *   ```tsx
@@ -19,29 +18,13 @@ import {
  *       {visible() ? 'Element is visible!' : 'Element is hidden'}
  *     </div>
  *   );
- *   ```
+ *   ```;
  *
- * @example
- *   Utilisation avec createWindowHandler
- *   ```tsx
- *   const [visible, setRef] = createIntersect();
+ * @param options - Configuration options for the `IntersectionObserver`.
+ *   Defaults to `{ threshold: 0.1 }`.
  *
- *   createWindowHandler('scroll', handleScroll, visible);
- *
- *   return <section ref={setRef}>Content</section>;
- *   ```
- *
- * @param options - Options de configuration pour l'IntersectionObserver
- * @param options.threshold - Pourcentage de visibilité nécessaire pour
- *   déclencher l'intersection (par défaut: 0.1)
- * @param options.root - Élément racine utilisé comme viewport (par défaut:
- *   viewport du navigateur)
- * @param options.rootMargin - Marge autour de l'élément racine
- *
- * @returns Un tuple contenant:
- *
- *   - [0] `intersecting`: Signal différé indiquant si l'élément est visible
- *   - [1] `setRef`: Fonction à passer comme ref à l'élément HTML à observer
+ * @returns A tuple containing the deferred boolean visibility signal and
+ *   the ref setter callback.
  */
 export const createIntersect = (
   options: IntersectionObserverInit = { threshold: 0.1 },

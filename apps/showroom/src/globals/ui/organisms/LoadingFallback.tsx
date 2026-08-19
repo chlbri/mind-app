@@ -3,17 +3,18 @@ import { TypingText } from '~/globals/ui/molecules/TypingText';
 import { cn } from '~/globals/ui/cn/utils';
 import { FadingDots } from '../molecules/FadingDots';
 
+/** Properties for the {@linkcode LoadingFallback} component. */
 interface LoadingFallbackProps {
   /**
-   * Texte à afficher pendant le chargement
+   * Text message to display alongside the loading animation.
    *
    * @default 'Chargement en cours...'
    */
   message?: string;
-  /** Classes CSS supplémentaires */
+  /** Additional CSS class names. */
   class?: string;
   /**
-   * Taille du spinner
+   * Spinner dimension sizing.
    *
    * @default 'lg'
    */
@@ -31,7 +32,7 @@ interface LoadingFallbackProps {
  *   <Show when={data()} fallback={<LoadingFallback />}>
  *     <DataComponent data={data()!} />
  *   </Show>;
- *   ```
+ *   ```;
  */
 export const LoadingFallback: Component<LoadingFallbackProps> = props => {
   const message = props.message ?? 'Chargement en cours...';

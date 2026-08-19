@@ -8,7 +8,15 @@ import {
 } from '@thisbeyond/solid-dnd';
 import type { Component } from 'solid-js';
 
-type Props = { id: string | number; top: number; left: number };
+/** Props for the {@linkcode Draggable} demonstration component. */
+type Props = {
+  /** Identifier for the draggable item. */
+  id: string | number;
+  /** Top offset position in pixels. */
+  top: number;
+  /** Left offset position in pixels. */
+  left: number;
+};
 
 declare module 'solid-js' {
   namespace JSX {
@@ -19,6 +27,7 @@ declare module 'solid-js' {
   }
 }
 
+/** Draggable box demo item component. */
 const Draggable: Component<Props> = props => {
   const draggable = createDraggable(props.id);
   return (
@@ -35,6 +44,7 @@ const Draggable: Component<Props> = props => {
   );
 };
 
+/** Drag and drop demonstration route showcasing `@thisbeyond/solid-dnd`. */
 export const Route = createFileRoute('/demo/dtagndrop')({
   component: () => {
     let transform = { x: 0, y: 0 };

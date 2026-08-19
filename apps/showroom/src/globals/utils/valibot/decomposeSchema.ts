@@ -2,9 +2,9 @@ import * as v from 'valibot';
 import type { DecomposedOutput, ObjectS } from './types';
 
 /**
- * Décompose un schéma d'objet Valibot en objet aplati avec clés en
- * notation pointée. Ne décompose que les schémas ObjectSchema. Les autres
- * schémas Valibot ne sont pas décomposés.
+ * Decomposes a Valibot object schema into a flattened object schema with
+ * dot-notation keys. Only decomposes {@linkcode ObjectS} schemas; other
+ * schema types are preserved as values.
  *
  * @example
  *   ```typescript
@@ -18,20 +18,15 @@ import type { DecomposedOutput, ObjectS } from './types';
  *
  *   const decomposed = decomposeSchema(schema);
  *   // Type: v.StrictObjectSchema<DecomposedObjectEntries<typeof schema.entries>, undefined>
+ *   ```;
  *
- *   // Avec type de sortie inféré:
- *   // {
- *   //   'user.name': string | undefined,
- *   //   'user.email': string | undefined,
- *   //   'settings.theme': string | undefined,
- *   //   'settings.notifications': boolean | undefined,
- *   // }
- *   ```
+ * @template | {@linkcode ObjectS} `T` - Valibot object schema type to
+ *   decompose.
  *
- * @param schema - Le schéma d'objet Valibot à décomposer
+ * @param schema - The Valibot object schema to flatten.
  *
- * @returns Un schéma strictObject avec des clés et valeurs fortement
- *   typées
+ * @returns A strict object schema with strongly typed dot-notation keys
+ *   and optional values.
  */
 export const decomposeSchema = <const T extends ObjectS>(schema: T) => {
   const result: Record<

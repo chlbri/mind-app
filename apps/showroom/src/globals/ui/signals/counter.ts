@@ -1,5 +1,13 @@
 import { createSignal } from 'solid-js';
 
+/**
+ * Creates a reactive numeric counter store with increment/decrement
+ * helpers.
+ *
+ * @param intitial - The initial counter value. Defaults to `0`.
+ *
+ * @returns An object containing the count accessor and mutating handlers.
+ */
 export const createCounter = (intitial = 0) => {
   const [count, _setCount] = createSignal(intitial);
 

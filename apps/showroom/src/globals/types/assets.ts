@@ -8,15 +8,15 @@
  */
 
 /**
- * All asset paths available in the public folder These paths are relative
- * to the root URL of the application
+ * All asset paths available in the public folder. These paths are relative
+ * to the root URL of the application.
  */
 export const ASSETS = {
   favicon: '/favicon.ico',
 
-  /** Img */
+  /** Img assets */
   img: {
-    /** Accordion horizontal */
+    /** Accordion horizontal assets */
     accordionHorizontal: {
       onglet1: '/img/Accordion horizontal/Onglet 1.jpeg',
       onglet2: '/img/Accordion horizontal/Onglet 2.jpeg',
@@ -33,7 +33,7 @@ export const ASSETS = {
     logo: '/img/logo.png',
   },
 
-  /** Svg */
+  /** Svg assets */
   svg: {
     iconEnseignant: '/svg/icon-enseignant.svg',
     iconProgression: '/svg/icon-progression.svg',
@@ -41,7 +41,10 @@ export const ASSETS = {
   },
 } as const;
 
-/** Type representing all available asset paths */
+/**
+ * Union type representing all available static asset paths from
+ * {@linkcode ASSETS}.
+ */
 export type AssetPath =
   | typeof ASSETS.favicon
   | typeof ASSETS.img.accordionHorizontal.onglet1

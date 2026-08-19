@@ -2,6 +2,18 @@ import * as v from 'valibot';
 import type { ObjectS } from './types';
 import { decomposeSchema } from './decomposeSchema';
 
+/**
+ * Extends a Valibot object schema with automated timestamp audit fields
+ * (`createdAt`, `updatedsAt`, `deletedsAt`, `restoredsAt`) and validation
+ * checks.
+ *
+ * @template | {@linkcode ObjectS} `T` - Base Valibot object schema type.
+ *
+ * @param schema - The source object schema to augment with timestamps.
+ *
+ * @returns An intersected Valibot schema including validated timestamp
+ *   audit metadata.
+ */
 export const timestamps = <const T extends ObjectS>(schema: T) => {
   const decomposed = decomposeSchema(schema);
   const out = v.pipe(

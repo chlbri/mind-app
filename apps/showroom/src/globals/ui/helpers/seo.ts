@@ -1,10 +1,22 @@
+/** SEO metadata configuration options. */
 type Props = {
+  /** Page title string. */
   title: string;
+  /** Meta description text. */
   description?: string;
+  /** Open Graph & Twitter image URL. */
   image?: string;
+  /** Meta keywords string. */
   keywords?: string;
 };
 
+/**
+ * Generates an array of standard, Open Graph, and Twitter SEO meta tags.
+ *
+ * @param props - The SEO parameters of type {@linkcode Props}.
+ *
+ * @returns Array of metadata tag descriptors for HTML document head.
+ */
 const seo = ({ title, description, keywords, image }: Props) => {
   const tags = [
     { title },

@@ -18,9 +18,9 @@ export default defineConfig({
       provider: 'v8',
     },
 
-    // projects: [
-    //   'packages/mindapp/vitest.config.ts',
-    //   'apps/showroom/vitest.config.ts',
-    // ],
+    projects: [
+      'packages/mindapp/vitest.config.ts',
+      'apps/showroom/vitest.config.ts',
+    ],
   },
 });

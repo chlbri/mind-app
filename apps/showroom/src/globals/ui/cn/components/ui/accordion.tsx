@@ -12,6 +12,16 @@ import {
   splitProps,
 } from 'solid-js';
 
+/**
+ * Root Accordion component providing collapsible panels.
+ *
+ * @template | {@linkcode ValidComponent} `T` - Underlying DOM element tag
+ *   or component. Defaults to `'div'`.
+ *
+ * @param props - Accordion primitive properties.
+ *
+ * @returns The rendered root accordion JSX element.
+ */
 export function Accordion<T extends ValidComponent = 'div'>(
   props: Parameters<typeof AccordionPrimitive<T>>[0],
 ) {
@@ -19,9 +29,21 @@ export function Accordion<T extends ValidComponent = 'div'>(
 }
 
 // #region Item
+/** Props for the {@linkcode AccordionItem} component. */
 type accordionItemProps<T extends ValidComponent = 'div'> =
   AccordionItemProps<T> & { class?: string };
 
+/**
+ * Individual collapsible item within an Accordion container.
+ *
+ * @template | {@linkcode ValidComponent} `T` - Underlying DOM element tag
+ *   or component. Defaults to `'div'`.
+ *
+ * @param props - Polymorphic accordion item props of type
+ *   {@linkcode accordionItemProps}.
+ *
+ * @returns The rendered accordion item JSX element.
+ */
 const AccordionItem = <T extends ValidComponent = 'div'>(
   props: PolymorphicProps<T, accordionItemProps<T>>,
 ) => {
@@ -37,9 +59,22 @@ const AccordionItem = <T extends ValidComponent = 'div'>(
 // #endregion
 
 // #region Trigger
+/** Props for the {@linkcode AccordionTrigger} component. */
 type accordionTriggerProps<T extends ValidComponent = 'button'> =
   ParentProps<AccordionTriggerProps<T> & { class?: string }>;
 
+/**
+ * Interactive header button toggling the expanded state of an
+ * AccordionItem.
+ *
+ * @template | {@linkcode ValidComponent} `T` - Underlying DOM element tag
+ *   or component. Defaults to `'button'`.
+ *
+ * @param props - Polymorphic trigger props of type
+ *   {@linkcode accordionTriggerProps}.
+ *
+ * @returns The rendered accordion trigger header JSX element.
+ */
 const AccordionTrigger = <T extends ValidComponent = 'button'>(
   props: PolymorphicProps<T, accordionTriggerProps<T>>,
 ) => {
@@ -80,10 +115,23 @@ const AccordionTrigger = <T extends ValidComponent = 'button'>(
 // #endregion
 
 // #region Content
+/** Props for the {@linkcode AccordionContent} component. */
 type accordionContentProps<T extends ValidComponent = 'div'> = ParentProps<
   AccordionContentProps<T> & { class?: string }
 >;
 
+/**
+ * Collapsible content section revealed when the corresponding trigger is
+ * active.
+ *
+ * @template | {@linkcode ValidComponent} `T` - Underlying DOM element tag
+ *   or component. Defaults to `'div'`.
+ *
+ * @param props - Polymorphic content props of type
+ *   {@linkcode accordionContentProps}.
+ *
+ * @returns The rendered accordion content panel JSX element.
+ */
 const AccordionContent = <T extends ValidComponent = 'div'>(
   props: PolymorphicProps<T, accordionContentProps<T>>,
 ) => {
