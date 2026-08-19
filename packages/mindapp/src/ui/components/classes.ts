@@ -1,6 +1,6 @@
 /**
- * List of Tailwind CSS class names used across flowchart UI components to
- * ensure compilation safelist.
+ * List of Tailwind CSS class names used across flowchart UI components to ensure
+ * compilation safelist.
  */
 export const CLASSES = [
   'fill-transparent',

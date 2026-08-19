@@ -5,17 +5,12 @@ import {
   type ValidComponent,
 } from 'solid-js';
 
-/**
- * Predicate determining whether an element or component should receive
- * focus.
- */
-type FocusFn<T extends ValidComponent> = (
-  props: ComponentProps<T>,
-) => boolean;
+/** Predicate determining whether an element or component should receive focus. */
+type FocusFn<T extends ValidComponent> = (props: ComponentProps<T>) => boolean;
 
 /**
- * Internal wrapper focusing a component on mount when the focus condition
- * evaluates to true.
+ * Internal wrapper focusing a component on mount when the focus condition evaluates
+ * to true.
  */
 function _focus<T extends Component<any>>(children: T, focus: FocusFn<T>) {
   const Out = (props => {
@@ -40,8 +35,8 @@ function _forwardFocus<T2 extends ValidComponent>(focus: FocusFn<T2>) {
 }
 
 /**
- * Creates a higher-order component factory that auto-focuses the component
- * when the predicate resolves to true.
+ * Creates a higher-order component factory that auto-focuses the component when the
+ * predicate resolves to true.
  *
  * @template | {@linkcode ValidComponent} `T2` - Target component type.
  *
@@ -54,8 +49,7 @@ export function forwardFocus<T2 extends ValidComponent>(
 ): <T extends ComponentProps<T2>>(Compt: Component<T>) => Component<T>;
 
 /**
- * Wraps a component to auto-focus when mounted if the predicate resolves
- * to true.
+ * Wraps a component to auto-focus when mounted if the predicate resolves to true.
  *
  * @template | {@linkcode Component} `T2` - Target component type.
  *
@@ -73,7 +67,5 @@ export function forwardFocus<T2 extends ValidComponent>(
   arg1: any,
   arg2?: FocusFn<T2>,
 ) {
-  return arg2
-    ? _focus(arg1 as any, arg2)
-    : _forwardFocus(arg1 as FocusFn<T2>);
+  return arg2 ? _focus(arg1 as any, arg2) : _forwardFocus(arg1 as FocusFn<T2>);
 }

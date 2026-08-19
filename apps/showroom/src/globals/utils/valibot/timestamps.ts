@@ -1,18 +1,18 @@
 import * as v from 'valibot';
-import type { ObjectS } from './types';
+
 import { decomposeSchema } from './decomposeSchema';
+import type { ObjectS } from './types';
 
 /**
  * Extends a Valibot object schema with automated timestamp audit fields
- * (`createdAt`, `updatedsAt`, `deletedsAt`, `restoredsAt`) and validation
- * checks.
+ * (`createdAt`, `updatedsAt`, `deletedsAt`, `restoredsAt`) and validation checks.
  *
  * @template | {@linkcode ObjectS} `T` - Base Valibot object schema type.
  *
  * @param schema - The source object schema to augment with timestamps.
  *
- * @returns An intersected Valibot schema including validated timestamp
- *   audit metadata.
+ * @returns An intersected Valibot schema including validated timestamp audit
+ *   metadata.
  */
 export const timestamps = <const T extends ObjectS>(schema: T) => {
   const decomposed = decomposeSchema(schema);
@@ -36,9 +36,7 @@ export const timestamps = <const T extends ObjectS>(schema: T) => {
                 v.optional(
                   v.array(
                     v.map(
-                      v.date(
-                        'Chaque date de mise à jour doit être une date valide',
-                      ),
+                      v.date('Chaque date de mise à jour doit être une date valide'),
                       v.custom<v.InferInput<typeof decomposed>>(
                         value => v.is(decomposed, value),
                         `Chaque mise à jour doit correspondre au "flatten-schema" de l'entité`,
@@ -56,9 +54,7 @@ export const timestamps = <const T extends ObjectS>(schema: T) => {
               deletedsAt: v.pipe(
                 v.optional(
                   v.array(
-                    v.date(
-                      'Chaque date de suppression doit être une date valide',
-                    ),
+                    v.date('Chaque date de suppression doit être une date valide'),
                     'Les suppressions doivent être un tableau de dates',
                   ),
                   [],
@@ -69,9 +65,7 @@ export const timestamps = <const T extends ObjectS>(schema: T) => {
               restoredsAt: v.pipe(
                 v.optional(
                   v.array(
-                    v.date(
-                      'Chaque date de restauration doit être une date valide',
-                    ),
+                    v.date('Chaque date de restauration doit être une date valide'),
                     'Les restaurations doivent être un tableau de dates',
                   ),
                   [],
@@ -87,13 +81,12 @@ export const timestamps = <const T extends ObjectS>(schema: T) => {
 
                 ({ createdAt, updatedsAt }) => {
                   if (updatedsAt.length === 0) return true;
-                  const allUpdatedDates = Array.from(
-                    updatedsAt,
-                    ([[date]]) => date.getTime(),
+                  const allUpdatedDates = Array.from(updatedsAt, ([[date]]) =>
+                    date.getTime(),
                   );
                   // get the minimum date from updatedsAt
-                  const minUpdatedAt = allUpdatedDates.reduce(
-                    (min, date) => (date < min ? date : min),
+                  const minUpdatedAt = allUpdatedDates.reduce((min, date) =>
+                    date < min ? date : min,
                   );
 
                   return minUpdatedAt > createdAt.getTime();
@@ -111,12 +104,10 @@ export const timestamps = <const T extends ObjectS>(schema: T) => {
 
                 ({ createdAt, deletedsAt }) => {
                   if (deletedsAt.length === 0) return true;
-                  const allDeletedDates = deletedsAt.map(date =>
-                    date.getTime(),
-                  );
+                  const allDeletedDates = deletedsAt.map(date => date.getTime());
                   // get the minimum date from deletedsAt
-                  const minDeletedAt = allDeletedDates.reduce(
-                    (min, date) => (date < min ? date : min),
+                  const minDeletedAt = allDeletedDates.reduce((min, date) =>
+                    date < min ? date : min,
                   );
 
                   return minDeletedAt > createdAt.getTime();
@@ -134,12 +125,10 @@ export const timestamps = <const T extends ObjectS>(schema: T) => {
 
                 ({ createdAt, restoredsAt }) => {
                   if (restoredsAt.length === 0) return true;
-                  const allRestoredDates = restoredsAt.map(date =>
-                    date.getTime(),
-                  );
+                  const allRestoredDates = restoredsAt.map(date => date.getTime());
                   // get the minimum date from restoredsAt
-                  const minRestoredAt = allRestoredDates.reduce(
-                    (min, date) => (date < min ? date : min),
+                  const minRestoredAt = allRestoredDates.reduce((min, date) =>
+                    date < min ? date : min,
                   );
 
                   return minRestoredAt > createdAt.getTime();
@@ -158,20 +147,16 @@ export const timestamps = <const T extends ObjectS>(schema: T) => {
                 ({ deletedsAt, restoredsAt }) => {
                   if (restoredsAt.length === 0 || deletedsAt.length === 0)
                     return true;
-                  const allRestoredDates = restoredsAt.map(date =>
-                    date.getTime(),
-                  );
+                  const allRestoredDates = restoredsAt.map(date => date.getTime());
                   // get the minimum date from restoredsAt
-                  const minRestoredAt = allRestoredDates.reduce(
-                    (min, date) => (date < min ? date : min),
+                  const minRestoredAt = allRestoredDates.reduce((min, date) =>
+                    date < min ? date : min,
                   );
 
-                  const allDeletedDates = deletedsAt.map(date =>
-                    date.getTime(),
-                  );
+                  const allDeletedDates = deletedsAt.map(date => date.getTime());
                   // get the minimum date from deletedsAt
-                  const minDeletedAt = allDeletedDates.reduce(
-                    (min, date) => (date < min ? date : min),
+                  const minDeletedAt = allDeletedDates.reduce((min, date) =>
+                    date < min ? date : min,
                   );
 
                   return minRestoredAt > minDeletedAt;

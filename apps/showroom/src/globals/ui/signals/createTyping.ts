@@ -1,4 +1,5 @@
 import { createSignal, onCleanup } from 'solid-js';
+
 import { VISIBLE_ESPACE } from '../constants';
 import { espace } from '../helpers/espace';
 
@@ -15,13 +16,13 @@ type Props = {
 };
 
 /**
- * Creates a reactive typewriter effect signal with oscillatory typing
- * delay and optional rewind.
+ * Creates a reactive typewriter effect signal with oscillatory typing delay and
+ * optional rewind.
  *
  * @param props - Configuration properties of type {@linkcode Props}.
  *
- * @returns An object containing the current text signal, type trigger, and
- *   text setter.
+ * @returns An object containing the current text signal, type trigger, and text
+ *   setter.
  */
 export const createTyping = ({ content, min, ...props }: Props) => {
   const rewind = props.rewind ?? false;

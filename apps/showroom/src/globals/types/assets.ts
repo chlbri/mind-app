@@ -1,6 +1,6 @@
 /**
  * @file Auto-generated file containing all asset paths from the public
- *   folder
+ * folder
  *
  * @generated 2025-10-17T12:02:14.736Z
  *
@@ -8,8 +8,8 @@
  */
 
 /**
- * All asset paths available in the public folder. These paths are relative
- * to the root URL of the application.
+ * All asset paths available in the public folder. These paths are relative to the
+ * root URL of the application.
  */
 export const ASSETS = {
   favicon: '/favicon.ico',
@@ -41,10 +41,7 @@ export const ASSETS = {
   },
 } as const;
 
-/**
- * Union type representing all available static asset paths from
- * {@linkcode ASSETS}.
- */
+/** Union type representing all available static asset paths from {@linkcode ASSETS}. */
 export type AssetPath =
   | typeof ASSETS.favicon
   | typeof ASSETS.img.accordionHorizontal.onglet1

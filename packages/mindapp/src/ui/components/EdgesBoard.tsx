@@ -6,12 +6,13 @@ import {
   For,
   Show,
 } from 'solid-js';
+
 import { EdgeComponent } from './EdgeComponent';
 import { useFlow } from './FlowChart.context';
 
 /**
- * SVG board overlay component that renders all active connecting edges and
- * ongoing edge creation previews.
+ * SVG board overlay component that renders all active connecting edges and ongoing
+ * edge creation previews.
  *
  * @returns The rendered SVG JSX element.
  */

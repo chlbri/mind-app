@@ -1,7 +1,4 @@
-/**
- * Zero-width space character used for layout preservation in typing
- * animations.
- */
+/** Zero-width space character used for layout preservation in typing animations. */
 export const VISIBLE_ESPACE = '\u200B';
 
 /** Non-breakable space character string. */

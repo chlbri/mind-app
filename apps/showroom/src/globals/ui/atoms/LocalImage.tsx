@@ -6,7 +6,9 @@ import {
   Switch,
   type Component,
 } from 'solid-js';
+
 import { cn } from '~/globals/ui/cn/utils';
+
 import { useRessource } from '../signals';
 import type { OmitPropsOf } from '../types';
 
@@ -69,17 +71,14 @@ const _LocalImage: Component<Omit<ImageProps, 'disableCache'>> = props => {
             const base64 = reader.result;
 
             const check =
-              typeof base64 === 'string' &&
-              base64.startsWith('data:image/');
+              typeof base64 === 'string' && base64.startsWith('data:image/');
 
             if (check) return resolve(base64);
             reject(new Error(`Invalid image data: ${base64}`));
           };
 
           reader.onerror = () => {
-            const error = new Error(
-              `Erreur de lecture du blob: ${local.src}`,
-            );
+            const error = new Error(`Erreur de lecture du blob: ${local.src}`);
 
             return reject(error);
           };
@@ -109,9 +108,7 @@ const _LocalImage: Component<Omit<ImageProps, 'disableCache'>> = props => {
             role='img'
             aria-label={`Erreur de chargement: ${local.alt}`}
           >
-            <span class='text-sm text-gray-500 dark:text-gray-400'>
-              ⚠️ Erreur
-            </span>
+            <span class='text-sm text-gray-500 dark:text-gray-400'>⚠️ Erreur</span>
           </div>
         )}
       </Match>
@@ -132,10 +129,7 @@ const _LocalImage: Component<Omit<ImageProps, 'disableCache'>> = props => {
           <local.fallback />
         ) : (
           <div
-            class={cn(
-              'animate-pulse bg-gray-200 dark:bg-gray-700',
-              local.class,
-            )}
+            class={cn('animate-pulse bg-gray-200 dark:bg-gray-700', local.class)}
             role='img'
             aria-label={`Chargement: ${local.alt}`}
             aria-busy='true'
@@ -175,9 +169,7 @@ const _LocalImage: Component<Omit<ImageProps, 'disableCache'>> = props => {
  *   />
  *   ```;
  */
-export function LocalImage<T extends string = string>(
-  props: ImageProps<T>,
-) {
+export function LocalImage<T extends string = string>(props: ImageProps<T>) {
   if (props.disableCache) {
     const [, rest] = splitProps(props, [
       'fallback',

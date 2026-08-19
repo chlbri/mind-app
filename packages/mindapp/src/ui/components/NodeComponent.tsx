@@ -1,8 +1,9 @@
 /* eslint-disable @typescript-eslint/no-namespace */
 import { useState } from '@bemedev/app-solidjs';
 import { createDraggable } from '@thisbeyond/solid-dnd';
-import { Component, createEffect, createSignal, Show } from 'solid-js';
+import { Component, createSignal, onMount, Show } from 'solid-js';
 import { produce } from 'solid-js/store';
+
 import { useFlow } from './FlowChart.context';
 import {
   DEFAULT_INPUT_OFFSET_X,
@@ -37,8 +38,8 @@ type Props = {
 };
 
 /**
- * Interactive flowchart node component supporting dragging, selection,
- * handle connections, and child/sibling creation.
+ * Interactive flowchart node component supporting dragging, selection, handle
+ * connections, and child/sibling creation.
  *
  * @param props - Node rendering properties of type {@linkcode Props}.
  *
@@ -60,7 +61,7 @@ export const NodeComponent: Component<Props> = props => {
     selector: s => s.context.selected === props.id,
   });
 
-  createEffect(() => {
+  onMount(() => {
     const _inputRef = inputRef;
     const _outputRef = outputRef;
     const _rootRef = ref();
@@ -73,15 +74,12 @@ export const NodeComponent: Component<Props> = props => {
     const inputRect = _inputRef?.getBoundingClientRect();
 
     const outputOffsetX =
-      (outputRect.left - rootRect.left + outputRect.width / 2) /
-      currentZoom;
+      (outputRect.left - rootRect.left + outputRect.width / 2) / currentZoom;
     const outputOffsetY =
-      (outputRect.top - rootRect.top + outputRect.height / 2) /
-      currentZoom;
+      (outputRect.top - rootRect.top + outputRect.height / 2) / currentZoom;
 
     const inputOffsetX = inputRect
-      ? (inputRect.left - rootRect.left + inputRect.width / 2) /
-        currentZoom
+      ? (inputRect.left - rootRect.left + inputRect.width / 2) / currentZoom
       : DEFAULT_INPUT_OFFSET_X;
     const inputOffsetY = inputRect
       ? (inputRect.top - rootRect.top + inputRect.height / 2) / currentZoom
@@ -90,10 +88,7 @@ export const NodeComponent: Component<Props> = props => {
     const width = rootRect.width / currentZoom;
     const height = rootRect.height / currentZoom;
 
-    const output = {
-      x: props.x + outputOffsetX,
-      y: props.y + outputOffsetY,
-    };
+    const output = { x: props.x + outputOffsetX, y: props.y + outputOffsetY };
 
     const input = { x: props.x + inputOffsetX, y: props.y + inputOffsetY };
 
@@ -115,7 +110,7 @@ export const NodeComponent: Component<Props> = props => {
     selector: ({ context: { data } }) => {
       const edges = data?.edges;
       if (!edges) return false;
-      return Object.values(edges).some(edge => edge.to === props.id);
+      return edges.some(({ to }) => to === props.id);
     },
   });
 
@@ -182,9 +177,7 @@ export const NodeComponent: Component<Props> = props => {
             preserveAspectRatio='xMaxYMax'
             xmlns='http://www.w3.org/2000/svg'
             fill='white'
-            onClick={() =>
-              service.send({ type: 'ADD_SIBLING', payload: props.id })
-            }
+            onClick={() => service.send({ type: 'ADD_SIBLING', payload: props.id })}
           >
             <g id='background'>
               <path d='M467.40667,277.66696c-0.05948,-14.53055 5.75527,-22.95613 -8.62044,-20.90487c-112.55699,16.0607 -222.1609,112.14558 -245.06161,239.85765c-46.52056,259.43466 231.33083,443.06705 449.51209,316.97506c117.31668,-67.80002 160.95215,-190.43324 151.34416,-288.29849c-5.92276,-60.32819 -27.80273,-107.95668 -53.44246,-144.25469l59.39269,-42.05363c111.72214,156.309 73.11535,351.55635 -25.06953,459.45565c-184.18877,202.4124 -470.46624,145.52064 -592.95027,-32.92123c-156.18269,-227.53604 -27.15324,-543.64371 261.18883,-582.44416c5.0579,-0.68061 3.56556,-7.04079 3.56442,-8.58985c-0.05594,-76.3354 -0.11021,-76.7687 1.10909,-77.24589c2.06886,-0.80969 151.41433,118.4561 151.92482,118.95524c4.65592,4.55233 -0.99548,7.829 -29.07828,30.50907c-120.49369,97.31245 -120.4977,98.55675 -123.0691,97.87586c-0.43639,-0.11555 -0.80698,-0.31322 -0.74442,-66.91571Z' />
@@ -194,9 +187,7 @@ export const NodeComponent: Component<Props> = props => {
         </Show>
         <svg
           class='flex cursor-pointer items-center justify-center rounded-lg bg-blue-500 p-0.5 text-center font-bold text-white hover:bg-blue-600'
-          onClick={() =>
-            service.send({ type: 'ADD_CHILD', payload: props.id })
-          }
+          onClick={() => service.send({ type: 'ADD_CHILD', payload: props.id })}
           style={{
             'pointer-events': 'all',
             width: `${HANDLE_SIZE * 2}px`,
@@ -242,10 +233,7 @@ export const NodeComponent: Component<Props> = props => {
               const from = newEdge()?.from;
 
               if (from) {
-                service.send({
-                  type: 'ADD_EDGE',
-                  payload: { from, to: props.id },
-                });
+                service.send({ type: 'ADD_EDGE', payload: { from, to: props.id } });
               }
 
               setNewEdge();

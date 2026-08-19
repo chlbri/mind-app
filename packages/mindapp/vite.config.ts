@@ -1,16 +1,15 @@
 import tailwindcss from '@tailwindcss/vite';
-import pkg from './package.json' with { type: 'json' };
 import { defineConfig } from 'vite';
-import viteSolid from 'vite-plugin-solid';
 import dts from 'vite-plugin-dts';
+import viteSolid from 'vite-plugin-solid';
+
+import pkg from './package.json' with { type: 'json' };
 
 const peerDependencies = Object.keys({ ...pkg.peerDependencies });
 
 export default defineConfig(({ mode }) => {
   const isServer =
-    mode === 'server' ||
-    mode === 'ssr' ||
-    process.env.BUILD_TARGET === 'server';
+    mode === 'server' || mode === 'ssr' || process.env.BUILD_TARGET === 'server';
   const entryName = isServer ? 'server' : 'index';
 
   return {
@@ -23,9 +22,7 @@ export default defineConfig(({ mode }) => {
       !isServer && (dts() as any),
       !isServer && (tailwindcss() as any),
 
-      viteSolid({
-        solid: { generate: isServer ? 'ssr' : 'dom', hydratable: true },
-      }),
+      viteSolid({ solid: { generate: isServer ? 'ssr' : 'dom', hydratable: true } }),
     ].filter(Boolean),
 
     build: {

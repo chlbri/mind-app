@@ -1,8 +1,8 @@
 import { onCleanup } from 'solid-js';
 
 /**
- * Solid custom directive that triggers a callback when a click occurs
- * outside the bound element.
+ * Solid custom directive that triggers a callback when a click occurs outside the
+ * bound element.
  *
  * @param el - The bound DOM element.
  * @param accessor - Accessor returning the callback function to execute.

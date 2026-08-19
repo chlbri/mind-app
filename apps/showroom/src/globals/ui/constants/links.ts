@@ -2,11 +2,7 @@ import type { RootLink } from '../types';
 
 /** Preconnect and stylesheet link descriptors for Google Fonts. */
 export const GOOGLE_FONTS_LINKS: RootLink[] = [
-  {
-    rel: 'preconnect',
-    href: 'https://fonts.gstatic.com',
-    crossorigin: 'anonymous',
-  },
+  { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: 'anonymous' },
   {
     rel: 'preconnect',
     href: 'https://fonts.googleapis.com',

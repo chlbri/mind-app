@@ -1,5 +1,6 @@
 import { useState } from '@bemedev/app-solidjs';
 import { Component, createEffect, createSignal, Show } from 'solid-js';
+
 import type { Vector } from '../../services/main.typings';
 import { useFlow } from './FlowChart.context';
 
@@ -21,8 +22,8 @@ type Props = {
 const calculateOffset = (value: number) => (value * 100) / 200;
 
 /**
- * Generates an SVG cubic bezier path `d` string between coordinates `(x0,
- * y0)` and `(x1, y1)`.
+ * Generates an SVG cubic bezier path `d` string between coordinates `(x0, y0)` and
+ * `(x1, y1)`.
  *
  * @param vector - Vector coordinates of type {@linkcode Vector}.
  *
@@ -33,8 +34,8 @@ const draw = ({ x0, y0, x1, y1 }: Vector) => {
 };
 
 /**
- * SVG edge component rendering bezier curves and delete interaction
- * handles for node connections.
+ * SVG edge component rendering bezier curves and delete interaction handles for node
+ * connections.
  *
  * @param props - Edge properties of type {@linkcode Props}.
  *
@@ -64,10 +65,8 @@ export const EdgeComponent: Component<Props> = props => {
         class='relative cursor-pointer fill-transparent'
         classList={{
           'stroke-[rgba(168,168,168,0.4)] stroke-3 z-200': !!props.isNew,
-          'stroke-[rgba(168,168,168,1)] stroke-4 z-100':
-            selected() && !props.isNew,
-          'stroke-[rgba(168,168,168,0.8)] stroke-3':
-            !selected() && !props.isNew,
+          'stroke-[rgba(168,168,168,1)] stroke-4 z-100': selected() && !props.isNew,
+          'stroke-[rgba(168,168,168,0.8)] stroke-3': !selected() && !props.isNew,
         }}
         style={{ 'pointer-events': props.isNew ? 'none' : 'all' }}
         d={draw(props)}

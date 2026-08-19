@@ -1,14 +1,12 @@
-import { describe, it, expect } from 'vitest';
 import * as v from 'valibot';
+import { describe, it, expect } from 'vitest';
+
 import { timestamps } from './timestamps';
 
 describe('timestamps schema', () => {
   describe('#01 => Basic schema with timestamps', () => {
     it('#01 => should create a valid timestamps schema', () => {
-      const schema = v.object({
-        name: v.string(),
-        description: v.string(),
-      });
+      const schema = v.object({ name: v.string(), description: v.string() });
 
       const result = timestamps(schema);
 
@@ -33,11 +31,7 @@ describe('timestamps schema', () => {
         },
       };
 
-      const data2 = {
-        title: 'Test',
-        content: 'Test content',
-        __timestamps: {},
-      };
+      const data2 = { title: 'Test', content: 'Test content', __timestamps: {} };
 
       const result = v.safeParse(timestamped, data);
       expect(result.success).toBe(true);
@@ -153,12 +147,8 @@ describe('timestamps schema', () => {
 
       const timestamped = timestamps(schema);
       const createdAt = new Date('2024-01-01');
-      const updatedAt1 = new Map([
-        [new Date('2024-01-02'), { value: 'update1' }],
-      ]);
-      const updatedAt2 = new Map([
-        [new Date('2024-01-03'), { value: 'update2' }],
-      ]);
+      const updatedAt1 = new Map([[new Date('2024-01-02'), { value: 'update1' }]]);
+      const updatedAt2 = new Map([[new Date('2024-01-03'), { value: 'update2' }]]);
 
       const data = {
         value: 'test',
@@ -461,12 +451,8 @@ describe('timestamps schema', () => {
 
       const timestamped = timestamps(schema);
       const createdAt = new Date('2024-01-01');
-      const updatedAt1 = new Map([
-        [new Date('2024-01-02'), { name: 'update1' }],
-      ]);
-      const updatedAt2 = new Map([
-        [new Date('2024-01-03'), { name: 'update2' }],
-      ]);
+      const updatedAt1 = new Map([[new Date('2024-01-02'), { name: 'update1' }]]);
+      const updatedAt2 = new Map([[new Date('2024-01-03'), { name: 'update2' }]]);
       const deletedAt = new Date('2024-01-10');
 
       const data = {
@@ -488,12 +474,8 @@ describe('timestamps schema', () => {
 
       const timestamped = timestamps(schema);
       const createdAt = new Date('2024-01-01');
-      const updatedAt1 = new Map([
-        [new Date('2024-01-02'), { name: 'update1' }],
-      ]);
-      const updatedAt2 = new Map([
-        [new Date('2024-01-04'), { name: 'update2' }],
-      ]);
+      const updatedAt1 = new Map([[new Date('2024-01-02'), { name: 'update1' }]]);
+      const updatedAt2 = new Map([[new Date('2024-01-04'), { name: 'update2' }]]);
       const deletedAt = new Date('2024-01-10');
       const restoredAt = new Date('2024-01-15');
 
@@ -563,10 +545,7 @@ describe('timestamps schema', () => {
     });
 
     it('#03 => should reject schema with invalid required field', () => {
-      const schema = v.object({
-        timeout: v.number(),
-        retries: v.number(),
-      });
+      const schema = v.object({ timeout: v.number(), retries: v.number() });
 
       const timestamped = timestamps(schema);
       const now = new Date();
@@ -675,10 +654,7 @@ describe('timestamps schema', () => {
 
   describe('#09 => Real-world scenarios', () => {
     it('#01 => should validate simple user record', () => {
-      const schema = v.object({
-        userId: v.string(),
-        username: v.string(),
-      });
+      const schema = v.object({ userId: v.string(), username: v.string() });
 
       const timestamped = timestamps(schema);
       const created = new Date('2024-01-01');

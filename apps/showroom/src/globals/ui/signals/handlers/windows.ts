@@ -1,4 +1,5 @@
 import { createEffect, onCleanup, onMount, type Accessor } from 'solid-js';
+
 import { useWindow } from '../window';
 
 /**
@@ -20,15 +21,13 @@ import { useWindow } from '../window';
  *
  * @template K - Type de l'événement window (keyof WindowEventMap)
  *
- * @param type - Type d'événement à écouter (ex: 'keydown', 'resize',
- *   'scroll')
- * @param listener - Fonction callback appelée lors du déclenchement de
- *   l'événement
- * @param condition - Condition (booléenne ou accessor) qui détermine si
- *   l'événement doit être écouté
+ * @param type - Type d'événement à écouter (ex: 'keydown', 'resize', 'scroll')
+ * @param listener - Fonction callback appelée lors du déclenchement de l'événement
+ * @param condition - Condition (booléenne ou accessor) qui détermine si l'événement
+ *   doit être écouté
  *
- * @returns Objet contenant les méthodes `add` et `remove` pour gérer
- *   manuellement l'événement
+ * @returns Objet contenant les méthodes `add` et `remove` pour gérer manuellement
+ *   l'événement
  */
 export const createWindowHandler = <K extends keyof WindowEventMap>(
   type: K,
@@ -37,8 +36,7 @@ export const createWindowHandler = <K extends keyof WindowEventMap>(
 ) => {
   const { add, remove } = useWindow({
     add: ({ addEventListener }) => addEventListener(type, listener),
-    remove: ({ removeEventListener }) =>
-      removeEventListener(type, listener),
+    remove: ({ removeEventListener }) => removeEventListener(type, listener),
   });
 
   createEffect(() => {
@@ -53,9 +51,9 @@ export const createWindowHandler = <K extends keyof WindowEventMap>(
 };
 
 /**
- * Crée un gestionnaire d'événements pour l'objet `window` qui s'active au
- * montage du composant. Version simplifiée de `createWindowHandler` sans
- * condition, l'événement est toujours actif après le montage.
+ * Crée un gestionnaire d'événements pour l'objet `window` qui s'active au montage du
+ * composant. Version simplifiée de `createWindowHandler` sans condition, l'événement
+ * est toujours actif après le montage.
  *
  * @example
  *   ```tsx
@@ -66,10 +64,8 @@ export const createWindowHandler = <K extends keyof WindowEventMap>(
  *
  * @template K - Type de l'événement window (keyof WindowEventMap)
  *
- * @param type - Type d'événement à écouter (ex: 'resize', 'scroll',
- *   'keydown')
- * @param listener - Fonction callback appelée lors du déclenchement de
- *   l'événement
+ * @param type - Type d'événement à écouter (ex: 'resize', 'scroll', 'keydown')
+ * @param listener - Fonction callback appelée lors du déclenchement de l'événement
  */
 createWindowHandler.onMount = <K extends keyof WindowEventMap>(
   type: K,

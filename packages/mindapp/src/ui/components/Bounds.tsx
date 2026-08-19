@@ -1,17 +1,15 @@
-import {
-  useDragDropContext,
-  type Transformer,
-} from '@thisbeyond/solid-dnd';
+import { useDragDropContext, type Transformer } from '@thisbeyond/solid-dnd';
 import { type Component } from 'solid-js';
-import { BOUNDS_CONSTRAINTS } from './FlowChart.data';
+
 import { useFlow } from './FlowChart.context';
+import { BOUNDS_CONSTRAINTS } from './FlowChart.data';
 
 /**
- * Drag boundary transformer component that clamps draggable nodes within
- * container scroll bounds.
+ * Drag boundary transformer component that clamps draggable nodes within container
+ * scroll bounds.
  *
- * @returns `null` as this component performs side-effect transformer
- *   registrations only.
+ * @returns `null` as this component performs side-effect transformer registrations
+ *   only.
  */
 export const DragBounds: Component = () => {
   const {
@@ -19,58 +17,51 @@ export const DragBounds: Component = () => {
     zoom: [zoom],
   } = useFlow();
 
-  const [
-    state,
-    { addTransformer, removeTransformer, onDragStart, onDragEnd },
-  ] = useDragDropContext()!;
+  const [state, { addTransformer, removeTransformer, onDragStart, onDragEnd }] =
+    useDragDropContext()!;
 
   const transformer: Transformer = {
     id: 'clamp-to-container',
     order: 100,
     callback: transform => {
-      const container = ref()?.parentElement;
+      const container = ref();
       const activeDraggable = state.active.draggable;
       if (!container || !activeDraggable) return transform;
-      const draggableLayout = activeDraggable.layout;
 
-      // #region Inner visible boundaries (excluding borders and scrollbars)
-      const containerRect = container.getBoundingClientRect();
-      const innerLeft = containerRect.left + container.clientLeft;
-      const innerTop = containerRect.top + container.clientTop;
-      const innerRight = innerLeft + container.clientWidth;
-      const innerBottom = innerTop + container.clientHeight;
+      const node = activeDraggable.node as HTMLElement;
+      if (!node) return transform;
+
+      const currentZoom = zoom();
+
+      // #region Board space boundaries (unscaled CSS pixels relative to board container)
+      const minBoardX = BOUNDS_CONSTRAINTS.horizontal;
+      const maxBoardX = Math.max(
+        minBoardX,
+        container.clientWidth / currentZoom -
+          node.offsetWidth -
+          BOUNDS_CONSTRAINTS.horizontal,
+      );
+
+      const minBoardY = BOUNDS_CONSTRAINTS.vertical;
+      const maxBoardY = Math.max(
+        minBoardY,
+        container.clientHeight / currentZoom -
+          node.offsetHeight -
+          BOUNDS_CONSTRAINTS.vertical,
+      );
       // #endregion
 
-      // #region Convert boundaries to board coordinate space
-      const currentZoom = zoom();
-      const minX =
-        innerLeft -
-        draggableLayout.left +
-        BOUNDS_CONSTRAINTS.horizontal * currentZoom;
+      // #region Convert board boundaries to transformer delta space (in screen pixels)
+      const minTransformX = (minBoardX - node.offsetLeft) * currentZoom;
+      const maxTransformX = (maxBoardX - node.offsetLeft) * currentZoom;
 
-      const maxX = Math.max(
-        minX,
-        innerRight -
-          draggableLayout.right -
-          BOUNDS_CONSTRAINTS.horizontal * currentZoom,
-      );
-
-      const minY =
-        innerTop -
-        draggableLayout.top +
-        BOUNDS_CONSTRAINTS.vertical * currentZoom;
-
-      const maxY = Math.max(
-        minY,
-        innerBottom -
-          draggableLayout.bottom -
-          BOUNDS_CONSTRAINTS.vertical * currentZoom,
-      );
+      const minTransformY = (minBoardY - node.offsetTop) * currentZoom;
+      const maxTransformY = (maxBoardY - node.offsetTop) * currentZoom;
       // #endregion
 
       return {
-        x: Math.min(Math.max(transform.x, minX), maxX),
-        y: Math.min(Math.max(transform.y, minY), maxY),
+        x: Math.min(Math.max(transform.x, minTransformX), maxTransformX),
+        y: Math.min(Math.max(transform.y, minTransformY), maxTransformY),
       };
     },
   };

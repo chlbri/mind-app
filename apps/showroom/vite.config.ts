@@ -1,9 +1,9 @@
+import { suppressWarnings } from '@bemedev/dev-utils/plugins';
 import tailwindcss from '@tailwindcss/vite';
 import { tanstackStart } from '@tanstack/solid-start/plugin/vite';
 import { nitro } from 'nitro/vite';
 import { defineConfig } from 'vite';
 import viteSolid from 'vite-plugin-solid';
-import { suppressWarnings } from '@bemedev/dev-utils/plugins';
 
 export default defineConfig({
   server: { port: 3000 },

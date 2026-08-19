@@ -1,20 +1,15 @@
 import type { inferT } from '@bemedev/app/typings';
 import { Component, onCleanup, onMount } from 'solid-js';
+
 import type { edgeJSON, nodeJSON } from '../../services/main.typings';
 import { useFlow } from './FlowChart.context';
-import { NodesBoard } from './NodesBoard';
 import { DEFAULT_NODES } from './FlowChart.data';
+import { NodesBoard } from './NodesBoard';
 
-/**
- * Serialized node properties type inferred from schema
- * {@linkcode nodeJSON}.
- */
+/** Serialized node properties type inferred from schema {@linkcode nodeJSON}. */
 export type NodeProps = inferT<typeof nodeJSON>;
 
-/**
- * Serialized edge properties type inferred from schema
- * {@linkcode edgeJSON}.
- */
+/** Serialized edge properties type inferred from schema {@linkcode edgeJSON}. */
 export type EdgeProps = inferT<typeof edgeJSON>;
 
 /**
@@ -56,8 +51,8 @@ export type FlowProps = {
 // const PARENT_CHILD_GAP_WIDTH = 75;
 
 /**
- * Flowchart board canvas component that renders interactive nodes, edges,
- * pan/zoom, and toolbar controls.
+ * Flowchart board canvas component that renders interactive nodes, edges, pan/zoom,
+ * and toolbar controls.
  *
  * @param props - Flowchart configuration and event handlers of type
  *   {@linkcode FlowProps}.

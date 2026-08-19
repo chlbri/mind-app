@@ -1,20 +1,14 @@
 /// <reference types="vite/client" />
 
-import {
-  createRootRoute,
-  HeadContent,
-  Scripts,
-} from '@tanstack/solid-router';
+import { createRootRoute, HeadContent, Scripts } from '@tanstack/solid-router';
 import { HydrationScript } from 'solid-js/web';
-
-import seo from '~/globals/ui/helpers/seo';
-import appCss from '../../tailwind.css?url';
 import HeadLinks from '~ui/organisms/HeadLinks';
 
-/**
- * Root route component defining global layout, HTML shell, and metadata
- * headers.
- */
+import seo from '~/globals/ui/helpers/seo';
+
+import appCss from '../../tailwind.css?url';
+
+/** Root route component defining global layout, HTML shell, and metadata headers. */
 export const Route = createRootRoute({
   head: () => ({
     links: [{ rel: 'stylesheet', href: appCss }],

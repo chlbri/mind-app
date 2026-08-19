@@ -1,5 +1,6 @@
-import { expectTypeOf } from 'vitest';
 import * as v from 'valibot';
+import { expectTypeOf } from 'vitest';
+
 import type { DecomposedOutput, DotPaths } from './types';
 
 describe('DecomposedOutput type tests', () => {
@@ -66,9 +67,7 @@ describe('DecomposedOutput type tests', () => {
     expectTypeOf<Output>().toHaveProperty(
       'level1.level2.level3.level4.level5.value',
     );
-    expectTypeOf<
-      Output['level1.level2.level3.level4.level5.value']
-    >().toEqualTypeOf<
+    expectTypeOf<Output['level1.level2.level3.level4.level5.value']>().toEqualTypeOf<
       v.OptionalSchema<v.StringSchema<undefined>, undefined>
     >();
   });
@@ -76,10 +75,7 @@ describe('DecomposedOutput type tests', () => {
   it('should include both flat and nested keys', () => {
     const schema = v.object({
       id: v.number(),
-      user: v.object({
-        name: v.string(),
-        profile: v.object({ bio: v.string() }),
-      }),
+      user: v.object({ name: v.string(), profile: v.object({ bio: v.string() }) }),
     });
 
     type Output = DecomposedOutput<typeof schema.entries>;
@@ -150,9 +146,7 @@ describe('DecomposedOutput type tests', () => {
   });
 
   it('should handle optional wrapped schemas', () => {
-    const schema = v.object({
-      user: v.optional(v.object({ name: v.string() })),
-    });
+    const schema = v.object({ user: v.optional(v.object({ name: v.string() })) });
 
     type Output = DecomposedOutput<typeof schema.entries>;
 
@@ -163,9 +157,7 @@ describe('DecomposedOutput type tests', () => {
   });
 
   it('should handle nullable wrapped schemas', () => {
-    const schema = v.object({
-      user: v.nullable(v.object({ email: v.string() })),
-    });
+    const schema = v.object({ user: v.nullable(v.object({ email: v.string() })) });
 
     type Output = DecomposedOutput<typeof schema.entries>;
 
@@ -185,10 +177,7 @@ describe('DecomposedOutput type tests', () => {
     expectTypeOf<Output['contact.email']>().toEqualTypeOf<
       v.OptionalSchema<
         v.SchemaWithPipe<
-          readonly [
-            v.StringSchema<undefined>,
-            v.EmailAction<string, undefined>,
-          ]
+          readonly [v.StringSchema<undefined>, v.EmailAction<string, undefined>]
         >,
         undefined
       >

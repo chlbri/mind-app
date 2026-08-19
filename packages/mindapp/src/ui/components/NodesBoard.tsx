@@ -5,35 +5,26 @@ import {
   DragOverlay,
 } from '@thisbeyond/solid-dnd';
 import { dequal } from 'dequal';
-import {
-  Component,
-  createEffect,
-  createSignal,
-  For,
-  on,
-  onCleanup,
-  Show,
-} from 'solid-js';
+import { Component, createEffect, createSignal, For, on, Show } from 'solid-js';
+
 import { DragBounds } from './Bounds';
 import { EdgesBoard } from './EdgesBoard';
 import { useFlow } from './FlowChart.context';
+import { CANVAS_FACTOR, SCROLL_MULTIPLIER } from './FlowChart.data';
 import { NodeComponent } from './NodeComponent';
-import { CANVAS_FACTOR } from './FlowChart.data';
 
 /**
- * Interactive board component containing the drag-drop viewport, zoom
- * controls, panning gestures, and rendered nodes/edges.
+ * Interactive board component containing the drag-drop viewport, zoom controls,
+ * panning gestures, and rendered nodes/edges.
  *
  * @returns The rendered Solid component.
  */
 export const NodesBoard: Component = () => {
-  let containerRef: HTMLDivElement | undefined;
+  let containerRef: HTMLDivElement;
   const [isPanning, setIsPanning] = createSignal(false);
   const [transform, setTransform] = createSignal({ x: 0, y: 0 });
   const [id, setId] = createSignal<string | number>('');
   const [previousZoom, setPreviousZoom] = createSignal<number>();
-  let cleanupPanning = () => {};
-  onCleanup(cleanupPanning);
   let percentX = 0;
   let percentY = 0;
 
@@ -45,10 +36,8 @@ export const NodesBoard: Component = () => {
   } = useFlow();
 
   const updateScrollPercentages = () => {
-    if (!containerRef) return;
     const maxScrollX = containerRef.scrollWidth - containerRef.clientWidth;
-    const maxScrollY =
-      containerRef.scrollHeight - containerRef.clientHeight;
+    const maxScrollY = containerRef.scrollHeight - containerRef.clientHeight;
     percentX = maxScrollX > 0 ? containerRef.scrollLeft / maxScrollX : 0;
     percentY = maxScrollY > 0 ? containerRef.scrollTop / maxScrollY : 0;
   };
@@ -57,22 +46,16 @@ export const NodesBoard: Component = () => {
     on(
       zoom,
       () => {
-        if (!containerRef) return;
-        const maxScrollX =
-          containerRef.scrollWidth - containerRef.clientWidth;
-        const maxScrollY =
-          containerRef.scrollHeight - containerRef.clientHeight;
-        if (maxScrollX > 0)
-          containerRef.scrollLeft = percentX * maxScrollX;
+        const maxScrollX = containerRef.scrollWidth - containerRef.clientWidth;
+        const maxScrollY = containerRef.scrollHeight - containerRef.clientHeight;
+        if (maxScrollX > 0) containerRef.scrollLeft = percentX * maxScrollX;
         if (maxScrollY > 0) containerRef.scrollTop = percentY * maxScrollY;
       },
       { defer: true },
     ),
   );
 
-  const selectedId = useState(service, {
-    selector: s => s.context?.selected,
-  });
+  const selectedId = useState(service, { selector: s => s.context?.selected });
 
   const selected = (id: string | number) => selectedId() === id;
 
@@ -91,76 +74,93 @@ export const NodesBoard: Component = () => {
     equals: dequal,
   });
 
-  const cDim = () => {
-    const _zoom = zoom();
-    if (_zoom < 1) {
-      return CANVAS_FACTOR * 100 * _zoom;
-    }
-    return CANVAS_FACTOR * 100;
-  };
+  const CANVAS_SIZE = CANVAS_FACTOR * 100;
+  const MARGIN_X = 53 * CANVAS_FACTOR;
+  const MARGIN_Y = 85 * CANVAS_FACTOR;
+  const cWidth = () => `calc((${CANVAS_SIZE}vw - ${MARGIN_X}px) * ${zoom()})`;
+  const cHeight = () => `calc((${CANVAS_SIZE}vh - ${MARGIN_Y}px) * ${zoom()})`;
 
   return (
-    <DragDropProvider
-      onDragMove={({
-        draggable: { transform: _transform, node, id },
-        overlay,
-      }) => {
-        setId(id);
-        if (selected(id)) {
-          const x = node.offsetLeft + _transform.x / zoom();
-          const y = node.offsetTop + _transform.y / zoom();
-          overlay?.node.style.setProperty('top', y * 2 + 'px');
-          overlay?.node.style.setProperty('left', x * 2 + 'px');
-          const deltaX = _transform.x / zoom();
-          const deltaY = _transform.y / zoom();
-          // Directly update the draggable node's CSS transform adjusted for zoom:
-          node.style.setProperty(
-            'transform',
-            `translate3d(${deltaX}px, ${deltaY}px, 0)`,
+    <div
+      onWheel={e => {
+        if (e.ctrlKey || e.metaKey) {
+          e.preventDefault();
+          updateScrollPercentages();
+          const delta = e.deltaY < 0 ? 0.1 : -0.1;
+          setZoom(prev =>
+            Math.min(Math.max(Number((prev + delta).toFixed(2)), 0.2), 3),
           );
-
-          service.send({
-            type: 'MOVE_IMMEDIATE',
-            payload: { id: `${id}`, x, y },
-          });
-          setTransform({ ..._transform });
         }
       }}
 
-      onDragEnd={({ draggable: { node, id } }) => {
-        if (!selected(id)) return;
-
-        const X = node.offsetLeft + transform().x / zoom();
-        const Y = node.offsetTop + transform().y / zoom();
-        node.style.setProperty('top', Y + 'px');
-        node.style.setProperty('left', X + 'px');
-        node.style.removeProperty('transform');
-
-        setTimeout(() => {
-          service.send({
-            type: 'MOVE',
-            payload: { id: `${id}`, x: X, y: Y },
-          });
-          setTransform({ x: 0, y: 0 });
-        }, 0);
-      }}
+      class='relative mx-auto h-[calc(100vh-64px)] w-[calc(100vw-32px)] overflow-hidden'
     >
-      <div
-        onWheel={e => {
-          if (e.ctrlKey || e.metaKey) {
-            e.preventDefault();
-            updateScrollPercentages();
-            const delta = e.deltaY < 0 ? 0.1 : -0.1;
-            setZoom(prev =>
-              Math.min(
-                Math.max(Number((prev + delta).toFixed(2)), 0.2),
-                3,
-              ),
+      <DragDropProvider
+        onDragMove={({ draggable: { transform: _transform, node, id } }) => {
+          setId(id);
+          if (selected(id)) {
+            const grandParent = node.parentElement?.parentElement;
+            const currentZoom = zoom();
+            const minX = 0;
+            const maxX = grandParent
+              ? Math.max(0, grandParent.clientWidth / currentZoom - node.offsetWidth)
+              : Infinity;
+            const minY = 0;
+            const maxY = grandParent
+              ? Math.max(
+                  0,
+                  grandParent.clientHeight / currentZoom - node.offsetHeight,
+                )
+              : Infinity;
+
+            const targetX = node.offsetLeft + _transform.x / currentZoom;
+            const targetY = node.offsetTop + _transform.y / currentZoom;
+
+            const x = Math.min(Math.max(targetX, minX), maxX);
+            const y = Math.min(Math.max(targetY, minY), maxY);
+
+            const deltaX = x - node.offsetLeft;
+            const deltaY = y - node.offsetTop;
+
+            // Directly update the draggable node's CSS transform adjusted for zoom:
+            node.style.setProperty(
+              'transform',
+              `translate3d(${deltaX}px, ${deltaY}px, 0)`,
             );
+
+            service.send({ type: 'MOVE_IMMEDIATE', payload: { id: `${id}`, x, y } });
+            setTransform({ x: deltaX * currentZoom, y: deltaY * currentZoom });
           }
         }}
 
-        class='relative mx-auto h-[calc(100vh-64px)] w-[calc(100vw-32px)]'
+        onDragEnd={({ draggable: { node, id } }) => {
+          if (!selected(id)) return;
+
+          const grandParent = node.parentElement?.parentElement;
+          const currentZoom = zoom();
+          const minX = 0;
+          const maxX = grandParent
+            ? Math.max(0, grandParent.clientWidth / currentZoom - node.offsetWidth)
+            : Infinity;
+          const minY = 0;
+          const maxY = grandParent
+            ? Math.max(0, grandParent.clientHeight / currentZoom - node.offsetHeight)
+            : Infinity;
+
+          const rawX = node.offsetLeft + transform().x / currentZoom;
+          const rawY = node.offsetTop + transform().y / currentZoom;
+          const X = Math.min(Math.max(rawX, minX), maxX);
+          const Y = Math.min(Math.max(rawY, minY), maxY);
+
+          node.style.setProperty('top', Y + 'px');
+          node.style.setProperty('left', X + 'px');
+          node.style.removeProperty('transform');
+
+          setTimeout(() => {
+            service.send({ type: 'MOVE', payload: { id: `${id}`, x: X, y: Y } });
+            setTransform({ x: 0, y: 0 });
+          }, 0);
+        }}
       >
         <div
           ref={el => {
@@ -170,21 +170,14 @@ export const NodesBoard: Component = () => {
           class='relative h-full w-full overflow-scroll rounded-lg border-2 border-gray-600'
         >
           <DragDropSensors />
-          <DragBounds />
           <div
             ref={setRef}
-            class='relative cursor-crosshair'
+            class='relative cursor-crosshair overflow-hidden'
             classList={{ 'cursor-grabbing': isPanning() }}
-            style={{
-              height: `calc(${cDim()}vh - 85px)`,
-              width: `calc(${cDim()}vw - 53px)`,
-              scale: zoom(),
-              'transform-origin': 'top left',
-            }}
+            style={{ height: cHeight(), width: cWidth() }}
+
             onMouseDown={e => {
               if (newEdge() || e.button !== 0) return;
-              if (!containerRef) return;
-
               service.send('DESELECT');
 
               // #region Props
@@ -197,11 +190,10 @@ export const NodesBoard: Component = () => {
               setIsPanning(true);
 
               const handleMouseMove = (moveEvent: MouseEvent) => {
-                if (!containerRef) return;
                 const dx = moveEvent.clientX - startX;
                 const dy = moveEvent.clientY - startY;
-                containerRef.scrollLeft = startScrollLeft - dx * 3;
-                containerRef.scrollTop = startScrollTop - dy * 3;
+                containerRef.scrollLeft = startScrollLeft - dx * SCROLL_MULTIPLIER;
+                containerRef.scrollTop = startScrollTop - dy * SCROLL_MULTIPLIER;
                 updateScrollPercentages();
               };
 
@@ -209,18 +201,22 @@ export const NodesBoard: Component = () => {
                 window.removeEventListener('mousemove', handleMouseMove);
                 window.removeEventListener('mouseup', handleMouseUp);
                 setTimeout(() => setIsPanning(false), 200);
-                (cleanupPanning as any) = undefined;
               };
 
               // #region Attach Windows listeners
-              cleanupPanning = handleMouseUp;
               window.addEventListener('mousemove', handleMouseMove);
               window.addEventListener('mouseup', handleMouseUp);
               // #endregion
             }}
           >
-            <EdgesBoard />
-            <For each={nodes()} children={NodeComponent} />
+            <div
+              class='relative h-full w-full'
+              style={{ scale: zoom(), 'transform-origin': 'top left' }}
+            >
+              <DragBounds />
+              <EdgesBoard />
+              <For each={nodes()} children={NodeComponent} />
+            </div>
           </div>
         </div>
 
@@ -233,7 +229,7 @@ export const NodesBoard: Component = () => {
               updateScrollPercentages();
               setPreviousZoom(undefined);
               setZoom(prev =>
-                Math.max(0.2, Number((prev - 0.1).toFixed(2))),
+                Math.max(1 / CANVAS_FACTOR, Number((prev - 0.1).toFixed(2))),
               );
             }}
             title='Zoom out'
@@ -266,7 +262,10 @@ export const NodesBoard: Component = () => {
               updateScrollPercentages();
               setPreviousZoom(undefined);
               setZoom(prev =>
-                Math.min(3, Number((prev + 0.1).toFixed(2))),
+                Math.min(
+                  Math.min(3, CANVAS_FACTOR),
+                  Number((prev + 0.1).toFixed(2)),
+                ),
               );
             }}
             title='Zoom in'
@@ -288,11 +287,10 @@ export const NodesBoard: Component = () => {
             </svg>
           </button>
         </div>
-      </div>
-
-      <Show when={!id() || !selected(id())}>
-        <DragOverlay children='' />
-      </Show>
-    </DragDropProvider>
+        <Show when={!id() || !selected(id())}>
+          <DragOverlay children='' />
+        </Show>
+      </DragDropProvider>
+    </div>
   );
 };

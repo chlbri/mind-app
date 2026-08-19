@@ -1,5 +1,6 @@
-import { Accordion as AccordionD } from '~/globals/ui/cn/components/ui/accordion';
 import { For, type Accessor, type Component } from 'solid-js';
+
+import { Accordion as AccordionD } from '~/globals/ui/cn/components/ui/accordion';
 
 /** Data item model for an accordion Q&A question-and-answer entry. */
 export type AccordionData = {
@@ -9,10 +10,7 @@ export type AccordionData = {
   answer: string;
 };
 
-/**
- * Internal component rendering an individual accordion item for a Q&A
- * pair.
- */
+/** Internal component rendering an individual accordion item for a Q&A pair. */
 const Item: Component<AccordionData & { index: Accessor<number> }> = ({
   question,
   answer,
@@ -27,17 +25,14 @@ const Item: Component<AccordionData & { index: Accessor<number> }> = ({
 };
 
 /**
- * Accordion component rendering a collapsible list of Questions and
- * Answers.
+ * Accordion component rendering a collapsible list of Questions and Answers.
  *
  * @param props - Component props containing the Q&A dataset of type
  *   {@linkcode AccordionData}[].
  *
  * @returns Rendered Accordion QA element JSX.
  */
-export const AccordionQA: Component<{ data: AccordionData[] }> = ({
-  data,
-}) => {
+export const AccordionQA: Component<{ data: AccordionData[] }> = ({ data }) => {
   return (
     <AccordionD collapsible class='mx-auto min-w-md'>
       <For

@@ -3,8 +3,8 @@ import type { Accessor, Component } from 'solid-js';
 /**
  * Interactive button component displaying a reactive numeric counter.
  *
- * @param props - Counter button properties including click callback,
- *   label, and reactive count accessor.
+ * @param props - Counter button properties including click callback, label, and
+ *   reactive count accessor.
  *
  * @returns Rendered button element JSX.
  */

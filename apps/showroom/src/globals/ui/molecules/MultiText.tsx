@@ -1,6 +1,7 @@
 import { splitProps } from 'solid-js';
-import type { OmitPropsOf } from '../types';
+
 import { cn } from '../cn/utils';
+import type { OmitPropsOf } from '../types';
 
 /** Props for the {@linkcode MultiText} component. */
 type Props<T extends string[]> = {
@@ -13,8 +14,8 @@ type Props<T extends string[]> = {
 } & OmitPropsOf<'span', 'children'>;
 
 /**
- * Renders multiple inline text spans sequentially with customized
- * attributes per segment.
+ * Renders multiple inline text spans sequentially with customized attributes per
+ * segment.
  *
  * @template | `string[]` `T` - String tuple type for the text segments.
  *

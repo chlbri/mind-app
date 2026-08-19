@@ -1,9 +1,9 @@
 import { createRouter as createTanStackRouter } from '@tanstack/solid-router';
+
 import { routeTree } from './routeTree.gen';
 
 /**
- * Instantiates and configures the TanStack router instance for the
- * application.
+ * Instantiates and configures the TanStack router instance for the application.
  *
  * @returns Configured TanStack Router instance.
  */
@@ -25,9 +25,7 @@ export function getRouter() {
 
     defaultNotFoundComponent: () => (
       <div class='p-12 text-center text-slate-400'>
-        <h2 class='mb-2 text-2xl font-bold text-slate-200'>
-          404 - Not Found
-        </h2>
+        <h2 class='mb-2 text-2xl font-bold text-slate-200'>404 - Not Found</h2>
         <p>The requested route could not be found.</p>
       </div>
     ),

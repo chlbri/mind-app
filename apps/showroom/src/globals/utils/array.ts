@@ -5,7 +5,7 @@
  * @param index - The numeric index to test.
  *
  * @returns `true` if the index exists within the array bounds; otherwise
- *   `false`.
+ * `false`.
  */
 export const inBounds = (data: any[], index: number) => {
   const out = data.map((_, i) => i).includes(index);
@@ -14,29 +14,28 @@ export const inBounds = (data: any[], index: number) => {
 };
 
 /**
- * Creates a predicate filter function matching items against a partial
- * object specification.
+ * Creates a predicate filter function matching items against a partial object
+ * specification.
  *
  * @template T - The type of elements being filtered.
  *
  * @param data - Partial matching object criteria.
  *
  * @returns A predicate function returning `true` if an item matches all
- *   criteria.
+ * criteria.
  */
 export function narrowFilter<T>(data: Partial<T>): (data: T) => boolean;
 
 /**
- * Creates a predicate filter function matching items by a specific key and
- * value.
+ * Creates a predicate filter function matching items by a specific key and value.
  *
  * @template T - The type of elements being filtered.
  *
  * @param key - Property key to check on each item.
  * @param value - Expected property value.
  *
- * @returns A predicate function returning `true` if the item property
- *   matches the value.
+ * @returns A predicate function returning `true` if the item property matches the
+ *   value.
  */
 export function narrowFilter<T>(
   key: keyof T,

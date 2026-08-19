@@ -1,10 +1,7 @@
 import { createFileRoute } from '@tanstack/solid-router';
 import { createSignal } from 'solid-js';
 
-/**
- * Zoom demonstration route testing canvas layout stability under dynamic
- * scaling.
- */
+/** Zoom demonstration route testing canvas layout stability under dynamic scaling. */
 export const Route = createFileRoute('/zoom')({ component: ZoomDemo });
 
 /** Interactive zoom preview component with a scale slider control. */
@@ -42,9 +39,7 @@ function ZoomDemo() {
             height: `${100 / zoom()}%`,
           }}
         >
-          <h3 class='text-lg font-bold text-slate-800'>
-            Iframe-style Zoom
-          </h3>
+          <h3 class='text-lg font-bold text-slate-800'>Iframe-style Zoom</h3>
           <p class='mb-4 text-sm text-slate-600'>
             Drag the slider to test layout stability.
           </p>

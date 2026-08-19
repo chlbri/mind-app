@@ -1,9 +1,4 @@
-import {
-  createContext,
-  createSignal,
-  useContext,
-  type Accessor,
-} from 'solid-js';
+import { createContext, createSignal, useContext, type Accessor } from 'solid-js';
 
 /**
  * Lifecycle states for an asynchronously fetched or loaded resource.
@@ -43,9 +38,7 @@ export type ResourceDownloader<T = unknown> = () => Promise<T>;
  *
  * @param status - Current status of type {@linkcode ResourceStatus}.
  */
-export type ResourceSubscriber<T = unknown> = (
-  status: ResourceStatus<T>,
-) => void;
+export type ResourceSubscriber<T = unknown> = (status: ResourceStatus<T>) => void;
 
 /**
  * Represents a cached file resource entry.
@@ -61,10 +54,7 @@ export interface FileResource<T = unknown> {
   timestamp: number;
 }
 
-/**
- * Context value interface for managing global resource caching and
- * subscriptions.
- */
+/** Context value interface for managing global resource caching and subscriptions. */
 export interface ResourceContextValue {
   /** Internal Map storing all resources by key. */
   resources: Map<string, unknown>;
@@ -96,15 +86,13 @@ export interface ResourceContextValue {
  *
  * @internal Use `useResource()` hook instead of consuming this context directly
  */
-export const ResourceContext = createContext<
-  ResourceContextValue | undefined
->();
+export const ResourceContext = createContext<ResourceContextValue | undefined>();
 
 /**
  * Creates a resource context provider that stores file resources in a Map
  *
- * This function initializes the context with all necessary methods to
- * manage file resources throughout the application.
+ * This function initializes the context with all necessary methods to manage file
+ * resources throughout the application.
  *
  * @example
  *   ```tsx
@@ -123,8 +111,7 @@ export const ResourceContext = createContext<
  * @returns An object containing:
  *
  *   - `ResourceProvider` : Solid component to wrap your app
- *   - `createResourceContext` : Function to manually create resource
- *     contexts
+ *   - `createResourceContext` : Function to manually create resource contexts
  */
 export const createResourceContext = () => {
   // Map pour stocker l'état de chaque ressource
@@ -256,34 +243,34 @@ export const createResourceContext = () => {
  *
  * @example
  *   ```tsx
- *               import { useResource } from '~/globals/ui/signals/ressource';
- *               import { createEffect } from 'solid-js';
+ *                           import { useResource } from '~/globals/ui/signals/ressource';
+ *                           import { createEffect } from 'solid-js';
  *
- *               const MyComponent = () => {
- *                 const { set, get, has, size } = useResource();
+ *                           const MyComponent = () => {
+ *                             const { set, get, has, size } = useResource();
  *
- *                 createEffect(() => {
- *                   console.log(`Total resources: ${size()}`);
- *                 });
+ *                             createEffect(() => {
+ *                               console.log(`Total resources: ${size()}`);
+ *                             });
  *
- *                 const handleCache = () => {
- *                   set('my-resource', { id: 1, name: 'Test' });
- *                 };
+ *                             const handleCache = () => {
+ *                               set('my-resource', { id: 1, name: 'Test' });
+ *                             };
  *
- *                 const handleRetrieve = () => {
- *                   const data = get('my-resource');
- *                   console.log(data);
- *                 };
+ *                             const handleRetrieve = () => {
+ *                               const data = get('my-resource');
+ *                               console.log(data);
+ *                             };
  *
- *                 return (
- *                   <div>
- *                     <button onClick={handleCache}>Cache Resource</button>
- *                     <button onClick={handleRetrieve}>Get Resource</button>
- *                     <p>Cached items: {size()}</p>
- *                   </div>
- *                 );
- *               };
- *               ```
+ *                             return (
+ *                               <div>
+ *                                 <button onClick={handleCache}>Cache Resource</button>
+ *                                 <button onClick={handleRetrieve}>Get Resource</button>
+ *                                 <p>Cached items: {size()}</p>
+ *                               </div>
+ *                             );
+ *                           };
+ *                           ```
  *
  * @returns The resource context value with all methods and accessors
  *
