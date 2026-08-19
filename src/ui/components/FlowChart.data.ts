@@ -1,4 +1,4 @@
-import type { NodeProps } from "./FlowChart";
+import type { NodeProps } from './FlowChart';
 
 export const PARENT_CHILD_GAP_WIDTH = 100;
 
@@ -11,7 +11,8 @@ export const HANDLE_MARGIN_TOP = 12;
 export const HANDLE_CONTAINER_OFFSET_X = 18;
 
 export const HANDLE_CENTER_Y = HANDLE_MARGIN_TOP + HANDLE_RADIUS;
-export const HANDLE_CENTER_X_OFFSET = HANDLE_CONTAINER_OFFSET_X - NODE_BORDER_WIDTH - HANDLE_RADIUS;
+export const HANDLE_CENTER_X_OFFSET =
+  HANDLE_CONTAINER_OFFSET_X - NODE_BORDER_WIDTH - HANDLE_RADIUS;
 
 export const DEFAULT_INPUT_OFFSET_X = -HANDLE_CENTER_X_OFFSET;
 export const DEFAULT_INPUT_OFFSET_Y = HANDLE_CENTER_Y;
@@ -39,15 +40,15 @@ export const BOUNDS_CONSTRAINTS = {
   vertical: TOOLBAR_TOP_OFFSET + TOOLBAR_BUFFER,
 };
 
-export const CANVAS_FACTOR = 4;
+export const CANVAS_FACTOR = 5;
 // #endregion
 
 export const DEFAULT_NODES: (NodeProps & { id: string })[] = [
   {
-    id: "node-0",
+    id: 'node-0',
     data: {
-      content: "Some text",
-      label: "Root node",
+      content: 'Some text',
+      label: 'Root node',
     },
     input: false,
     position: {
