@@ -1,21 +1,23 @@
-# Mind App
+# Mind App Monorepo
 
-A flow chart UI library with a showroom application.
+Flow Chart UI library and interactive showroom application built with
+[Solid.js](https://www.solidjs.com/).
 
-## Project Structure
+## Monorepo Structure
 
-This project is organized as a UI library with a showroom:
+This project is organized as a pnpm monorepo containing the following workspaces:
 
-- **`src/`** - The Flow Chart UI library (self-contained, reusable)
-  - `services/` - State management and business logic
-  - `ui/components/` - Solid.js components for flow charts
-  - `helpers/` - Utility functions
-  - `index.ts` - Public API exports
-
-- **`showroom/`** - The showroom application demonstrating the library
-  - `routes/` - Application routes demonstrating the library
-  - `globals/` - Shared utilities, types, and UI components
-  - `features/` - Other application features (e.g., mindmap)
+- **[`packages/mindapp`](packages/mindapp)** (`@bemedev/mind-flow`) - The Flow Chart
+  UI library
+  - `src/services/` - State management and business logic with `@bemedev/app`
+  - `src/ui/components/` - Solid.js components (`Flow`, `NodesBoard`, `Edges`,
+    interactive canvas)
+  - `src/helpers/` - Utility functions, context helpers, and point calculations
+  - `src/index.ts` - Public API exports
+- **[`apps/showroom`](apps/showroom)** (`mind-app-showroom`) - Interactive showroom
+  application demonstrating the library
+  - `src/routes/` - TanStack Router application routes and interactive demos
+  - `src/globals/` - Shared utilities, types, and UI components
 
 ## Development
 
@@ -23,33 +25,41 @@ This project is organized as a UI library with a showroom:
 # Install dependencies
 pnpm install
 
-# Run development server
-pnpm run dev
+# Run showroom development server
+pnpm --filter mind-app-showroom dev
 
-# Build
+# Build all packages and applications
 pnpm run build
 
-# Run tests
+# Run test suites across monorepo
 pnpm run test
 
-# Lint
+# Format and lint code
 pnpm run lint
 ```
 
 ## Library Usage
 
-The Flow Chart library can be imported from `~/`:
+Install the `@bemedev/mind-flow` package and peer dependencies:
+
+```bash
+pnpm add @bemedev/mind-flow solid-js @bemedev/app @bemedev/app-solidjs @thisbeyond/solid-dnd
+```
+
+Import `Flow` and the accompanying stylesheet:
 
 ```tsx
-import { FlowChart, Provider } from '~/';
+import { Flow } from '@bemedev/mind-flow';
+import '@bemedev/mind-flow/style.css';
 
 export const Demo = () => {
   return (
-    <Provider>
-      <FlowChart />
-    </Provider>
+    <div style={{ width: '100vw', height: '100vh' }}>
+      <Flow />
+    </div>
   );
 };
 ```
 
-See `src/README.md` for more details on the library API.
+See [`packages/mindapp/README.md`](packages/mindapp/README.md) for full
+documentation, custom configurations, and API references.
