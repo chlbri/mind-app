@@ -111,16 +111,36 @@ export const NodesBoard: Component = () => {
       <DragDropProvider
         onDragMove={({
           draggable: { transform: _transform, node, id },
-          overlay,
         }) => {
           setId(id);
           if (selected(id)) {
-            const x = node.offsetLeft + _transform.x / zoom();
-            const y = node.offsetTop + _transform.y / zoom();
-            overlay?.node.style.setProperty('top', y * 2 + 'px');
-            overlay?.node.style.setProperty('left', x * 2 + 'px');
-            const deltaX = _transform.x / zoom();
-            const deltaY = _transform.y / zoom();
+            const grandParent = node.parentElement?.parentElement;
+            const currentZoom = zoom();
+            const minX = 0;
+            const maxX = grandParent
+              ? Math.max(
+                  0,
+                  grandParent.clientWidth / currentZoom - node.offsetWidth,
+                )
+              : Infinity;
+            const minY = 0;
+            const maxY = grandParent
+              ? Math.max(
+                  0,
+                  grandParent.clientHeight / currentZoom -
+                    node.offsetHeight,
+                )
+              : Infinity;
+
+            const targetX = node.offsetLeft + _transform.x / currentZoom;
+            const targetY = node.offsetTop + _transform.y / currentZoom;
+
+            const x = Math.min(Math.max(targetX, minX), maxX);
+            const y = Math.min(Math.max(targetY, minY), maxY);
+
+            const deltaX = x - node.offsetLeft;
+            const deltaY = y - node.offsetTop;
+
             // Directly update the draggable node's CSS transform adjusted for zoom:
             node.style.setProperty(
               'transform',
@@ -131,15 +151,38 @@ export const NodesBoard: Component = () => {
               type: 'MOVE_IMMEDIATE',
               payload: { id: `${id}`, x, y },
             });
-            setTransform({ ..._transform });
+            setTransform({
+              x: deltaX * currentZoom,
+              y: deltaY * currentZoom,
+            });
           }
         }}
 
         onDragEnd={({ draggable: { node, id } }) => {
           if (!selected(id)) return;
 
-          const X = node.offsetLeft + transform().x / zoom();
-          const Y = node.offsetTop + transform().y / zoom();
+          const grandParent = node.parentElement?.parentElement;
+          const currentZoom = zoom();
+          const minX = 0;
+          const maxX = grandParent
+            ? Math.max(
+                0,
+                grandParent.clientWidth / currentZoom - node.offsetWidth,
+              )
+            : Infinity;
+          const minY = 0;
+          const maxY = grandParent
+            ? Math.max(
+                0,
+                grandParent.clientHeight / currentZoom - node.offsetHeight,
+              )
+            : Infinity;
+
+          const rawX = node.offsetLeft + transform().x / currentZoom;
+          const rawY = node.offsetTop + transform().y / currentZoom;
+          const X = Math.min(Math.max(rawX, minX), maxX);
+          const Y = Math.min(Math.max(rawY, minY), maxY);
+
           node.style.setProperty('top', Y + 'px');
           node.style.setProperty('left', X + 'px');
           node.style.removeProperty('transform');

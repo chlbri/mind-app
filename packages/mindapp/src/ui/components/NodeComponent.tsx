@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-namespace */
 import { useState } from '@bemedev/app-solidjs';
 import { createDraggable } from '@thisbeyond/solid-dnd';
-import { Component, createEffect, createSignal, Show } from 'solid-js';
+import { Component, createSignal, onMount, Show } from 'solid-js';
 import { produce } from 'solid-js/store';
 import { useFlow } from './FlowChart.context';
 import {
@@ -60,7 +60,7 @@ export const NodeComponent: Component<Props> = props => {
     selector: s => s.context.selected === props.id,
   });
 
-  createEffect(() => {
+  onMount(() => {
     const _inputRef = inputRef;
     const _outputRef = outputRef;
     const _rootRef = ref();
