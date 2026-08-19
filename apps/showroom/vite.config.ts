@@ -3,12 +3,13 @@ import { tanstackStart } from '@tanstack/solid-start/plugin/vite';
 import { nitro } from 'nitro/vite';
 import { defineConfig } from 'vite';
 import viteSolid from 'vite-plugin-solid';
+import { suppressWarnings } from '@bemedev/dev-utils/plugins';
 
 export default defineConfig({
   server: { port: 3000 },
   resolve: { tsconfigPaths: true },
-  // ssr: { noExternal: [/@bemedev\/.*/, /@thisbeyond\/.*/] },
   plugins: [
+    suppressWarnings('Cannot remove nonexistent sensor with id'),
     tailwindcss({}),
     tanstackStart({}),
     nitro({}),

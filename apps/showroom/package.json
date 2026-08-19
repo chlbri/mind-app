@@ -64,6 +64,7 @@
   },
   "devDependencies": {
     "@bemedev/app-cli": "^1.11.0",
+    "@bemedev/dev-utils": "^1.2.0",
     "@bemedev/vitest-alias": "^0.0.3",
     "@bemedev/vitest-exclude": "^0.1.1",
     "@bemedev/vitest-extended": "^1.5.3",

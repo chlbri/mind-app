@@ -57,7 +57,7 @@
     "p-q": "pretty-quick"
   },
   "devDependencies": {
-    "@bemedev/dev-utils": "^1.1.1",
+    "@bemedev/dev-utils": "^1.2.0",
     "@bemedev/sleep": "^0.2.2",
     "@types/node": "^26.2.0",
     "@vitest/coverage-v8": "^4.1.11",
