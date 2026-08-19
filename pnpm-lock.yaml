@@ -243,6 +243,9 @@ importers:
 
   packages/mindapp:
     dependencies:
+      '@thisbeyond/solid-dnd':
+        specifier: ^0.7.5
+        version: 0.7.5(solid-js@1.9.15)
       dequal:
         specifier: ^2.0.3
         version: 2.0.3
@@ -8626,7 +8629,7 @@ snapshots:
       consola: 3.4.2
       defu: 6.1.7
       get-port-please: 3.2.0
-      h3: 1.15.3
+      h3: 1.15.11
       http-shutdown: 1.2.2
       jiti: 1.21.7
       mlly: 1.8.2
