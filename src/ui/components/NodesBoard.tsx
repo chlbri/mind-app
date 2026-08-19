@@ -91,7 +91,10 @@ export const NodesBoard: Component = () => {
           // Directly update the draggable node's CSS transform adjusted for zoom:
           node.style.setProperty("transform", `translate3d(${deltaX}px, ${deltaY}px, 0)`);
 
-          service.send({ type: "MOVE_IMMEDIATE", payload: { id: `${id}`, x, y } });
+          service.send({
+            type: "MOVE_IMMEDIATE",
+            payload: { id: `${id}`, x, y },
+          });
           setTransform({ ..._transform });
         }
       }}
@@ -106,7 +109,10 @@ export const NodesBoard: Component = () => {
         node.style.removeProperty("transform");
 
         setTimeout(() => {
-          service.send({ type: "MOVE", payload: { id: `${id}`, x: X, y: Y } });
+          service.send({
+            type: "MOVE",
+            payload: { id: `${id}`, x: X, y: Y },
+          });
           setTransform({ x: 0, y: 0 });
         }, 0);
       }}

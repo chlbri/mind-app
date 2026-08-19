@@ -57,10 +57,8 @@ export const NodeComponent: Component<Props> = (props) => {
     const outputRect = _outputRef.getBoundingClientRect();
     const inputRect = _inputRef?.getBoundingClientRect();
 
-    const outputOffsetX =
-      (outputRect.left - rootRect.left + outputRect.width / 2) / currentZoom;
-    const outputOffsetY =
-      (outputRect.top - rootRect.top + outputRect.height / 2) / currentZoom;
+    const outputOffsetX = (outputRect.left - rootRect.left + outputRect.width / 2) / currentZoom;
+    const outputOffsetY = (outputRect.top - rootRect.top + outputRect.height / 2) / currentZoom;
 
     const inputOffsetX = inputRect
       ? (inputRect.left - rootRect.left + inputRect.width / 2) / currentZoom
