@@ -35,6 +35,10 @@ export const NodesBoard: Component = () => {
     zoom: [zoom, setZoom],
   } = useFlow();
 
+  /**
+   * Calculates and saves the normalized scroll percentages across X and Y axes for
+   * preserving viewport alignment on zoom changes.
+   */
   const updateScrollPercentages = () => {
     const maxScrollX = containerRef.scrollWidth - containerRef.clientWidth;
     const maxScrollY = containerRef.scrollHeight - containerRef.clientHeight;
@@ -57,6 +61,13 @@ export const NodesBoard: Component = () => {
 
   const selectedId = useState(service, { selector: s => s.context?.selected });
 
+  /**
+   * Determines whether the given element ID matches the currently selected entity.
+   *
+   * @param id - The node or edge identifier to check.
+   *
+   * @returns `true` if the item is currently selected, otherwise `false`.
+   */
   const selected = (id: string | number) => selectedId() === id;
 
   const nodes = useState(service, {

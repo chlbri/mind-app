@@ -72,7 +72,10 @@ export const CANVAS_FACTOR = 5;
 export const SCROLL_MULTIPLIER = 3;
 // #endregion
 
-/** Default node items provided when no initial configuration is given. */
+/**
+ * Default node items of type {@linkcode NodeProps} provided when no initial
+ * configuration is given.
+ */
 export const DEFAULT_NODES: (NodeProps & { id: string })[] = [
   {
     id: 'node-0',

@@ -3,6 +3,22 @@
 <details>
 <summary>
 
+## **[0.1.1] - 19/08/2026** => _21:05_
+
+</summary>
+
+- Enhance JSDoc documentation across helper functions, components, data types, and
+  context utilities
+- Update devDependencies to consolidate `@bemedev/dev-utils`
+- <u>Test coverage **_100%_**</u>
+
+</details>
+
+<br/>
+
+<details>
+<summary>
+
 ## **[0.1.0] - 19/08/2026** => _20:44_
 
 </summary>

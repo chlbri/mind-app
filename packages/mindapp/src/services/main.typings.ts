@@ -13,7 +13,7 @@ export const nodeOffset = type(({ optional, use }) => ({
   output: use(point),
 }));
 
-/** Schema definition for edge extremities */
+/** Schema definition for edge extremities. */
 export const extremities = type({ from: 'string', to: 'string' });
 
 /** Schema definition for a serialized flowchart node entity. */

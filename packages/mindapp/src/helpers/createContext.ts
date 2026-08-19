@@ -4,19 +4,19 @@ import {
   type ParentComponent,
 } from 'solid-js';
 
-/** Context options type extracted from Solid's `createContext`. */
+/** Context options type extracted from Solid's `createSolidContext`. */
 type Options = Parameters<typeof createSolidContext>[1];
 
 /**
  * Creates a Solid context provider component and a custom hook to consume it.
  *
- * @template T - The type of the context value.
+ * @template `T` - The type of the context value.
  *
  * @param context - Factory function returning a non-nullable context value of type
  *   `NonNullable<T>`.
  * @param options - Optional context configuration of type {@linkcode Options}.
  *
- * @returns A tuple containing the Provider component of type
+ * @returns A tuple containing the Provider component of interface
  *   {@linkcode ParentComponent}, the accessor hook, and the Solid context object.
  */
 export const createContext = <const T>(

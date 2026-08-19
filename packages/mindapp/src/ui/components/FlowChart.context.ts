@@ -59,6 +59,15 @@ export const [Provider, useFlow] = createContext(
       { equals: dequal },
     );
 
+    /**
+     * Converts client viewport coordinates to board canvas coordinates adjusted for
+     * zoom and scroll.
+     *
+     * @param clientX - Viewport horizontal coordinate.
+     * @param clientY - Viewport vertical coordinate.
+     *
+     * @returns Board coordinate point of type {@linkcode Point}.
+     */
     const getBoardPoint = (clientX: number, clientY: number): Point => {
       const el = boardRef();
       if (!el) return { x: clientX, y: clientY };
@@ -75,6 +84,16 @@ export const [Provider, useFlow] = createContext(
       { equals: false },
     );
 
+    /**
+     * Clamps node coordinates within the visible container boundaries.
+     *
+     * @param x - Desired horizontal X coordinate.
+     * @param y - Desired vertical Y coordinate.
+     * @param nodeWidth - Width of the node element in pixels, defaults to `192`.
+     * @param nodeHeight - Height of the node element in pixels, defaults to `50`.
+     *
+     * @returns Clamped coordinate point of type {@linkcode Point}.
+     */
     const clampPosition = (
       x: number,
       y: number,
