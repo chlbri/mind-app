@@ -1,6 +1,7 @@
 # Custom Slash Commands in Zed Editor
 
-> Complete guide to creating and using custom AI prompts (slash commands) in Zed Editor for this project.
+> Complete guide to creating and using custom AI prompts (slash commands)
+> in Zed Editor for this project.
 
 ## Table of Contents
 
@@ -14,7 +15,10 @@
 
 ## Overview
 
-Zed Editor allows you to create custom AI prompts that can be invoked using slash commands in the Agent Panel. These are markdown files stored in `.github/prompts/` that provide context and instructions to the AI assistant.
+Zed Editor allows you to create custom AI prompts that can be invoked using
+slash commands in the Agent Panel. These are markdown files stored in
+`.github/prompts/` that provide context and instructions to the AI
+assistant.
 
 ### Why Use Custom Commands?
 
@@ -60,25 +64,26 @@ ivoire-cours-web1/
 **Purpose**: Regenerate TypeScript types from `public/` folder structure.
 
 **When to use**:
+
 - After adding new images, icons, or files to `public/`
 - After renaming or moving assets
 - When asset types are out of sync with files
 
 **What it does**:
+
 ```bash
 pnpm run codegen:assets
 ```
 
 **Output**:
+
 ```typescript
 export const ASSETS = {
   images: {
     logoTexte: '/images/logo-texte.png',
-    logoTexteNoBackground: '/images/logo-texte.no-background.png'
+    logoTexteNoBackground: '/images/logo-texte.no-background.png',
   },
-  icons: {
-    home: '/icons/home.svg'
-  }
+  icons: { home: '/icons/home.svg' },
 } as const;
 ```
 
@@ -89,6 +94,7 @@ export const ASSETS = {
 **Purpose**: Generate SolidJS components following project architecture.
 
 **Tech Stack Context**:
+
 - SolidJS v1.9.9
 - TanStack Start v1.132.56
 - Tailwind CSS v4.1.14
@@ -96,12 +102,14 @@ export const ASSETS = {
 - Valibot v1.1.0
 
 **Architecture Rules**:
+
 - Start in `features/[feature-name]/front/`
 - Migrate to `globals/` only when reused 2+ times
 - Never modify `globals/ui/cn/components/ui/` manually
 - Use shadcn-solid CLI for primitives
 
 **Example Usage**:
+
 ```
 You: /ui I need a user profile card with avatar, name, email, and edit button
 
@@ -112,20 +120,24 @@ AI: [Generates component following project conventions]
 
 ### 3. `/test` - Test Generator
 
-**Purpose**: Generate unit and integration tests following project patterns.
+**Purpose**: Generate unit and integration tests following project
+patterns.
 
 **Testing Stack**:
+
 - Vitest
 - @solidjs/testing-library
 - Testing conventions for SolidJS components
 
 **What it generates**:
+
 - Component tests with accessibility checks
 - Utility function tests
 - Signal/state management tests
 - Mock configurations
 
 **Example Usage**:
+
 ```
 You: /test Generate tests for UserCard component
 
@@ -136,9 +148,11 @@ AI: [Creates UserCard.test.tsx with comprehensive test coverage]
 
 ### 4. `/commit` - Commit Message Generator
 
-**Purpose**: Generate conventional commit messages following project standards.
+**Purpose**: Generate conventional commit messages following project
+standards.
 
 **Commit Types**:
+
 - `feat`: New feature (minor version)
 - `fix`: Bug fix (patch version)
 - `hot-fix`: Critical bug fix (patch version)
@@ -149,6 +163,7 @@ AI: [Creates UserCard.test.tsx with comprehensive test coverage]
 - `revert`: Revert commit (patch version)
 
 **Format**:
+
 ```
 type(scope): Title in English
 
@@ -159,13 +174,14 @@ chlbri: bri_lvi@icloud.com
 ```
 
 **Example Usage**:
+
 ```
 You: /commit I added email verification to the auth system
 
 AI:
 feat(auth): Add email verification flow
 
-Ajout d'un système de vérification par email pour les nouveaux 
+Ajout d'un système de vérification par email pour les nouveaux
 utilisateurs avec envoi de lien de confirmation.
 
 chlbri: bri_lvi@icloud.com
@@ -193,6 +209,7 @@ Brief description of what this command does (1-2 sentences).
 ## Context
 
 Provide project-specific context:
+
 - Tech stack information
 - File structure
 - Conventions to follow
@@ -202,6 +219,7 @@ Provide project-specific context:
 ## Task
 
 Clear instructions on what the AI should do:
+
 1. Analyze [what]
 2. Generate [what]
 3. Follow [which conventions]
@@ -224,6 +242,7 @@ Clear instructions on what the AI should do:
 ## Rules
 
 List specific rules:
+
 - ✅ DO: Use named exports
 - ❌ DON'T: Use default exports
 - ✅ DO: Include TypeScript types
@@ -232,6 +251,7 @@ List specific rules:
 ## Output Format
 
 Specify exactly what the AI should output:
+
 - No extra commentary
 - Just the code/result
 - Specific format indicators
@@ -249,12 +269,14 @@ Specify exactly what the AI should output:
 
 ### 1. Be Specific
 
-❌ **Bad**: "Generate a component"
-✅ **Good**: "Generate a SolidJS component using Kobalte UI primitives, Tailwind CSS for styling, with TypeScript strict types and accessibility attributes"
+❌ **Bad**: "Generate a component" ✅ **Good**: "Generate a SolidJS
+component using Kobalte UI primitives, Tailwind CSS for styling, with
+TypeScript strict types and accessibility attributes"
 
 ### 2. Include Context
 
 Always provide:
+
 - Tech stack versions
 - File structure
 - Naming conventions
@@ -264,36 +286,40 @@ Always provide:
 ### 3. Use Examples
 
 Show the AI exactly what you want:
+
 ```markdown
 ## Examples
 
 ### Good Component Structure
+
 [Show actual code from your project]
 
 ### Bad Component Structure
+
 [Show what to avoid]
 ```
 
 ### 4. Define Output Format
 
 Tell the AI exactly what to output:
+
 ```markdown
 ## Output Format
 
 Return only:
+
 1. File path
 2. Number of items generated
 3. Brief summary (1 line)
 
-Format:
-✅ Created: src/features/auth/components/LoginForm.tsx
-📊 3 components generated
-🎯 Coverage: form, validation, accessibility
+Format: ✅ Created: src/features/auth/components/LoginForm.tsx 📊 3
+components generated 🎯 Coverage: form, validation, accessibility
 ```
 
 ### 5. Keep It Focused
 
 Each command should do ONE thing well:
+
 - ✅ `/test` generates tests
 - ✅ `/commit` generates commit messages
 - ❌ `/test-and-commit` does too much
@@ -301,10 +327,12 @@ Each command should do ONE thing well:
 ### 6. Reference Project Standards
 
 Link to project documentation:
+
 ```markdown
 ## Context
 
 Follow conventions defined in:
+
 - `.github/copilot-instructions.md` for commits
 - `src/features/README.md` for architecture
 - `.github/docs/ZED_EDITOR_GUIDE.md` for workflow
@@ -337,9 +365,11 @@ Generates type-safe API client functions using TanStack Query.
 ## Examples
 
 ### Input
+
 "GET /api/users/:id - Returns user profile"
 
 ### Output
+
 [Generated code with types, hooks, error handling]
 
 ## Rules
@@ -354,7 +384,7 @@ Generates type-safe API client functions using TanStack Query.
 
 ### Example 2: Migration Generator
 
-```markdown
+````markdown
 # Database Migration Generator
 
 Creates database migration files following project conventions.
@@ -376,9 +406,11 @@ Creates database migration files following project conventions.
 ## Examples
 
 ### Input
+
 "Add email_verified column to users table"
 
 ### Output
+
 ```sql
 -- Migration: Add email verification
 -- Created: 2024-01-15 10:30:00
@@ -386,10 +418,10 @@ Creates database migration files following project conventions.
 BEGIN;
 
 -- UP
-ALTER TABLE users 
+ALTER TABLE users
 ADD COLUMN email_verified BOOLEAN DEFAULT FALSE NOT NULL;
 
-CREATE INDEX idx_users_email_verified 
+CREATE INDEX idx_users_email_verified
 ON users(email_verified);
 
 COMMIT;
@@ -400,6 +432,7 @@ COMMIT;
 -- ALTER TABLE users DROP COLUMN email_verified;
 -- COMMIT;
 ```
+````
 
 ## Rules
 
@@ -408,7 +441,8 @@ COMMIT;
 - ✅ Add indexes for foreign keys
 - ✅ Include timestamps
 - ❌ Never drop data without backup
-```
+
+````
 
 ### Example 3: Refactor Helper
 
@@ -439,16 +473,17 @@ Helps refactor code following modern best practices.
 ```typescript
 function UserCard(props: any) {
   const [data, setData] = useState(null);
-  
+
   useEffect(() => {
     fetch('/api/user').then(r => r.json()).then(setData);
   }, []);
-  
+
   return <div>{data?.name}</div>;
 }
-```
+````
 
 ### After
+
 ```typescript
 interface UserCardProps {
   userId: string;
@@ -460,7 +495,7 @@ const UserCard: Component<UserCardProps> = props => {
     queryKey: ['user', props.userId],
     queryFn: () => fetchUser(props.userId),
   }));
-  
+
   return (
     <div class={cn('user-card', props.class)}>
       <Show when={user.data} fallback={<Skeleton />}>
@@ -472,6 +507,7 @@ const UserCard: Component<UserCardProps> = props => {
 ```
 
 ### Benefits
+
 - Type safety with TypeScript
 - Better loading states with `<Show>`
 - Query caching with TanStack Query
@@ -486,7 +522,8 @@ const UserCard: Component<UserCardProps> = props => {
 - ✅ Make components reusable
 - ❌ Don't break existing functionality
 - ❌ Don't add unnecessary complexity
-```
+
+````
 
 ## Troubleshooting
 
@@ -540,15 +577,17 @@ Reference other prompts:
 
 Follow UI component conventions from `/ui` prompt.
 Use commit format from `/commit` prompt.
-```
+````
 
 ### 2. Dynamic Context
 
 Use placeholders:
+
 ```markdown
 ## Task
 
 Generate a [COMPONENT_TYPE] with:
+
 - [PROPS_DESCRIPTION]
 - [FEATURES_DESCRIPTION]
 ```
@@ -559,10 +598,12 @@ Generate a [COMPONENT_TYPE] with:
 ## Rules
 
 If generating a form:
+
 - ✅ Use Valibot for validation
 - ✅ Include error messages
 
 If generating a list:
+
 - ✅ Use `<For>` component
 - ✅ Include empty state
 ```
@@ -572,11 +613,8 @@ If generating a list:
 ```markdown
 ## Task
 
-Step 1: Analyze requirements
-Step 2: Generate types
-Step 3: Generate component
-Step 4: Generate tests
-Step 5: Update documentation
+Step 1: Analyze requirements Step 2: Generate types Step 3: Generate
+component Step 4: Generate tests Step 5: Update documentation
 ```
 
 ## Related Resources
@@ -584,7 +622,8 @@ Step 5: Update documentation
 - [Zed Editor Guide](./ZED_EDITOR_GUIDE.md) - Complete Zed setup
 - [Quick Reference](./ZED_QUICK_REFERENCE.md) - Daily commands
 - [Commit Guidelines](../copilot-instructions.md) - Project conventions
-- [Zed Prompts Documentation](https://zed.dev/docs/assistant/prompts) - Official docs
+- [Zed Prompts Documentation](https://zed.dev/docs/assistant/prompts) -
+  Official docs
 
 ## Contributing
 

@@ -2,7 +2,9 @@
 
 ## Overview
 
-This project uses **lucide-solid** for icons in SolidJS components. To optimize bundle size and ensure proper tree-shaking, icons must be imported from individual component files, not from the main package.
+This project uses **lucide-solid** for icons in SolidJS components. To
+optimize bundle size and ensure proper tree-shaking, icons must be imported
+from individual component files, not from the main package.
 
 ## Quick Reference
 
@@ -86,23 +88,23 @@ lucide-solid/icons/{kebab-case-icon-name}
 
 ## Common Icons & Import Paths
 
-| Use Case | Icon Name | Import Path |
-|----------|-----------|-------------|
-| Checkmark | Check | `lucide-solid/icons/check` |
-| Validated | CheckCircle2 | `lucide-solid/icons/check-circle-2` |
-| Error/Warning | AlertCircle | `lucide-solid/icons/alert-circle` |
-| Close/Dismiss | X | `lucide-solid/icons/x` |
-| Rating | Star | `lucide-solid/icons/star` |
-| Messages | MessageSquare | `lucide-solid/icons/message-square` |
-| Menu | Menu | `lucide-solid/icons/menu` |
-| Dropdown | ChevronDown | `lucide-solid/icons/chevron-down` |
-| Settings | Settings | `lucide-solid/icons/settings` |
-| User | User | `lucide-solid/icons/user` |
-| Search | Search | `lucide-solid/icons/search` |
-| Plus | Plus | `lucide-solid/icons/plus` |
-| Minus | Minus | `lucide-solid/icons/minus` |
-| Edit | Edit | `lucide-solid/icons/edit` |
-| Trash | Trash | `lucide-solid/icons/trash` |
+| Use Case      | Icon Name     | Import Path                         |
+| ------------- | ------------- | ----------------------------------- |
+| Checkmark     | Check         | `lucide-solid/icons/check`          |
+| Validated     | CheckCircle2  | `lucide-solid/icons/check-circle-2` |
+| Error/Warning | AlertCircle   | `lucide-solid/icons/alert-circle`   |
+| Close/Dismiss | X             | `lucide-solid/icons/x`              |
+| Rating        | Star          | `lucide-solid/icons/star`           |
+| Messages      | MessageSquare | `lucide-solid/icons/message-square` |
+| Menu          | Menu          | `lucide-solid/icons/menu`           |
+| Dropdown      | ChevronDown   | `lucide-solid/icons/chevron-down`   |
+| Settings      | Settings      | `lucide-solid/icons/settings`       |
+| User          | User          | `lucide-solid/icons/user`           |
+| Search        | Search        | `lucide-solid/icons/search`         |
+| Plus          | Plus          | `lucide-solid/icons/plus`           |
+| Minus         | Minus         | `lucide-solid/icons/minus`          |
+| Edit          | Edit          | `lucide-solid/icons/edit`           |
+| Trash         | Trash         | `lucide-solid/icons/trash`          |
 
 ## Usage Examples
 
@@ -153,7 +155,9 @@ import Check from 'lucide-solid/icons/check';
 import X from 'lucide-solid/icons/x';
 import AlertCircle from 'lucide-solid/icons/alert-circle';
 
-export const StatusIndicator = (props: { status: 'success' | 'error' | 'warning' }) => {
+export const StatusIndicator = (props: {
+  status: 'success' | 'error' | 'warning';
+}) => {
   const getIcon = () => {
     switch (props.status) {
       case 'success':
@@ -172,6 +176,7 @@ export const StatusIndicator = (props: { status: 'success' | 'error' | 'warning'
 ## Finding Icon Names
 
 ### Method 1: Lucide Website
+
 1. Go to https://lucide.dev/
 2. Search for the icon you need
 3. The icon name is displayed
@@ -179,6 +184,7 @@ export const StatusIndicator = (props: { status: 'success' | 'error' | 'warning'
 5. Use in import path
 
 ### Method 2: File System
+
 ```bash
 # List all available icons
 ls node_modules/lucide-solid/dist/icons/
@@ -188,7 +194,9 @@ ls node_modules/lucide-solid/dist/icons/ | grep "alert"
 ```
 
 ### Method 3: TypeScript Autocomplete
+
 Most IDEs support autocomplete for module paths:
+
 ```typescript
 import ... from 'lucide-solid/icons/[TAB]' // Shows available icons
 ```
@@ -199,12 +207,12 @@ All lucide-solid icons accept these props:
 
 ### Standard Props
 
-| Prop | Type | Default | Description |
-|------|------|---------|-------------|
-| `size` | number | 24 | Icon size in pixels |
-| `class` | string | - | CSS classes (Tailwind supported) |
-| `strokeWidth` | number | 2 | Stroke width |
-| `color` | string | currentColor | Icon color |
+| Prop          | Type   | Default      | Description                      |
+| ------------- | ------ | ------------ | -------------------------------- |
+| `size`        | number | 24           | Icon size in pixels              |
+| `class`       | string | -            | CSS classes (Tailwind supported) |
+| `strokeWidth` | number | 2            | Stroke width                     |
+| `color`       | string | currentColor | Icon color                       |
 
 ### SolidJS Props
 
@@ -271,17 +279,20 @@ Error: Module not found: lucide-solid/icons/alert-circle
 ```
 
 **Solution**: Check icon name case
+
 - ❌ Wrong: `lucide-solid/icons/AlertCircle`
 - ✅ Correct: `lucide-solid/icons/alert-circle`
 
 ### Icons not rendering
 
 **Possible causes**:
+
 1. Missing size prop (defaults to 24px, might be too large)
 2. CSS classes not applied (check Tailwind config)
 3. Icon name typo
 
 **Solution**:
+
 ```tsx
 // Add explicit size
 <Check size={16} />
@@ -293,6 +304,7 @@ Error: Module not found: lucide-solid/icons/alert-circle
 ### Bundle size not optimized
 
 **If icons are not tree-shaking correctly**:
+
 1. Check that you're importing from `/icons/` subdirectory
 2. Verify no wildcard imports: `import * as icons from 'lucide-solid'`
 3. Run bundle analyzer: `pnpm build --analyze`
@@ -358,11 +370,11 @@ const MyIcon = (props: IconProps) => {
 
 ### Bundle Size Impact
 
-| Strategy | Bundle Size | Tree-Shaking |
-|----------|-------------|--------------|
-| Individual imports | ~2KB per icon | ✅ Excellent |
-| Main package import | ~150KB+ | ❌ All icons included |
-| Difference | ~140KB+ saved | - |
+| Strategy            | Bundle Size   | Tree-Shaking          |
+| ------------------- | ------------- | --------------------- |
+| Individual imports  | ~2KB per icon | ✅ Excellent          |
+| Main package import | ~150KB+       | ❌ All icons included |
+| Difference          | ~140KB+ saved | -                     |
 
 ### Real Project Example
 
@@ -372,7 +384,8 @@ const MyIcon = (props: IconProps) => {
 
 ## References
 
-- **lucide-solid GitHub**: https://github.com/lucide-icons/lucide/tree/main/packages/lucide-solid
+- **lucide-solid GitHub**:
+  https://github.com/lucide-icons/lucide/tree/main/packages/lucide-solid
 - **lucide Website**: https://lucide.dev/
 - **SolidJS Docs**: https://docs.solidjs.com/
 - **Tree-shaking Guide**: https://webpack.js.org/guides/tree-shaking/
@@ -390,5 +403,4 @@ When adding new icons to components:
 
 ---
 
-**Last Updated**: 2024
-**lucide-solid Version**: ^0.546.0
+**Last Updated**: 2024 **lucide-solid Version**: ^0.546.0

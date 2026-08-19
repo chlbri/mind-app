@@ -47,9 +47,7 @@ module.exports = {
     './src/**/*.{js,ts,jsx,tsx}',
     './components/**/*.{js,ts,jsx,tsx}',
   ],
-  theme: {
-    extend: {},
-  },
+  theme: { extend: {} },
   plugins: [],
 };
 ```
@@ -88,9 +86,7 @@ import { defineConfig } from 'vite';
 import solidPlugin from 'vite-plugin-solid';
 import tailwindcss from '@tailwindcss/vite';
 
-export default defineConfig({
-  plugins: [solidPlugin(), tailwindcss()],
-});
+export default defineConfig({ plugins: [solidPlugin(), tailwindcss()] });
 ```
 
 Alternative (PostCSS) : Si vous préférez la configuration PostCSS, ne
@@ -98,12 +94,7 @@ mettez pas `@tailwindcss/vite` dans `vite.config.ts`. Assurez-vous d'avoir
 `postcss.config.cjs` avec :
 
 ```js
-module.exports = {
-  plugins: {
-    tailwindcss: {},
-    autoprefixer: {},
-  },
-};
+module.exports = { plugins: { tailwindcss: {}, autoprefixer: {} } };
 ```
 
 ## 6) Scripts utiles
@@ -131,7 +122,7 @@ pnpm run dev
 - Dans une page ou un composant `.tsx`, ajoutez :
 
 ```tsx
-<h1 class="text-3xl font-bold underline">Hello Tailwind</h1>
+<h1 class='text-3xl font-bold underline'>Hello Tailwind</h1>
 ```
 
 - Démarrez le dev server et vérifiez que le style est appliqué.

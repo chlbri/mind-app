@@ -78,10 +78,7 @@ mais nous pouvons également les surcharger au cas par cas :
 ```tsx
 <Motion
   animate={{ rotate: 90, backgroundColor: 'yellow' }}
-  transition={{
-    duration: 1,
-    rotate: { duration: 2 },
-  }}
+  transition={{ duration: 1, rotate: { duration: 2 } }}
 />
 ```
 

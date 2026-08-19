@@ -38,14 +38,7 @@ yarn add @bemedev/decompose
 ```typescript
 import { decompose } from '@bemedev/decompose';
 
-const obj = {
-  data: {
-    name: {
-      firstName: 'John',
-      lastName: 'Doe',
-    },
-  },
-};
+const obj = { data: { name: { firstName: 'John', lastName: 'Doe' } } };
 
 const decomposed = decompose(obj);
 // Résultat: { 'data.name.firstName': 'John', 'data.name.lastName': 'Doe' }
@@ -56,14 +49,7 @@ const decomposed = decompose(obj);
 ```typescript
 import { decompose, recompose } from '@bemedev/decompose';
 
-const obj = {
-  data: {
-    name: {
-      firstName: 'John',
-      lastName: 'Doe',
-    },
-  },
-};
+const obj = { data: { name: { firstName: 'John', lastName: 'Doe' } } };
 
 const decomposed = decompose(obj);
 // { 'data.name.firstName': 'John', 'data.name.lastName': 'Doe' }
@@ -84,10 +70,7 @@ const config = {
   server: {
     host: 'localhost',
     port: 3000,
-    ssl: {
-      enabled: true,
-      cert: '/path/to/cert',
-    },
+    ssl: { enabled: true, cert: '/path/to/cert' },
   },
 };
 
@@ -107,13 +90,8 @@ Facilite le stockage et la transmission d'objets complexes.
 ```typescript
 const userData = {
   profile: {
-    personal: {
-      firstName: 'Alice',
-      age: 28,
-    },
-    contact: {
-      email: 'alice@example.com',
-    },
+    personal: { firstName: 'Alice', age: 28 },
+    contact: { email: 'alice@example.com' },
   },
 };
 
@@ -130,11 +108,7 @@ validation.
 ```typescript
 const formData = {
   user: {
-    address: {
-      street: '123 Main St',
-      city: 'New York',
-      country: 'USA',
-    },
+    address: { street: '123 Main St', city: 'New York', country: 'USA' },
   },
 };
 
@@ -185,17 +159,7 @@ Reconstruit un objet imbriqué à partir de clés aplaties.
 ```typescript
 import { decompose, recompose } from '@bemedev/decompose';
 
-const deepObj = {
-  a: {
-    b: {
-      c: {
-        d: {
-          e: 'value',
-        },
-      },
-    },
-  },
-};
+const deepObj = { a: { b: { c: { d: { e: 'value' } } } } };
 
 const flattened = decompose(deepObj);
 // { 'a.b.c.d.e': 'value' }

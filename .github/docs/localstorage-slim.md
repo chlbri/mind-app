@@ -68,13 +68,7 @@ Typical usage of localstorage-slim is as follows:
 
 ```javascript
 /*** Store in localstorage ***/
-const value = {
-  a: new Date(),
-  b: null,
-  c: false,
-  d: 'superman',
-  e: 1234,
-};
+const value = { a: new Date(), b: null, c: false, d: 'superman', e: 1234 };
 
 ls.set('key1', value); // value can be anything (object, array, string, number, ...)
 ls.get('key1'); // { a: "currentdate", b: "null", c: false, d: 'superman', e: 1234 }

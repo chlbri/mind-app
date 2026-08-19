@@ -141,10 +141,7 @@ function NavigationComponent() {
   const navigate = useNavigate();
 
   const goToUser = (userId: string) => {
-    navigate({
-      to: '/users/$userId',
-      params: { userId },
-    });
+    navigate({ to: '/users/$userId', params: { userId } });
   };
 
   return (
@@ -224,10 +221,7 @@ function PostError() {
 export const Route = createFileRoute('/admin')({
   beforeLoad: ({ context }) => {
     if (!context.auth.isAuthenticated) {
-      throw redirect({
-        to: '/login',
-        search: { redirect: '/admin' },
-      });
+      throw redirect({ to: '/login', search: { redirect: '/admin' } });
     }
   },
 });

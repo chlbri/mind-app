@@ -15,10 +15,7 @@
         "close": true
       },
       "hide": true,
-      "runOptions": {
-        "runOn": "folderOpen",
-        "instanceLimit": 1
-      }
+      "runOptions": { "runOn": "folderOpen", "instanceLimit": 1 }
     },
     {
       "label": "pnpm:install",
@@ -36,10 +33,7 @@
       "detail": "Install deps",
       "hide": true,
       "dependsOn": "pull",
-      "runOptions": {
-        "runOn": "folderOpen",
-        "instanceLimit": 1
-      }
+      "runOptions": { "runOn": "folderOpen", "instanceLimit": 1 }
     },
 
     {
@@ -58,10 +52,7 @@
       "hide": true,
       "detail": "Lint the package",
       "dependsOn": "pnpm:install",
-      "runOptions": {
-        "runOn": "folderOpen",
-        "instanceLimit": 1
-      }
+      "runOptions": { "runOn": "folderOpen", "instanceLimit": 1 }
     },
 
     {
@@ -81,10 +72,7 @@
       "isBackground": false,
       "detail": "Test the package",
       "dependsOn": "pnpm:lint",
-      "runOptions": {
-        "runOn": "folderOpen",
-        "instanceLimit": 1
-      }
+      "runOptions": { "runOn": "folderOpen", "instanceLimit": 1 }
     }
   ]
 }

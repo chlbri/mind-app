@@ -118,9 +118,7 @@ import { type ValidComponent, splitProps } from 'solid-js';
 import { cn } from '~cn/utils';
 
 type AccordionTriggerCustomProps<T extends ValidComponent = 'button'> =
-  AccordionTriggerProps<T> & {
-    class?: string;
-  };
+  AccordionTriggerProps<T> & { class?: string };
 
 const AccordionTrigger = <T extends ValidComponent = 'button'>(
   props: PolymorphicProps<T, AccordionTriggerCustomProps<T>>,
@@ -490,11 +488,7 @@ export const useTheme = () => {
     );
   };
 
-  return {
-    theme,
-    setTheme,
-    toggleTheme,
-  };
+  return { theme, setTheme, toggleTheme };
 };
 ```
 

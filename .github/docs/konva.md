@@ -2,11 +2,20 @@
 
 ## Qu'est-ce que Konva ?
 
-Konva est un framework JavaScript HTML5 Canvas qui étend le contexte 2D en permettant l'interactivité du canvas pour les applications de bureau et mobiles.
+Konva est un framework JavaScript HTML5 Canvas qui étend le contexte 2D en
+permettant l'interactivité du canvas pour les applications de bureau et
+mobiles.
 
-Konva permet des animations haute performance, des transitions, l'imbrication de nœuds, la superposition de couches, le filtrage, la mise en cache, la gestion d'événements pour les applications de bureau et mobiles, et bien plus encore.
+Konva permet des animations haute performance, des transitions,
+l'imbrication de nœuds, la superposition de couches, le filtrage, la mise
+en cache, la gestion d'événements pour les applications de bureau et
+mobiles, et bien plus encore.
 
-Vous pouvez dessiner des éléments sur la scène, leur ajouter des écouteurs d'événements, les déplacer, les redimensionner et les faire pivoter indépendamment des autres formes pour prendre en charge des animations haute performance, même si votre application utilise des milliers de formes.
+Vous pouvez dessiner des éléments sur la scène, leur ajouter des écouteurs
+d'événements, les déplacer, les redimensionner et les faire pivoter
+indépendamment des autres formes pour prendre en charge des animations
+haute performance, même si votre application utilise des milliers de
+formes.
 
 ## Installation
 
@@ -30,7 +39,8 @@ import Konva from 'konva';
 
 ### Bundle minimal
 
-Pour un bundle plus léger, vous pouvez importer uniquement ce dont vous avez besoin :
+Pour un bundle plus léger, vous pouvez importer uniquement ce dont vous
+avez besoin :
 
 ```typescript
 import Konva from 'konva/lib/Core';
@@ -49,11 +59,7 @@ import { Blur } from 'konva/lib/filters/Blur';
 Ajoutez les définitions DOM dans votre `tsconfig.json` :
 
 ```json
-{
-  "compilerOptions": {
-    "lib": ["es6", "dom"]
-  }
-}
+{ "compilerOptions": { "lib": ["es6", "dom"] } }
 ```
 
 ## Architecture
@@ -78,11 +84,14 @@ Ajoutez les définitions DOM dans votre `tsconfig.json` :
               Shape
 ```
 
-Tout commence avec `Konva.Stage` qui contient plusieurs couches utilisateur (`Konva.Layer`).
+Tout commence avec `Konva.Stage` qui contient plusieurs couches utilisateur
+(`Konva.Layer`).
 
 Chaque couche possède deux renderers `<canvas>` :
+
 - **Scene renderer** : ce que vous voyez
-- **Hit graph renderer** : un canvas caché spécial utilisé pour la détection d'événements haute performance
+- **Hit graph renderer** : un canvas caché spécial utilisé pour la
+  détection d'événements haute performance
 
 ## Exemple minimal
 
@@ -117,6 +126,7 @@ stage.add(layer);
 ## Formes de base
 
 Konva.js supporte les formes suivantes :
+
 - `Rect` - Rectangle
 - `Circle` - Cercle
 - `Ellipse` - Ellipse
@@ -156,15 +166,18 @@ const triangle = new Konva.Shape({
 Chaque forme supporte les propriétés de style suivantes :
 
 ### Remplissage
+
 - Couleur solide
 - Dégradés
 - Images
 
 ### Contour
+
 - Couleur
 - Largeur
 
 ### Ombre
+
 - Couleur
 - Décalage
 - Opacité
@@ -193,6 +206,7 @@ const pentagon = new Konva.RegularPolygon({
 ### Événements d'entrée utilisateur
 
 Konva permet d'écouter facilement les événements d'entrée utilisateur :
+
 - `click`, `dblclick`
 - `mouseover`, `mouseout`, `mouseenter`, `mouseleave`
 - `mousedown`, `mouseup`, `mousemove`
@@ -345,6 +359,7 @@ stage.find('.red.circle');
 ## Filtres
 
 Konva fournit plusieurs filtres prêts à l'emploi :
+
 - `Blur` - Flou
 - `Brighten` - Luminosité
 - `Grayscale` - Niveaux de gris
@@ -391,7 +406,9 @@ const stage = Konva.Node.create(json, 'container');
 
 ### 1. Mise en cache (Caching)
 
-La mise en cache permet de dessiner un élément dans un canvas tampon, puis de dessiner cet élément depuis le canvas. Cela peut améliorer considérablement les performances pour les nœuds complexes.
+La mise en cache permet de dessiner un élément dans un canvas tampon, puis
+de dessiner cet élément depuis le canvas. Cela peut améliorer
+considérablement les performances pour les nœuds complexes.
 
 ```typescript
 // Activer le cache
@@ -407,7 +424,8 @@ layer.batchDraw();
 
 ### 2. Utilisation de couches (Layering)
 
-Séparez votre contenu en plusieurs couches. Par exemple, un arrière-plan complexe sur une couche et des formes animées sur une autre.
+Séparez votre contenu en plusieurs couches. Par exemple, un arrière-plan
+complexe sur une couche et des formes animées sur une autre.
 
 ```typescript
 const backgroundLayer = new Konva.Layer();
@@ -442,7 +460,8 @@ layer.batchDraw();
 
 ### 4. FastLayer
 
-Pour un contenu statique, utilisez `FastLayer` qui est plus rapide mais ne supporte pas les événements.
+Pour un contenu statique, utilisez `FastLayer` qui est plus rapide mais ne
+supporte pas les événements.
 
 ```typescript
 const fastLayer = new Konva.FastLayer();
@@ -500,10 +519,10 @@ function App() {
           y={20}
           width={100}
           height={100}
-          fill="red"
+          fill='red'
           shadowBlur={5}
         />
-        <Circle x={200} y={200} radius={50} fill="green" />
+        <Circle x={200} y={200} radius={50} fill='green' />
       </Layer>
     </Stage>
   );
@@ -535,14 +554,7 @@ function App() {
             shadowBlur: 5,
           }}
         />
-        <Circle
-          config={{
-            x: 200,
-            y: 200,
-            radius: 50,
-            fill: 'green',
-          }}
-        />
+        <Circle config={{ x: 200, y: 200, radius: 50, fill: 'green' }} />
       </Layer>
     </Stage>
   );
@@ -551,7 +563,8 @@ function App() {
 
 ## Environnement Node.js
 
-Pour utiliser Konva dans un environnement Node.js, installez également `canvas` ou `skia-canvas` :
+Pour utiliser Konva dans un environnement Node.js, installez également
+`canvas` ou `skia-canvas` :
 
 ```bash
 # Avec node-canvas
@@ -565,17 +578,15 @@ npm install konva skia-canvas
 import Konva from 'konva';
 import 'konva/canvas-backend'; // ou 'konva/skia-backend'
 
-const stage = new Konva.Stage({
-  width: 500,
-  height: 500,
-});
+const stage = new Konva.Stage({ width: 500, height: 500 });
 
 // Ensuite, tout le code Konva habituel fonctionne
 ```
 
 ## Débogage
 
-Pour voir les objets Konva et leurs détails dans Chrome DevTools, installez l'extension Konva DevTool :
+Pour voir les objets Konva et leurs détails dans Chrome DevTools, installez
+l'extension Konva DevTool :
 
 https://github.com/konvajs/konva-devtool
 
@@ -592,6 +603,7 @@ https://github.com/konvajs/konva-devtool
 ## Cas d'usage
 
 Konva est idéal pour :
+
 - Éditeurs graphiques
 - Outils de dessin
 - Mindmaps interactifs
@@ -612,4 +624,6 @@ MIT
 
 ---
 
-**Note** : Cette documentation est basée sur la version 10.x de Konva. Consultez toujours la documentation officielle pour les dernières mises à jour.
+**Note** : Cette documentation est basée sur la version 10.x de Konva.
+Consultez toujours la documentation officielle pour les dernières mises à
+jour.

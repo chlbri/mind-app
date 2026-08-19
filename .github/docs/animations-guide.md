@@ -61,10 +61,7 @@ const handleTabChange = (itemId: string) => {
           opacity: 0,
           x: slideDirection() * -100, // Sort dans la direction opposée
         }}
-        transition={{
-          duration: 0.5,
-          easing: 'ease-in-out',
-        }}
+        transition={{ duration: 0.5, easing: 'ease-in-out' }}
       >
         {/* Contenu de l'onglet */}
       </Motion.div>

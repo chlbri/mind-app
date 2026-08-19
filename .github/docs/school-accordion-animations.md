@@ -125,9 +125,7 @@ Aucun problème connu. Si vous rencontrez des difficultés :
 ## 📦 Dépendances
 
 ```json
-{
-  "solid-motionone": "^1.0.0"
-}
+{ "solid-motionone": "^1.0.0" }
 ```
 
 Déjà installée dans le projet ✅

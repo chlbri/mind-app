@@ -1,13 +1,17 @@
 # Documentation Directory
 
-This directory contains comprehensive documentation for the `ivoire-cours-web1` project, including editor setup, workflows, and best practices.
+This directory contains comprehensive documentation for the
+`ivoire-cours-web1` project, including editor setup, workflows, and best
+practices.
 
 ## 📚 Available Documentation
 
 ### [Zed Editor Guide](./ZED_EDITOR_GUIDE.md)
+
 **Comprehensive guide for using Zed Editor**
 
 A complete resource covering:
+
 - Installation and setup
 - Key features and capabilities
 - Configuration best practices
@@ -16,28 +20,34 @@ A complete resource covering:
 - Advanced workflows
 - Troubleshooting
 
-**Target audience**: Anyone wanting to use Zed Editor for this project, especially those coming from VSCode.
+**Target audience**: Anyone wanting to use Zed Editor for this project,
+especially those coming from VSCode.
 
 ---
 
 ### [Zed Custom Commands](./ZED_CUSTOM_COMMANDS.md)
+
 **Complete guide to creating custom slash commands**
 
 Learn how to create and use custom AI prompts:
+
 - Understanding slash commands
 - Available commands (`/codegen-assets`, `/ui`, `/test`, `/commit`)
 - Step-by-step guide to creating your own
 - Best practices and examples
 - Troubleshooting
 
-**Target audience**: Developers who want to create custom AI assistants for repetitive tasks.
+**Target audience**: Developers who want to create custom AI assistants for
+repetitive tasks.
 
 ---
 
 ### [Zed Quick Reference](./ZED_QUICK_REFERENCE.md)
+
 **Quick cheat sheet for daily use**
 
 Fast reference for:
+
 - Essential keyboard shortcuts
 - Common tasks and commands
 - Project structure overview
@@ -51,9 +61,11 @@ Fast reference for:
 
 ## 🎯 Getting Started
 
-1. **New to Zed?** → Start with the [Zed Editor Guide](./ZED_EDITOR_GUIDE.md)
+1. **New to Zed?** → Start with the
+   [Zed Editor Guide](./ZED_EDITOR_GUIDE.md)
 2. **Daily work?** → Keep [Quick Reference](./ZED_QUICK_REFERENCE.md) handy
-3. **Custom prompts?** → Read [Custom Commands Guide](./ZED_CUSTOM_COMMANDS.md)
+3. **Custom prompts?** → Read
+   [Custom Commands Guide](./ZED_CUSTOM_COMMANDS.md)
 4. **Need examples?** → Check `.github/prompts/` directory
 
 ## 🔧 Project-Specific Information
@@ -62,10 +74,11 @@ Fast reference for:
 
 Located in `.github/prompts/`:
 
-- **`codegen-assets.prompt.md`** - Regenerates asset types from `public/` folder
+- **`codegen-assets.prompt.md`** - Regenerates asset types from `public/`
+  folder
   - Usage: `/codegen-assets` in Zed AI panel
   - Runs: `pnpm run codegen:assets`
-  
+
 - **`ui.prompt.md`** - Guides UI component creation
   - Usage: `/ui` in Zed AI panel
   - Follows SolidJS + Kobalte + Tailwind conventions
@@ -78,7 +91,8 @@ Located in `.github/prompts/`:
   - Usage: `/commit` in Zed AI panel
   - Follows project commit guidelines
 
-**See full guide**: [Custom Commands Documentation](./ZED_CUSTOM_COMMANDS.md)
+**See full guide**:
+[Custom Commands Documentation](./ZED_CUSTOM_COMMANDS.md)
 
 ### Configuration Files
 
@@ -112,13 +126,13 @@ zed README.md             # Open file
 
 ### Key Shortcuts (with VSCode keymap)
 
-| Action | Shortcut |
-|--------|----------|
+| Action          | Shortcut           |
+| --------------- | ------------------ |
 | Command Palette | `Cmd/Ctrl+Shift+P` |
-| Quick Open | `Cmd/Ctrl+P` |
-| AI Assistant | `Cmd/Ctrl+?` |
-| Terminal | `Cmd/Ctrl+J` |
-| Git Panel | `Cmd/Ctrl+Shift+G` |
+| Quick Open      | `Cmd/Ctrl+P`       |
+| AI Assistant    | `Cmd/Ctrl+?`       |
+| Terminal        | `Cmd/Ctrl+J`       |
+| Git Panel       | `Cmd/Ctrl+Shift+G` |
 
 ## 🏗️ Project Architecture
 
@@ -145,7 +159,8 @@ src/
 
 1. **Start in `features/`** - All new work begins in a feature directory
 2. **Migrate to `globals/`** - Only after component is reused in 2+ places
-3. **Never edit `cn/components/ui/`** - Use CLI: `npx shadcn-solid@latest add [component]`
+3. **Never edit `cn/components/ui/`** - Use CLI:
+   `npx shadcn-solid@latest add [component]`
 4. **Follow conventions** - Use `/ui` prompt for guidance
 
 ## 🤝 Contributing
@@ -163,7 +178,8 @@ Follow guidelines in `.github/copilot-instructions.md`:
 chlbri: bri_lvi@icloud.com
 ```
 
-**Types**: `feat`, `fix`, `hot-fix`, `docs`, `style`, `test`, `build`, `revert`
+**Types**: `feat`, `fix`, `hot-fix`, `docs`, `style`, `test`, `build`,
+`revert`
 
 ### Development Workflow
 
@@ -179,19 +195,23 @@ chlbri: bri_lvi@icloud.com
 ### Documentation Issues
 
 If you find issues with this documentation:
-1. Check the [Zed Editor Guide](./ZED_EDITOR_GUIDE.md) troubleshooting section
+
+1. Check the [Zed Editor Guide](./ZED_EDITOR_GUIDE.md) troubleshooting
+   section
 2. Consult [official Zed docs](https://zed.dev/docs)
 3. Ask in team chat or create an issue
 
 ### Editor Issues
 
-1. Restart language server: `Cmd+Shift+P` → "editor: restart language server"
+1. Restart language server: `Cmd+Shift+P` → "editor: restart language
+   server"
 2. Check logs: `Cmd+Shift+P` → "zed: open log"
 3. Review [troubleshooting section](./ZED_EDITOR_GUIDE.md#troubleshooting)
 
 ## 📝 Maintenance
 
 This documentation should be updated when:
+
 - New custom prompts are added
 - Project structure changes significantly
 - New development patterns are established
@@ -210,5 +230,4 @@ This documentation should be updated when:
 
 ---
 
-**Last Updated**: 2025-01-XX
-**Maintainer**: Project Team
+**Last Updated**: 2025-01-XX **Maintainer**: Project Team

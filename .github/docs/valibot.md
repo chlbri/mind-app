@@ -106,17 +106,11 @@ import * as v from 'valibot';
 const ArraySchema = v.array(v.string()); // string[]
 
 // Objets
-const ObjectSchema = v.object({
-  key: v.string(),
-}); // { key: string }
+const ObjectSchema = v.object({ key: v.string() }); // { key: string }
 
-const LooseObjectSchema = v.looseObject({
-  key: v.string(),
-}); // { key: string } + propriétés supplémentaires autorisées
+const LooseObjectSchema = v.looseObject({ key: v.string() }); // { key: string } + propriétés supplémentaires autorisées
 
-const StrictObjectSchema = v.strictObject({
-  key: v.string(),
-}); // { key: string } strictement
+const StrictObjectSchema = v.strictObject({ key: v.string() }); // { key: string } strictement
 
 // Tuples
 const TupleSchema = v.tuple([v.string(), v.number()]); // [string, number]
@@ -304,10 +298,7 @@ Lance une exception en cas d'erreur :
 ```typescript
 import * as v from 'valibot';
 
-const Schema = v.object({
-  name: v.string(),
-  age: v.number(),
-});
+const Schema = v.object({ name: v.string(), age: v.number() });
 
 try {
   const data = v.parse(Schema, unknownData);
@@ -403,10 +394,7 @@ Rend toutes les propriétés optionnelles :
 ```typescript
 import * as v from 'valibot';
 
-const Schema = v.object({
-  name: v.string(),
-  age: v.number(),
-});
+const Schema = v.object({ name: v.string(), age: v.number() });
 
 const PartialSchema = v.partial(Schema);
 // { name?: string; age?: number }
@@ -527,10 +515,7 @@ Redirige une erreur vers un champ spécifique :
 import * as v from 'valibot';
 
 const RegisterSchema = v.pipe(
-  v.object({
-    password1: v.string(),
-    password2: v.string(),
-  }),
+  v.object({ password1: v.string(), password2: v.string() }),
   v.forward(
     v.partialCheck(
       [['password1'], ['password2']],
@@ -658,18 +643,12 @@ const data = v.parse(Schema, internalData);
 
 ```typescript
 // ✅ Bon
-const UserSchema = v.object({
-  name: v.string(),
-  age: v.number(),
-});
+const UserSchema = v.object({ name: v.string(), age: v.number() });
 
 type User = v.InferOutput<typeof UserSchema>;
 
 // ❌ Éviter - duplication
-type User = {
-  name: string;
-  age: number;
-};
+type User = { name: string; age: number };
 ```
 
 ## Exemples avancés
@@ -701,10 +680,7 @@ const PaymentSchema = v.variant('method', [
 ```typescript
 import * as v from 'valibot';
 
-type Category = {
-  name: string;
-  subcategories?: Category[];
-};
+type Category = { name: string; subcategories?: Category[] };
 
 const CategorySchema: v.GenericSchema<Category> = v.object({
   name: v.string(),

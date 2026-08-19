@@ -33,16 +33,8 @@ import { createMachine } from '@bemedev/app-ts';
 const machine = createMachine({
   initial: 'idle',
   states: {
-    idle: {
-      on: {
-        START: 'running',
-      },
-    },
-    running: {
-      on: {
-        STOP: 'idle',
-      },
-    },
+    idle: { on: { START: 'running' } },
+    running: { on: { STOP: 'idle' } },
   },
 });
 ```

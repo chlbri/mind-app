@@ -1,10 +1,12 @@
 # Commit Message Generator Prompt
 
-Ce prompt aide à générer des messages de commit conformes aux conventions du projet.
+Ce prompt aide à générer des messages de commit conformes aux conventions
+du projet.
 
 ## Context
 
-Le projet suit des conventions strictes de commit définies dans `.github/copilot-instructions.md`.
+Le projet suit des conventions strictes de commit définies dans
+`.github/copilot-instructions.md`.
 
 ### Types de commit disponibles
 
@@ -130,21 +132,25 @@ chlbri: bri_lvi@icloud.com
 ## Mauvais exemples (à éviter)
 
 ❌ **Titre en français**
+
 ```
 feat(auth): Ajout de la connexion
 ```
 
 ❌ **Pas de scope**
+
 ```
 feat: Add login
 ```
 
 ❌ **Titre trop long**
+
 ```
 feat(auth): Add a new authentication system with email verification and password reset functionality
 ```
 
 ❌ **Corps trop long (> 200 mots)**
+
 ```
 feat(auth): Add login
 
@@ -154,6 +160,7 @@ chlbri: bri_lvi@icloud.com
 ```
 
 ❌ **Signature manquante ou incorrecte**
+
 ```
 feat(auth): Add login
 
@@ -161,6 +168,7 @@ Ajout de la connexion utilisateur.
 ```
 
 ❌ **Mauvais impératif**
+
 ```
 feat(auth): Added login feature
 feat(auth): Adding login feature
@@ -189,6 +197,7 @@ Quand ce prompt est invoqué:
 Afficher uniquement le message de commit formaté, prêt à être copié-collé.
 
 Format:
+
 ```
 type(scope): Description courte en anglais
 

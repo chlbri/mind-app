@@ -186,18 +186,13 @@ export async function POST({ request }) {
 import { json } from 'solid-start/server';
 
 export async function GET({ params }) {
-  const user = await db.users.findUnique({
-    where: { id: params.id },
-  });
+  const user = await db.users.findUnique({ where: { id: params.id } });
   return json(user);
 }
 
 export async function PUT({ params, request }) {
   const data = await request.json();
-  const user = await db.users.update({
-    where: { id: params.id },
-    data,
-  });
+  const user = await db.users.update({ where: { id: params.id }, data });
   return json(user);
 }
 ```
@@ -311,13 +306,9 @@ import { nitroV2Plugin } from '@tanstack/nitro-v2-vite-plugin';
 import tsConfigPaths from 'vite-tsconfig-paths';
 
 export default defineConfig({
-  server: {
-    port: 3000,
-  },
+  server: { port: 3000 },
   plugins: [
-    tsConfigPaths({
-      projects: ['./tsconfig.json'],
-    }),
+    tsConfigPaths({ projects: ['./tsconfig.json'] }),
     tanstackStart({}),
     nitroV2Plugin({}),
     viteSolid({ ssr: true }),

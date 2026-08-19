@@ -284,12 +284,7 @@ const translate = translation(
     greeting: 'Hello',
     farewell: 'Goodbye',
     withParam: 'Hello {name}!',
-    nested: {
-      welcome: 'Welcome back',
-      deep: {
-        message: 'Deep message',
-      },
-    },
+    nested: { welcome: 'Welcome back', deep: { message: 'Deep message' } },
   },
   'en',
 );
@@ -330,9 +325,7 @@ const spanishTranslation = translation.derived<typeof machine.config>(
         },
       },
     ),
-    nested: {
-      greetings: dt('¡Hola {names:list}!'),
-    },
+    nested: { greetings: dt('¡Hola {names:list}!') },
   }),
   'es-ES',
 );
