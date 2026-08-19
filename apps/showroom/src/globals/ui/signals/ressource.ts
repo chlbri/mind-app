@@ -243,34 +243,34 @@ export const createResourceContext = () => {
  *
  * @example
  *   ```tsx
- *                           import { useResource } from '~/globals/ui/signals/ressource';
- *                           import { createEffect } from 'solid-js';
+ *   import { useResource } from '~/globals/ui/signals/ressource';
+ *   import { createEffect } from 'solid-js';
  *
- *                           const MyComponent = () => {
- *                             const { set, get, has, size } = useResource();
+ *   const MyComponent = () => {
+ *   const { set, get, has, size } = useResource();
  *
- *                             createEffect(() => {
- *                               console.log(`Total resources: ${size()}`);
- *                             });
+ *   createEffect(() => {
+ *   console.log(`Total resources: ${size()}`);
+ *   });
  *
- *                             const handleCache = () => {
- *                               set('my-resource', { id: 1, name: 'Test' });
- *                             };
+ *   const handleCache = () => {
+ *   set('my-resource', { id: 1, name: 'Test' });
+ *   };
  *
- *                             const handleRetrieve = () => {
- *                               const data = get('my-resource');
- *                               console.log(data);
- *                             };
+ *   const handleRetrieve = () => {
+ *   const data = get('my-resource');
+ *   console.log(data);
+ *   };
  *
- *                             return (
- *                               <div>
- *                                 <button onClick={handleCache}>Cache Resource</button>
- *                                 <button onClick={handleRetrieve}>Get Resource</button>
- *                                 <p>Cached items: {size()}</p>
- *                               </div>
- *                             );
- *                           };
- *                           ```
+ *   return (
+ *   <div>
+ *   <button onClick={handleCache}>Cache Resource</button>
+ *   <button onClick={handleRetrieve}>Get Resource</button>
+ *   <p>Cached items: {size()}</p>
+ *   </div>
+ *   );
+ *   };
+ *   ```
  *
  * @returns The resource context value with all methods and accessors
  *

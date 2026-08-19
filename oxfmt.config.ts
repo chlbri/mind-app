@@ -18,7 +18,7 @@ export default defineConfig({
   vueIndentScriptAndStyle: true,
   objectWrap: 'collapse',
   jsdoc: {
-    keepUnparsableExampleIndent: true,
+    keepUnparsableExampleIndent: false,
     separateTagGroups: true,
     preferCodeFences: true,
   },
