@@ -28,21 +28,21 @@ export const DragBounds: Component = () => {
     id: 'clamp-to-container',
     order: 100,
     callback: transform => {
-      const container = ref()?.parentElement;
+      const container = ref();
       const activeDraggable = state.active.draggable;
       if (!container || !activeDraggable) return transform;
       const draggableLayout = activeDraggable.layout;
+      const currentZoom = zoom();
 
       // #region Inner visible boundaries (excluding borders and scrollbars)
       const containerRect = container.getBoundingClientRect();
-      const innerLeft = containerRect.left + container.clientLeft;
-      const innerTop = containerRect.top + container.clientTop;
+      const innerLeft = container.offsetLeft + containerRect.left;
+      const innerTop = container.offsetTop + containerRect.top;
       const innerRight = innerLeft + container.clientWidth;
       const innerBottom = innerTop + container.clientHeight;
       // #endregion
 
       // #region Convert boundaries to board coordinate space
-      const currentZoom = zoom();
       const minX =
         innerLeft -
         draggableLayout.left +
@@ -51,7 +51,7 @@ export const DragBounds: Component = () => {
       const maxX = Math.max(
         minX,
         innerRight -
-          draggableLayout.right -
+          draggableLayout.width / currentZoom -
           BOUNDS_CONSTRAINTS.horizontal * currentZoom,
       );
 
@@ -63,7 +63,7 @@ export const DragBounds: Component = () => {
       const maxY = Math.max(
         minY,
         innerBottom -
-          draggableLayout.bottom -
+          draggableLayout.height / currentZoom -
           BOUNDS_CONSTRAINTS.vertical * currentZoom,
       );
       // #endregion

@@ -14,11 +14,11 @@ import {
   onCleanup,
   Show,
 } from 'solid-js';
-import { DragBounds } from './Bounds';
 import { EdgesBoard } from './EdgesBoard';
 import { useFlow } from './FlowChart.context';
-import { NodeComponent } from './NodeComponent';
 import { CANVAS_FACTOR } from './FlowChart.data';
+import { NodeComponent } from './NodeComponent';
+import { DragBounds } from './Bounds';
 
 /**
  * Interactive board component containing the drag-drop viewport, zoom
@@ -91,76 +91,67 @@ export const NodesBoard: Component = () => {
     equals: dequal,
   });
 
-  const cDim = () => {
-    const _zoom = zoom();
-    if (_zoom < 1) {
-      return CANVAS_FACTOR * 100 * _zoom;
-    }
-    return CANVAS_FACTOR * 100;
-  };
+  const cDim = () => CANVAS_FACTOR * 100 * zoom();
 
   return (
-    <DragDropProvider
-      onDragMove={({
-        draggable: { transform: _transform, node, id },
-        overlay,
-      }) => {
-        setId(id);
-        if (selected(id)) {
-          const x = node.offsetLeft + _transform.x / zoom();
-          const y = node.offsetTop + _transform.y / zoom();
-          overlay?.node.style.setProperty('top', y * 2 + 'px');
-          overlay?.node.style.setProperty('left', x * 2 + 'px');
-          const deltaX = _transform.x / zoom();
-          const deltaY = _transform.y / zoom();
-          // Directly update the draggable node's CSS transform adjusted for zoom:
-          node.style.setProperty(
-            'transform',
-            `translate3d(${deltaX}px, ${deltaY}px, 0)`,
+    <div
+      onWheel={e => {
+        if (e.ctrlKey || e.metaKey) {
+          e.preventDefault();
+          updateScrollPercentages();
+          const delta = e.deltaY < 0 ? 0.1 : -0.1;
+          setZoom(prev =>
+            Math.min(Math.max(Number((prev + delta).toFixed(2)), 0.2), 3),
           );
-
-          service.send({
-            type: 'MOVE_IMMEDIATE',
-            payload: { id: `${id}`, x, y },
-          });
-          setTransform({ ..._transform });
         }
       }}
 
-      onDragEnd={({ draggable: { node, id } }) => {
-        if (!selected(id)) return;
-
-        const X = node.offsetLeft + transform().x / zoom();
-        const Y = node.offsetTop + transform().y / zoom();
-        node.style.setProperty('top', Y + 'px');
-        node.style.setProperty('left', X + 'px');
-        node.style.removeProperty('transform');
-
-        setTimeout(() => {
-          service.send({
-            type: 'MOVE',
-            payload: { id: `${id}`, x: X, y: Y },
-          });
-          setTransform({ x: 0, y: 0 });
-        }, 0);
-      }}
+      class='relative mx-auto h-[calc(100vh-64px)] w-[calc(100vw-32px)] overflow-hidden'
     >
-      <div
-        onWheel={e => {
-          if (e.ctrlKey || e.metaKey) {
-            e.preventDefault();
-            updateScrollPercentages();
-            const delta = e.deltaY < 0 ? 0.1 : -0.1;
-            setZoom(prev =>
-              Math.min(
-                Math.max(Number((prev + delta).toFixed(2)), 0.2),
-                3,
-              ),
+      <DragDropProvider
+        onDragMove={({
+          draggable: { transform: _transform, node, id },
+          overlay,
+        }) => {
+          setId(id);
+          if (selected(id)) {
+            const x = node.offsetLeft + _transform.x / zoom();
+            const y = node.offsetTop + _transform.y / zoom();
+            overlay?.node.style.setProperty('top', y * 2 + 'px');
+            overlay?.node.style.setProperty('left', x * 2 + 'px');
+            const deltaX = _transform.x / zoom();
+            const deltaY = _transform.y / zoom();
+            // Directly update the draggable node's CSS transform adjusted for zoom:
+            node.style.setProperty(
+              'transform',
+              `translate3d(${deltaX}px, ${deltaY}px, 0)`,
             );
+
+            service.send({
+              type: 'MOVE_IMMEDIATE',
+              payload: { id: `${id}`, x, y },
+            });
+            setTransform({ ..._transform });
           }
         }}
 
-        class='relative mx-auto h-[calc(100vh-64px)] w-[calc(100vw-32px)]'
+        onDragEnd={({ draggable: { node, id } }) => {
+          if (!selected(id)) return;
+
+          const X = node.offsetLeft + transform().x / zoom();
+          const Y = node.offsetTop + transform().y / zoom();
+          node.style.setProperty('top', Y + 'px');
+          node.style.setProperty('left', X + 'px');
+          node.style.removeProperty('transform');
+
+          setTimeout(() => {
+            service.send({
+              type: 'MOVE',
+              payload: { id: `${id}`, x: X, y: Y },
+            });
+            setTransform({ x: 0, y: 0 });
+          }, 0);
+        }}
       >
         <div
           ref={el => {
@@ -170,16 +161,13 @@ export const NodesBoard: Component = () => {
           class='relative h-full w-full overflow-scroll rounded-lg border-2 border-gray-600'
         >
           <DragDropSensors />
-          <DragBounds />
           <div
             ref={setRef}
-            class='relative cursor-crosshair'
+            class='relative cursor-crosshair overflow-hidden border-3 border-red-700'
             classList={{ 'cursor-grabbing': isPanning() }}
             style={{
               height: `calc(${cDim()}vh - 85px)`,
               width: `calc(${cDim()}vw - 53px)`,
-              scale: zoom(),
-              'transform-origin': 'top left',
             }}
             onMouseDown={e => {
               if (newEdge() || e.button !== 0) return;
@@ -219,8 +207,14 @@ export const NodesBoard: Component = () => {
               // #endregion
             }}
           >
-            <EdgesBoard />
-            <For each={nodes()} children={NodeComponent} />
+            <div
+              class='relative h-full w-full'
+              style={{ scale: zoom(), 'transform-origin': 'top left' }}
+            >
+              <DragBounds />
+              <EdgesBoard />
+              <For each={nodes()} children={NodeComponent} />
+            </div>
           </div>
         </div>
 
@@ -233,7 +227,10 @@ export const NodesBoard: Component = () => {
               updateScrollPercentages();
               setPreviousZoom(undefined);
               setZoom(prev =>
-                Math.max(0.2, Number((prev - 0.1).toFixed(2))),
+                Math.max(
+                  1 / CANVAS_FACTOR,
+                  Number((prev - 0.1).toFixed(2)),
+                ),
               );
             }}
             title='Zoom out'
@@ -266,7 +263,10 @@ export const NodesBoard: Component = () => {
               updateScrollPercentages();
               setPreviousZoom(undefined);
               setZoom(prev =>
-                Math.min(3, Number((prev + 0.1).toFixed(2))),
+                Math.min(
+                  Math.min(3, CANVAS_FACTOR),
+                  Number((prev + 0.1).toFixed(2)),
+                ),
               );
             }}
             title='Zoom in'
@@ -288,11 +288,10 @@ export const NodesBoard: Component = () => {
             </svg>
           </button>
         </div>
-      </div>
-
-      <Show when={!id() || !selected(id())}>
-        <DragOverlay children='' />
-      </Show>
-    </DragDropProvider>
+        <Show when={!id() || !selected(id())}>
+          <DragOverlay children='' />
+        </Show>
+      </DragDropProvider>
+    </div>
   );
 };

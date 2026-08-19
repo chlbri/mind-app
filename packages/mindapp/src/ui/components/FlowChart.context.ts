@@ -367,6 +367,7 @@ export const [Provider, useFlow] = createContext(
       edgesPositions: [edgesPositions, setEdgesPositions] as const,
       service,
       zoom,
+      clampPosition,
     };
   },
   { name: 'FlowContext' },

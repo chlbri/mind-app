@@ -69,10 +69,7 @@ export const TOOLBAR_BUFFER = 5;
  * Boundary padding constraints for node dragging and positioning within
  * the viewport.
  */
-export const BOUNDS_CONSTRAINTS = {
-  horizontal: HANDLE_CONTAINER_OFFSET_X + 2,
-  vertical: TOOLBAR_TOP_OFFSET + TOOLBAR_BUFFER,
-};
+export const BOUNDS_CONSTRAINTS = { horizontal: 70, vertical: 50 };
 
 /** Multiplier factor used to compute canvas virtual scroll dimensions. */
 export const CANVAS_FACTOR = 5;
