@@ -1,3 +1,4 @@
+import { useState } from '@bemedev/app-solidjs';
 import type { inferT } from '@bemedev/app/typings';
 import { Component, onCleanup, onMount } from 'solid-js';
 
@@ -63,11 +64,9 @@ export const FlowChart: Component<FlowProps> = props => {
   const primaryNodes = props.config?.nodes ?? DEFAULT_NODES;
   const primaryEdges = props.config?.edges;
 
-  const {
-    service,
-    newEdge: [newEdge, setNewEdge],
-    getBoardPoint,
-  } = useFlow();
+  const { service, getBoardPoint } = useFlow();
+
+  const hasNewEdge = useState(service, { selector: s => !!s.context.newEdge });
 
   onMount(() => {
     service.start();
@@ -82,20 +81,17 @@ export const FlowChart: Component<FlowProps> = props => {
   return (
     <div
       class='relative h-full w-full'
-      onMouseUp={() => setNewEdge()}
+      onMouseUp={() => service.send('CLEAR_NEW_EDGE')}
       onMouseMove={event => {
-        const edge = newEdge();
-        if (edge) {
-          const boardPoint = getBoardPoint(event.clientX, event.clientY);
-          setNewEdge({ ...edge, x1: boardPoint.x, y1: boardPoint.y });
-        }
+        const boardPoint = getBoardPoint(event.clientX, event.clientY);
+        service.send({ type: 'MOVE_NEW_EDGE', payload: boardPoint });
       }}
       style={{}}
     >
       <div
         class='relative h-full w-full bg-white bg-size-[30px_30px]'
         style={{
-          cursor: newEdge() ? 'inherit' : 'crosshair',
+          cursor: hasNewEdge() ? 'inherit' : 'crosshair',
           'background-image':
             'radial-gradient(circle, #b8b8b8bf 1px, rgba(0, 0, 0, 0) 1px)',
         }}

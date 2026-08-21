@@ -2,7 +2,14 @@ import { createMachine } from '@bemedev/app';
 import { type } from '@bemedev/app/bemedev';
 import { nanoid } from 'nanoid';
 
-import { edgeJSON, extremities, nodeJSON, vector } from './main.typings';
+import {
+  edgeJSON,
+  extremities,
+  newEdge,
+  nodeJSON,
+  point,
+  vector,
+} from './main.typings';
 
 /**
  * Constructs a unique edge identifier string from source and destination node IDs.
@@ -81,6 +88,9 @@ export const machine = createMachine(
 
           MOVE: { actions: ['moveNode', 'buildUI'], target: '/construction' },
           ADD_EDGE: { actions: ['addEdge'], target: '/construction' },
+          START_NEW_EDGE: { actions: ['startNewEdge'] },
+          MOVE_NEW_EDGE: { actions: ['moveNewEdge'] },
+          CLEAR_NEW_EDGE: { actions: ['clearNewEdge'] },
           DELETE: { actions: ['delete'], target: '/construction' },
           SELECT: { actions: ['select'] },
           DESELECT: { actions: ['deselect'] },
@@ -107,6 +117,9 @@ export const machine = createMachine(
       SELECT: 'string',
       DESELECT: 'never',
       ADD_EDGE: use(extremities),
+      START_NEW_EDGE: use(newEdge),
+      MOVE_NEW_EDGE: use(point),
+      CLEAR_NEW_EDGE: 'never',
       ZOOM: 'number',
       TOGGLE_ZOOM: 'never',
     })),
@@ -124,9 +137,10 @@ export const machine = createMachine(
       }),
 
       edgesPositions: record(use(vector)),
+      newEdge: optional(use(newEdge)),
       selected: optional('string'),
       updatingUI: optional('boolean'),
-      zoom: optional('number'),
+      zoom: 'number',
     })),
   },
 ).provideOptions(({ assign, batch, erase }) => ({
@@ -136,6 +150,7 @@ export const machine = createMachine(
       assign('context.data.nodes', { CONFIGURE: ({ payload: { nodes } }) => nodes }),
       assign('context.data.edges', { CONFIGURE: ({ payload: { edges } }) => edges }),
       assign('context.edgesPositions', () => ({})),
+      assign('context.newEdge', () => undefined),
       assign('context.updatingUI', () => false),
       assign('context.zoom', () => 1),
       assign('pContext.generatedId', () => null),
@@ -215,16 +230,32 @@ export const machine = createMachine(
       },
     }),
 
-    addEdge: assign('context.data.edges', {
-      ADD_EDGE: ({ context, payload: { from, to } }) => {
-        const edges = context.data?.edges ?? [];
-        const id = buildEdgeId(from, to);
-        if (edges.some(e => e.id === id)) return edges;
+    addEdge: batch(
+      assign('context.data.edges', {
+        ADD_EDGE: ({ context, payload: { from, to } }) => {
+          const edges = context.data?.edges ?? [];
+          const id = buildEdgeId(from, to);
+          if (edges.some(e => e.id === id)) return edges;
 
-        const out = [...edges, { id, from, to }];
-        return out;
+          const out = [...edges, { id, from, to }];
+          return out;
+        },
+      }),
+      erase('context.newEdge'),
+    ),
+
+    startNewEdge: assign('context.newEdge', {
+      START_NEW_EDGE: ({ payload }) => payload,
+    }),
+
+    moveNewEdge: assign('context.newEdge', {
+      MOVE_NEW_EDGE: ({ context: { newEdge }, payload }) => {
+        if (!newEdge) return undefined;
+        return { ...newEdge, x1: payload.x, y1: payload.y };
       },
     }),
+
+    clearNewEdge: erase('context.newEdge'),
 
     deselect: erase('context.selected'),
 

@@ -48,3 +48,14 @@ export const vector = type({
 
 /** 2D vector coordinate type inferred from schema {@linkcode vector}. */
 export type Vector = inferT<typeof vector>;
+
+/**
+ * Schema definition for an ongoing new connection edge creation preview between
+ * source node and cursor position.
+ */
+export const newEdge = type(({ intersection, use }) =>
+  intersection({ from: 'string' }, use(vector)),
+);
+
+/** Ongoing new connection edge preview type inferred from schema {@linkcode newEdge}. */
+export type Edge = inferT<typeof newEdge>;

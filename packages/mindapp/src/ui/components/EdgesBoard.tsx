@@ -1,12 +1,5 @@
 import { useState } from '@bemedev/app-solidjs';
-import {
-  Component,
-  createEffect,
-  createMemo,
-  createSignal,
-  For,
-  Show,
-} from 'solid-js';
+import { Component, createMemo, For, Show } from 'solid-js';
 
 import { EdgeComponent } from './EdgeComponent';
 import { useFlow } from './FlowChart.context';
@@ -18,12 +11,12 @@ import { useFlow } from './FlowChart.context';
  * @returns The rendered SVG JSX element.
  */
 export const EdgesBoard: Component = () => {
-  const [selected, setSelected] = createSignal<string>();
+  const { service } = useFlow();
 
-  const {
-    newEdge: [newEdge],
-    service,
-  } = useFlow();
+  const newEdge = useState(service, {
+    selector: s => s.context.newEdge,
+    equals: () => false,
+  });
 
   const edgesPositions = useState(service, {
     selector: s => s.context.edgesPositions,
@@ -35,15 +28,8 @@ export const EdgesBoard: Component = () => {
     return entries.map(([id, vector]) => ({ id, ...vector }));
   });
 
-  createEffect(() => {
-    if (selected() && newEdge()) setSelected();
-  });
-
   return (
-    <svg
-      class='pointer-events-none h-full w-full overflow-visible'
-      // style={{ scale: zoom() }}
-    >
+    <svg class='pointer-events-none h-full w-full overflow-visible'>
       <Show when={newEdge()}>
         {value => (
           <EdgeComponent

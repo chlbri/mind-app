@@ -30,9 +30,12 @@ export const NodesBoard: Component = () => {
   const {
     board: [, setRef],
     service,
-    newEdge: [newEdge],
   } = useFlow();
 
+  const newEdge = useState(service, {
+    selector: s => s.context.newEdge,
+    equals: dequal,
+  });
   const zoom = useState(service, { selector: s => s.context.zoom ?? 1 });
 
   /**

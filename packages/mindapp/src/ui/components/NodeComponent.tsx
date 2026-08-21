@@ -51,11 +51,11 @@ export const NodeComponent: Component<Props> = props => {
   const [ref, setRef] = createSignal<HTMLDivElement>();
   const {
     dimensions: [dimensions, setDimensions],
-    newEdge: [newEdge, setNewEdge],
     getBoardPoint,
     service,
   } = useFlow();
 
+  const newEdge = useState(service, { selector: s => s.context.newEdge });
   const zoom = useState(service, { selector: s => s.context.zoom ?? 1 });
 
   const selected = useState(service, {
@@ -235,9 +235,9 @@ export const NodeComponent: Component<Props> = props => {
 
               if (from) {
                 service.send({ type: 'ADD_EDGE', payload: { from, to: props.id } });
+              } else {
+                service.send('CLEAR_NEW_EDGE');
               }
-
-              setNewEdge();
             }}
           ></div>
         </div>
@@ -262,12 +262,15 @@ export const NodeComponent: Component<Props> = props => {
             const output = dimensions()[props.id]?.output;
             const boardPoint = getBoardPoint(event.clientX, event.clientY);
             if (output)
-              setNewEdge({
-                x0: output.x,
-                y0: output.y,
-                x1: boardPoint.x,
-                y1: boardPoint.y,
-                from: props.id,
+              service.send({
+                type: 'START_NEW_EDGE',
+                payload: {
+                  x0: output.x,
+                  y0: output.y,
+                  x1: boardPoint.x,
+                  y1: boardPoint.y,
+                  from: props.id,
+                },
               });
           }}
         ></div>

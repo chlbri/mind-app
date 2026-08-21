@@ -5,7 +5,7 @@
   "sideEffects": false,
   "type": "module",
   "scripts": {
-    "prebuild": "pnpm --filter @bemedev/mind-flow run -r --sort build",
+    "prebuild": "pnpm --filter @bemedev/mind-flow run build",
     "_build": "vite build",
     "build": "pnpm run _build",
     "pretest": "pnpm run _build",

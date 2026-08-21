@@ -70,8 +70,11 @@ export const EdgeComponent: Component<Props> = props => {
         }}
         style={{ 'pointer-events': props.isNew ? 'none' : 'all' }}
         d={draw(props)}
-        onMouseDown={e => e.stopPropagation()}
-        onClick={() => service.send({ type: 'SELECT', payload: props.id })}
+
+        onMouseDown={e => {
+          e.stopPropagation();
+          return service.send({ type: 'SELECT', payload: props.id });
+        }}
       />
       <Show when={selected()}>
         <g

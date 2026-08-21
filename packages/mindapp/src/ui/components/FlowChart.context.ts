@@ -29,12 +29,6 @@ type Dimensions = {
   inputOffset?: Point;
 };
 
-/** Connection edge coordinate representation between two endpoints. */
-type Edge = {
-  /** Source node identifier. */
-  from: string;
-} & Vector;
-
 /**
  * Solid Context Provider component and hook for accessing flowchart board state,
  * services, and zoom.
@@ -50,7 +44,6 @@ export const [Provider, useFlow] = createContext(
       pContext: { generatedId: null },
     });
 
-    const newEdge = createSignal<Edge>();
     const [boardRef, setBoardRef] = createSignal<HTMLDivElement>();
 
     const [dimensions, setDimensions] = createSignal<Record<string, Dimensions>>(
@@ -72,9 +65,9 @@ export const [Provider, useFlow] = createContext(
       if (!el) return { x: clientX, y: clientY };
 
       const rect = el.getBoundingClientRect();
-      const currentZoom = service.state.context.zoom ?? 1;
-      const x = clientX - rect.left / currentZoom;
-      const y = clientY - rect.top / currentZoom;
+      const currentZoom = service.state.context.zoom;
+      const x = (clientX - rect.left) / currentZoom;
+      const y = (clientY - rect.top) / currentZoom;
       return { x, y };
     };
 
@@ -339,11 +332,10 @@ export const [Provider, useFlow] = createContext(
 
     return {
       dimensions: [dimensions, setDimensions] as const,
-      newEdge,
       board: [boardRef, setBoardRef] as const,
       getBoardPoint,
       service,
-      clampPosition,
+      // clampPosition,
     };
   },
   { name: 'FlowContext' },
