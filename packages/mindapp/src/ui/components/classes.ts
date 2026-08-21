@@ -23,7 +23,7 @@ export const CLASSES = [
   'w-full',
   'h-full',
   'overflow-hidden',
-  'overflow-scroll',
+  'overflow-auto',
   'h-[150vh]',
   'w-[2160px]',
   'bg-size-[30px_30px]',

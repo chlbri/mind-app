@@ -24,7 +24,6 @@ export const NodesBoard: Component = () => {
   const [isPanning, setIsPanning] = createSignal(false);
   const [transform, setTransform] = createSignal({ x: 0, y: 0 });
   const [id, setId] = createSignal<string | number>('');
-  const [previousZoom, setPreviousZoom] = createSignal<number>();
   let percentX = 0;
   let percentY = 0;
 
@@ -32,8 +31,9 @@ export const NodesBoard: Component = () => {
     board: [, setRef],
     service,
     newEdge: [newEdge],
-    zoom: [zoom, setZoom],
   } = useFlow();
+
+  const zoom = useState(service, { selector: s => s.context.zoom ?? 1 });
 
   /**
    * Calculates and saves the normalized scroll percentages across X and Y axes for
@@ -98,9 +98,7 @@ export const NodesBoard: Component = () => {
           e.preventDefault();
           updateScrollPercentages();
           const delta = e.deltaY < 0 ? 0.1 : -0.1;
-          setZoom(prev =>
-            Math.min(Math.max(Number((prev + delta).toFixed(2)), 0.2), 3),
-          );
+          service.send({ type: 'ZOOM', payload: delta });
         }
       }}
 
@@ -178,7 +176,7 @@ export const NodesBoard: Component = () => {
             return (containerRef = el);
           }}
           onScroll={updateScrollPercentages}
-          class='relative h-full w-full overflow-scroll rounded-lg border-2 border-gray-600'
+          class='relative h-full w-full overflow-auto rounded-lg border-2 border-gray-600'
         >
           <DragDropSensors />
           <div
@@ -238,10 +236,7 @@ export const NodesBoard: Component = () => {
             class='flex size-9 cursor-pointer items-center justify-center rounded-lg bg-gray-100 text-lg font-bold text-gray-700 shadow-sm transition-all duration-150 hover:bg-gray-200 active:scale-95'
             onClick={() => {
               updateScrollPercentages();
-              setPreviousZoom(undefined);
-              setZoom(prev =>
-                Math.max(1 / CANVAS_FACTOR, Number((prev - 0.1).toFixed(2))),
-              );
+              service.send({ type: 'ZOOM', payload: -0.1 });
             }}
             title='Zoom out'
             aria-label='Zoom out'
@@ -253,13 +248,7 @@ export const NodesBoard: Component = () => {
             class='h-9 cursor-pointer rounded-lg px-2 text-xs font-semibold text-gray-700 transition-colors hover:bg-gray-100'
             onClick={() => {
               updateScrollPercentages();
-              if (previousZoom()) {
-                setZoom(previousZoom()!);
-                setPreviousZoom(undefined);
-              } else {
-                setPreviousZoom(zoom());
-                setZoom(1);
-              }
+              service.send('TOGGLE_ZOOM');
             }}
             title='Reset zoom'
             aria-label='Reset zoom'
@@ -271,13 +260,7 @@ export const NodesBoard: Component = () => {
             class='flex size-9 cursor-pointer items-center justify-center rounded-lg bg-gray-100 text-lg font-bold text-gray-700 shadow-sm transition-all duration-150 hover:bg-gray-200 active:scale-95'
             onClick={() => {
               updateScrollPercentages();
-              setPreviousZoom(undefined);
-              setZoom(prev =>
-                Math.min(
-                  Math.min(3, CANVAS_FACTOR),
-                  Number((prev + 0.1).toFixed(2)),
-                ),
-              );
+              service.send({ type: 'ZOOM', payload: 0.1 });
             }}
             title='Zoom in'
             aria-label='Zoom in'

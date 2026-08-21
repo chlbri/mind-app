@@ -46,11 +46,10 @@ export const [Provider, useFlow] = createContext(
      * management.
      */
     const service = interpret(machine, {
-      context: {},
+      context: { zoom: 1, edgesPositions: {} },
       pContext: { generatedId: null },
     });
 
-    const zoom = createSignal(1);
     const newEdge = createSignal<Edge>();
     const [boardRef, setBoardRef] = createSignal<HTMLDivElement>();
 
@@ -73,16 +72,11 @@ export const [Provider, useFlow] = createContext(
       if (!el) return { x: clientX, y: clientY };
 
       const rect = el.getBoundingClientRect();
-      const currentZoom = zoom[0]();
+      const currentZoom = service.state.context.zoom ?? 1;
       const x = clientX - rect.left / currentZoom;
       const y = clientY - rect.top / currentZoom;
       return { x, y };
     };
-
-    const [edgesPositions, setEdgesPositions] = createSignal<Record<string, Vector>>(
-      {},
-      { equals: false },
-    );
 
     /**
      * Clamps node coordinates within the visible container boundaries.
@@ -103,7 +97,7 @@ export const [Provider, useFlow] = createContext(
       const container = boardRef()?.parentElement;
       if (!container) return { x, y };
 
-      const currentZoom = zoom[0]();
+      const currentZoom = service.state.context.zoom ?? 1;
 
       const minX =
         container.scrollLeft / currentZoom + BOUNDS_CONSTRAINTS.horizontal;
@@ -130,7 +124,7 @@ export const [Provider, useFlow] = createContext(
       };
     };
 
-    service.addOptions(({ voidAction, batch, assign }) => ({
+    service.addOptions(({ batch, assign }) => ({
       actions: {
         placeChild: assign('context.data.nodes', {
           ADD_CHILD: ({ payload, context: { data }, pContext: { generatedId } }) => {
@@ -155,7 +149,10 @@ export const [Provider, useFlow] = createContext(
         }),
 
         placeParent: assign('context.data.nodes', {
-          ADD_PARENT: ({ context: { data }, pContext: { generatedId } }) => {
+          ADD_PARENT: ({
+            context: { data, zoom = 1 },
+            pContext: { generatedId },
+          }) => {
             const nodes = data?.nodes ?? [];
             const id = `node-${generatedId}`;
             const container = boardRef()?.parentElement;
@@ -163,7 +160,7 @@ export const [Provider, useFlow] = createContext(
             const scrollTop = container?.scrollTop ?? 0;
             const width = container?.clientWidth ?? 0;
             const height = container?.clientHeight ?? 0;
-            const currentZoom = zoom[0]();
+            const currentZoom = zoom;
             const x = (scrollLeft + width / 2) / currentZoom;
             const y = (scrollTop + height / 2) / currentZoom;
 
@@ -208,142 +205,131 @@ export const [Provider, useFlow] = createContext(
         }),
 
         buildUI: batch(
-          voidAction(({ context: { data } }) => {
-            const edges = data?.edges ?? [];
-            setEdgesPositions(data => {
-              const array = Object.entries({ ...data }).filter(([id]) =>
-                edges.some(edge => edge.id === id),
-              );
-
-              return Object.fromEntries(array);
-            });
-          }),
-          voidAction({
-            else: ({ context: { data } }) => {
+          assign('context.edgesPositions', {
+            else: ({ context: { data, edgesPositions = {} } }) => {
               const edges = data?.edges ?? [];
-              setEdgesPositions(
-                produce(next => {
-                  edges?.forEach(({ from, id, to }) => {
-                    const output = dimensions()[from]?.output;
-                    const input = dimensions()[to]?.input;
+              const next: Record<string, Vector> = {};
 
-                    if (output && input) {
-                      next[id] = {
-                        x0: output.x,
-                        y0: output.y,
-                        x1: input.x,
-                        y1: input.y,
-                      };
-                    }
-                  });
-                }),
-              );
+              edges.forEach(({ from, id, to }) => {
+                const output = dimensions()[from]?.output;
+                const input = dimensions()[to]?.input;
+
+                if (output && input) {
+                  next[id] = {
+                    x0: output.x,
+                    y0: output.y,
+                    x1: input.x,
+                    y1: input.y,
+                  };
+                } else if (edgesPositions[id]) {
+                  next[id] = edgesPositions[id];
+                }
+              });
+
+              return next;
             },
-            MOVE: ({ context: { data }, payload }) => {
+            MOVE: ({ context: { data, edgesPositions = {} }, payload }) => {
               const edges = data?.edges ?? [];
+              const next: Record<string, Vector> = { ...edgesPositions };
 
-              setEdgesPositions(
-                produce(next => {
-                  edges?.forEach(({ from, to, id }) => {
-                    if (from === payload.id) {
-                      const offset =
-                        dimensions()[payload.id]?.outputOffset ??
-                        getDefaultOutputOffset(dimensions()[payload.id]?.width);
+              edges.forEach(({ from, to, id }) => {
+                if (from === payload.id) {
+                  const offset =
+                    dimensions()[payload.id]?.outputOffset ??
+                    getDefaultOutputOffset(dimensions()[payload.id]?.width);
 
-                      const x0 = payload.x + offset.x;
-                      const y0 = payload.y + offset.y;
-                      next[id] = { ...next[id], x0, y0 };
+                  const x0 = payload.x + offset.x;
+                  const y0 = payload.y + offset.y;
+                  next[id] = { ...next[id], x0, y0 };
 
-                      setDimensions(
-                        produce(data => {
-                          if (data[payload.id]) {
-                            data[payload.id] = {
-                              ...data[payload.id],
-                              output: { x: x0, y: y0 },
-                            };
-                          }
-                        }),
-                      );
-                    }
-                    if (to === payload.id) {
-                      const offset =
-                        dimensions()[payload.id]?.inputOffset ??
-                        DEFAULT_INPUT_OFFSET;
+                  setDimensions(
+                    produce(data => {
+                      if (data[payload.id]) {
+                        data[payload.id] = {
+                          ...data[payload.id],
+                          output: { x: x0, y: y0 },
+                        };
+                      }
+                    }),
+                  );
+                }
+                if (to === payload.id) {
+                  const offset =
+                    dimensions()[payload.id]?.inputOffset ?? DEFAULT_INPUT_OFFSET;
 
-                      const x1 = payload.x + offset.x;
-                      const y1 = payload.y + offset.y;
-                      next[id] = { ...next[id], x1, y1 };
+                  const x1 = payload.x + offset.x;
+                  const y1 = payload.y + offset.y;
+                  next[id] = { ...next[id], x1, y1 };
 
-                      setDimensions(
-                        produce(data => {
-                          if (data[payload.id]) {
-                            data[payload.id] = {
-                              ...data[payload.id],
-                              input: { x: x1, y: y1 },
-                            };
-                          }
-                        }),
-                      );
-                    }
-                  });
-                }),
-              );
+                  setDimensions(
+                    produce(data => {
+                      if (data[payload.id]) {
+                        data[payload.id] = {
+                          ...data[payload.id],
+                          input: { x: x1, y: y1 },
+                        };
+                      }
+                    }),
+                  );
+                }
+              });
+
+              return next;
             },
           }),
 
           assign('context.updatingUI', () => true),
         ),
 
-        buildImmediateUI: voidAction({
-          MOVE_IMMEDIATE: ({ context: { data }, payload }) => {
+        buildImmediateUI: assign('context.edgesPositions', {
+          MOVE_IMMEDIATE: ({ context: { data, edgesPositions = {} }, payload }) => {
             const edges = data?.edges ?? [];
+            const next: Record<string, Vector> = { ...edgesPositions };
 
-            setEdgesPositions(
-              produce(next => {
-                edges?.forEach(({ from, to, id }) => {
-                  if (from === payload.id) {
-                    const offset =
-                      dimensions()[payload.id]?.outputOffset ??
-                      getDefaultOutputOffset(dimensions()[payload.id]?.width);
+            edges.forEach(({ from, to, id }) => {
+              if (from === payload.id) {
+                const offset =
+                  dimensions()[payload.id]?.outputOffset ??
+                  getDefaultOutputOffset(dimensions()[payload.id]?.width);
 
-                    const x0 = payload.x + offset.x;
-                    const y0 = payload.y + offset.y;
-                    next[id] = { ...next[id], x0, y0 };
+                const x0 = payload.x + offset.x;
+                const y0 = payload.y + offset.y;
+                next[id] = { ...next[id], x0, y0 };
 
-                    setDimensions(
-                      produce(data => {
-                        if (data[payload.id]) {
-                          data[payload.id] = {
-                            ...data[payload.id],
-                            output: { x: x0, y: y0 },
-                          };
-                        }
-                      }),
-                    );
-                  }
+                setDimensions(
+                  produce(data => {
+                    if (data[payload.id]) {
+                      data[payload.id] = {
+                        ...data[payload.id],
+                        output: { x: x0, y: y0 },
+                      };
+                    }
+                  }),
+                );
+              }
 
-                  if (to === payload.id) {
-                    const offset =
-                      dimensions()[payload.id]?.inputOffset ?? DEFAULT_INPUT_OFFSET;
+              if (to === payload.id) {
+                const offset =
+                  dimensions()[payload.id]?.inputOffset ?? DEFAULT_INPUT_OFFSET;
 
-                    const x1 = payload.x + offset.x;
-                    const y1 = payload.y + offset.y;
-                    next[id] = { ...next[id], x1, y1 };
+                const x1 = payload.x + offset.x;
+                const y1 = payload.y + offset.y;
+                next[id] = { ...next[id], x1, y1 };
 
-                    setDimensions(
-                      produce(data => {
-                        if (data[payload.id]) {
-                          data[payload.id] = {
-                            ...data[payload.id],
-                            input: { x: x1, y: y1 },
-                          };
-                        }
-                      }),
-                    );
-                  }
-                });
-              }),
-            );
+                setDimensions(
+                  produce(data => {
+                    if (data[payload.id]) {
+                      data[payload.id] = {
+                        ...data[payload.id],
+                        input: { x: x1, y: y1 },
+                      };
+                    }
+                  }),
+                );
+              }
+            });
+
+            return next;
           },
         }),
       },
@@ -356,9 +342,7 @@ export const [Provider, useFlow] = createContext(
       newEdge,
       board: [boardRef, setBoardRef] as const,
       getBoardPoint,
-      edgesPositions: [edgesPositions, setEdgesPositions] as const,
       service,
-      zoom,
       clampPosition,
     };
   },

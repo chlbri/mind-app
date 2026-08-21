@@ -54,8 +54,9 @@ export const NodeComponent: Component<Props> = props => {
     newEdge: [newEdge, setNewEdge],
     getBoardPoint,
     service,
-    zoom: [zoom],
   } = useFlow();
+
+  const zoom = useState(service, { selector: s => s.context.zoom ?? 1 });
 
   const selected = useState(service, {
     selector: s => s.context.selected === props.id,

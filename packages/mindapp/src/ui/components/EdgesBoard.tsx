@@ -1,3 +1,4 @@
+import { useState } from '@bemedev/app-solidjs';
 import {
   Component,
   createEffect,
@@ -21,8 +22,13 @@ export const EdgesBoard: Component = () => {
 
   const {
     newEdge: [newEdge],
-    edgesPositions: [edgesPositions],
+    service,
   } = useFlow();
+
+  const edgesPositions = useState(service, {
+    selector: s => s.context.edgesPositions,
+    equals: () => false,
+  });
 
   const datas = createMemo(() => {
     const entries = Object.entries(edgesPositions());

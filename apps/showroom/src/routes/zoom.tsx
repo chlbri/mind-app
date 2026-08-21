@@ -28,7 +28,7 @@ function ZoomDemo() {
       </div>
 
       {/* Viewport Window */}
-      <div class='relative h-60 w-96 overflow-scroll rounded-lg border-2 border-slate-800 shadow-md'>
+      <div class='relative h-60 w-96 overflow-auto rounded-lg border-2 border-slate-800 shadow-md'>
         {/* Zoom Canvas */}
         <div
           id='canvas'

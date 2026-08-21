@@ -2,7 +2,7 @@ import { createMachine } from '@bemedev/app';
 import { type } from '@bemedev/app/bemedev';
 import { nanoid } from 'nanoid';
 
-import { edgeJSON, extremities, nodeJSON } from './main.typings';
+import { edgeJSON, extremities, nodeJSON, vector } from './main.typings';
 
 /**
  * Constructs a unique edge identifier string from source and destination node IDs.
@@ -84,6 +84,8 @@ export const machine = createMachine(
           DELETE: { actions: ['delete'], target: '/construction' },
           SELECT: { actions: ['select'] },
           DESELECT: { actions: ['deselect'] },
+          ZOOM: { actions: ['zoom'] },
+          TOGGLE_ZOOM: { actions: ['toggleZoom'] },
         },
       },
     },
@@ -105,19 +107,26 @@ export const machine = createMachine(
       SELECT: 'string',
       DESELECT: 'never',
       ADD_EDGE: use(extremities),
+      ZOOM: 'number',
+      TOGGLE_ZOOM: 'never',
     })),
 
     sync: true,
-    pContext: type(({ union }) => ({ generatedId: union('string', 'null') })),
+    pContext: type(({ union, optional }) => ({
+      generatedId: union('string', 'null'),
+      previousZoom: optional('number'),
+    })),
 
-    context: type(({ optional, use, array }) => ({
+    context: type(({ optional, use, array, record }) => ({
       data: optional({
         nodes: array({ ...use(nodeJSON), id: 'string' }),
         edges: array({ ...use(edgeJSON), id: 'string' }),
       }),
 
+      edgesPositions: record(use(vector)),
       selected: optional('string'),
       updatingUI: optional('boolean'),
+      zoom: optional('number'),
     })),
   },
 ).provideOptions(({ assign, batch, erase }) => ({
@@ -126,8 +135,11 @@ export const machine = createMachine(
       assign('context.data', () => ({ nodes: [], edges: [] })),
       assign('context.data.nodes', { CONFIGURE: ({ payload: { nodes } }) => nodes }),
       assign('context.data.edges', { CONFIGURE: ({ payload: { edges } }) => edges }),
+      assign('context.edgesPositions', () => ({})),
       assign('context.updatingUI', () => false),
+      assign('context.zoom', () => 1),
       assign('pContext.generatedId', () => null),
+      assign('pContext.previousZoom', () => undefined),
     ),
 
     generateID: assign('pContext.generatedId', () => nanoid()),
@@ -215,5 +227,22 @@ export const machine = createMachine(
     }),
 
     deselect: erase('context.selected'),
+
+    zoom: assign(['context.zoom', 'pContext.previousZoom'], {
+      ZOOM: ({ context: { zoom = 1 }, payload }) => {
+        const next = zoom + payload;
+        const clamped = Math.min(Math.max(Number(next.toFixed(2)), 0.2), 3);
+        return [clamped, undefined];
+      },
+    }),
+
+    toggleZoom: assign(['context.zoom', 'pContext.previousZoom'], {
+      TOGGLE_ZOOM: ({ context: { zoom = 1 }, pContext: { previousZoom } }) => {
+        if (previousZoom !== undefined) {
+          return [previousZoom, undefined];
+        }
+        return [1, zoom];
+      },
+    }),
   },
 }));
