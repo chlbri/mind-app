@@ -1,6 +1,6 @@
 import { interpret } from '@bemedev/app';
 import { dequal } from 'dequal/lite';
-import { createSignal } from 'solid-js';
+import { createSignal, untrack } from 'solid-js';
 import { produce } from 'solid-js/store';
 
 import { createContext } from '../../helpers/createContext';
@@ -29,6 +29,13 @@ type Dimensions = {
   inputOffset?: Point;
 };
 
+const service = interpret(machine, {
+  context: { zoom: 1, edgesPositions: {} },
+  pContext: { generatedId: null, dimensions: {} },
+});
+
+service.start();
+
 /**
  * Solid Context Provider component and hook for accessing flowchart board state,
  * services, and zoom.
@@ -39,12 +46,6 @@ export const [Provider, useFlow] = createContext(
      * Shared state machine interpreter service instance for flowchart state
      * management.
      */
-    const service = interpret(machine, {
-      context: { zoom: 1, edgesPositions: {} },
-      pContext: { generatedId: null, dimensions: {} },
-    });
-
-    service.start();
 
     const [boardRef, setBoardRef] = createSignal<HTMLDivElement>();
 
@@ -129,9 +130,11 @@ export const [Provider, useFlow] = createContext(
             const parentNode = nodes.find(node => node.id === payload);
             if (!parentNode) return nodes;
 
+            const dimension = untrack(() => dimensions()[payload]);
+
             const id = `node-${generatedId}`;
-            const width = dimensions()[payload]?.width ?? 0;
-            const height = dimensions()[payload]?.height ?? 0;
+            const width = dimension?.width ?? 0;
+            const height = dimension?.height ?? 0;
             const initialX = parentNode.position.x + width + PARENT_CHILD_GAP_WIDTH;
             const initialY = parentNode.position.y;
             const position = clampPosition(initialX, initialY, width, height);
@@ -185,17 +188,45 @@ export const [Provider, useFlow] = createContext(
             const parentNode = nodes.find(node => node.id === parentID);
             if (!parentNode) return nodes;
 
+            const dimension = untrack(() => dimensions()[parentID]);
+            if (!dimension) return nodes;
+
             const id = `node-${generatedId}`;
-            const width = dimensions()[parentID]?.width ?? 0;
-            const height = dimensions()[parentID]?.height ?? 0;
+            const width = dimension.width;
+            const height = dimension.height;
             const initialX = parentNode.position.x + width + PARENT_CHILD_GAP_WIDTH;
-            const initialY = parentNode.position.y + 100;
+            const initialY = parentNode.position.y + PARENT_CHILD_GAP_WIDTH;
             const position = clampPosition(initialX, initialY, width, height);
+
+            setDimensions(
+              produce(draft => {
+                draft[id] = {
+                  width,
+                  height,
+                  input: { x: 0, y: 0 },
+                  output: { x: width, y: height },
+                };
+              }),
+            );
 
             return [
               ...nodes,
               { id, data: { content: '<Nouveau nœud>' }, input: true, position },
             ];
+          },
+        }),
+
+        startNewEdge: assign('context.newEdge', {
+          START_NEW_EDGE: ({
+            payload: {
+              from,
+              point: { x: x1, y: y1 },
+            },
+          }) => {
+            const output = untrack(() => dimensions()[from]?.output);
+            if (!output) return undefined;
+            const { x: x0, y: y0 } = output;
+            return { from, x0, y0, x1, y1 };
           },
         }),
 
@@ -206,8 +237,8 @@ export const [Provider, useFlow] = createContext(
               edgesPositions = {};
 
               edges.forEach(({ from, id, to }) => {
-                const output = dimensions()[from]?.output;
-                const input = dimensions()[to]?.input;
+                const output = untrack(() => dimensions()[from]?.output);
+                const input = untrack(() => dimensions()[to]?.input);
 
                 if (output && input) {
                   edgesPositions[id] = {
@@ -229,9 +260,10 @@ export const [Provider, useFlow] = createContext(
 
               edges.forEach(({ from, to, id }) => {
                 if (from === payload.id) {
+                  const dimension = untrack(() => dimensions()[payload.id]);
                   const offset =
-                    dimensions()[payload.id]?.outputOffset ??
-                    getDefaultOutputOffset(dimensions()[payload.id]?.width);
+                    dimension?.outputOffset ??
+                    getDefaultOutputOffset(dimension?.width);
 
                   const x = payload.x + offset.x;
                   const y = payload.y + offset.y;
@@ -245,8 +277,8 @@ export const [Provider, useFlow] = createContext(
                   );
                 }
                 if (to === payload.id) {
-                  const offset =
-                    dimensions()[payload.id]?.inputOffset ?? DEFAULT_INPUT_OFFSET;
+                  const dimension = untrack(() => dimensions()[payload.id]);
+                  const offset = dimension?.inputOffset ?? DEFAULT_INPUT_OFFSET;
 
                   const x = payload.x + offset.x;
                   const y = payload.y + offset.y;
@@ -274,9 +306,10 @@ export const [Provider, useFlow] = createContext(
 
             edges.forEach(({ from, to, id }) => {
               if (from === payload.id) {
+                const dimension = untrack(() => dimensions()[payload.id]);
                 const offset =
-                  dimensions()[payload.id]?.outputOffset ??
-                  getDefaultOutputOffset(dimensions()[payload.id]?.width);
+                  dimension?.outputOffset ??
+                  getDefaultOutputOffset(dimension?.width);
 
                 const x0 = payload.x + offset.x;
                 const y0 = payload.y + offset.y;
@@ -294,8 +327,8 @@ export const [Provider, useFlow] = createContext(
               }
 
               if (to === payload.id) {
-                const offset =
-                  dimensions()[payload.id]?.inputOffset ?? DEFAULT_INPUT_OFFSET;
+                const dimension = untrack(() => dimensions()[payload.id]);
+                const offset = dimension?.inputOffset ?? DEFAULT_INPUT_OFFSET;
 
                 const x1 = payload.x + offset.x;
                 const y1 = payload.y + offset.y;

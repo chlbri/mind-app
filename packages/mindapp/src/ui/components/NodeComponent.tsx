@@ -103,14 +103,14 @@ export const NodeComponent: Component<Props> = props => {
 
     const input = { x: props.x + inputOffsetX, y: props.y + inputOffsetY };
 
-    const dimension = {
-      width,
-      height,
-      output,
-      input,
-      outputOffset: { x: outputOffsetX, y: outputOffsetY },
-      inputOffset: { x: inputOffsetX, y: inputOffsetY },
-    };
+    // const dimension = {
+    //   width,
+    //   height,
+    //   output,
+    //   input,
+    //   outputOffset: { x: outputOffsetX, y: outputOffsetY },
+    //   inputOffset: { x: inputOffsetX, y: inputOffsetY },
+    // };
 
     setDimensions(
       produce(data => {
@@ -124,6 +124,8 @@ export const NodeComponent: Component<Props> = props => {
         };
       }),
     );
+
+    // service.send({ type: 'ADD_DIMENSION', payload: { id: props.id, dimension } });
   });
 
   const hasParent = useState(service, {
@@ -137,9 +139,7 @@ export const NodeComponent: Component<Props> = props => {
   const draggable = createDraggable(props.id);
   void draggable;
 
-  createEffect(() => {
-    console.log({ dimension: dimension() });
-  });
+  createEffect(() => console.log({ dimension: dimension() }));
 
   return (
     <div
@@ -282,19 +282,11 @@ export const NodeComponent: Component<Props> = props => {
           onMouseDown={event => {
             event.stopPropagation();
             service.send('DESELECT');
-            const output = dimension()?.output;
-            const boardPoint = getBoardPoint(event.clientX, event.clientY);
-            if (output)
-              service.send({
-                type: 'START_NEW_EDGE',
-                payload: {
-                  x0: output.x,
-                  y0: output.y,
-                  x1: boardPoint.x,
-                  y1: boardPoint.y,
-                  from: props.id,
-                },
-              });
+            const point = getBoardPoint(event.clientX, event.clientY);
+            service.send({
+              type: 'START_NEW_EDGE',
+              payload: { point, from: props.id },
+            });
           }}
         ></div>
       </div>

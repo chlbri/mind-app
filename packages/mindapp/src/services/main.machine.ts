@@ -1,5 +1,5 @@
 import { createMachine } from '@bemedev/app';
-import { type } from '@bemedev/app/bemedev';
+import { toArray, type } from '@bemedev/app/bemedev';
 import { nanoid } from 'nanoid';
 
 import {
@@ -120,7 +120,7 @@ export const machine = createMachine(
       SELECT: 'string',
       DESELECT: 'never',
       ADD_EDGE: use(extremities),
-      START_NEW_EDGE: use(newEdge),
+      START_NEW_EDGE: { from: 'string', point: use(point) },
       MOVE_NEW_EDGE: use(point),
       CLEAR_NEW_EDGE: 'never',
       ZOOM: 'number',
@@ -148,7 +148,7 @@ export const machine = createMachine(
       zoom: 'number',
     })),
   },
-).provideOptions(({ assign, batch, erase }) => ({
+).provideOptions(({ assign, batch, erase, filter }) => ({
   actions: {
     configure: batch(
       assign('context.data', () => ({ nodes: [], edges: [] })),
@@ -165,7 +165,6 @@ export const machine = createMachine(
     addDimension: assign('pContext.dimensions', {
       ADD_DIMENSION: ({ payload: { id, dimension }, pContext: { dimensions } }) => {
         dimensions[id] = dimension;
-        console.log({ dimensions });
         return dimensions;
       },
     }),
@@ -174,13 +173,14 @@ export const machine = createMachine(
 
     linkChild: batch(
       assign('context.data.edges', {
-        ADD_CHILD: ({ context, pContext, payload }) => {
-          const data = context.data;
+        ADD_CHILD: ({ context: { data }, pContext, payload }) => {
+          const edges = toArray.typed(data?.edges);
           const from = payload;
           const generatedId = pContext?.generatedId;
           const to = buildNodeID(generatedId);
           const id = buildEdgeId(from, to);
-          return [...(data?.edges ?? []), { id, from, to }];
+          edges.push({ id, from, to });
+          return edges;
         },
       }),
 
@@ -191,17 +191,16 @@ export const machine = createMachine(
 
     linkSibling: batch(
       assign('context.data.edges', {
-        ADD_SIBLING: ({ pContext, payload, context }) => {
-          const edges = context.data?.edges;
+        ADD_SIBLING: ({ pContext, payload, context: { data } }) => {
+          const edges = toArray.typed(data?.edges);
           const generatedId = pContext?.generatedId;
-          const out = [...(edges ?? [])];
-          const from = edges?.find(({ to }) => to === payload)?.from;
-          if (!from) return out;
+          const from = edges.find(({ to }) => to === payload)?.from;
+          if (!from) return edges;
 
           const to = buildNodeID(generatedId);
           const id = buildEdgeId(from, to);
-          out.push({ from, to, id });
-          return out;
+          edges.push({ from, to, id });
+          return edges;
         },
       }),
 
@@ -217,7 +216,6 @@ export const machine = createMachine(
     moveNode: assign('context.data.nodes', {
       MOVE: ({ context: { data }, payload }) => {
         const { id, x, y } = payload;
-        if (!id) return data?.nodes ?? [];
 
         return (
           data?.nodes?.map(d => {
@@ -232,18 +230,27 @@ export const machine = createMachine(
 
     select: assign('context.selected', { SELECT: ({ payload }) => payload }),
 
-    delete: assign(['context.data.nodes', 'context.data.edges'], {
-      DELETE: ({ context: { data }, payload }) => {
-        console.log('DELETION !!');
-        const nodes = data?.nodes?.filter(({ id }) => id !== payload);
-        const edges = data?.edges?.filter(
-          ({ id, from, to }) => id !== payload && from !== payload && to !== payload,
-        );
-        console.log('edges', edges?.length);
+    // delete: assign(['context.data.nodes', 'context.data.edges'], {
+    //   DELETE: ({ context: { data }, payload }) => {
+    //     const nodes = data?.nodes?.filter(({ id }) => id !== payload);
+    //     const edges = data?.edges?.filter(
+    //       ({ id, from, to }) => id !== payload && from !== payload && to !== payload,
+    //     );
 
-        return [nodes, edges];
-      },
-    }),
+    //     return [nodes, edges];
+    //   },
+    // }),
+    delete: batch(
+      filter('context.data.edges', {
+        DELETE: ({ id, from, to }, _, { payload }) => {
+          return id !== payload && from !== payload && to !== payload;
+        },
+      }),
+
+      filter('context.data.nodes', {
+        DELETE: ({ id }, _, { payload }) => id !== payload,
+      }),
+    ),
 
     addEdge: batch(
       assign('context.data.edges', {
@@ -258,10 +265,6 @@ export const machine = createMachine(
       }),
       erase('context.newEdge'),
     ),
-
-    startNewEdge: assign('context.newEdge', {
-      START_NEW_EDGE: ({ payload }) => payload,
-    }),
 
     moveNewEdge: assign('context.newEdge', {
       MOVE_NEW_EDGE: ({ context: { newEdge }, payload }) => {
