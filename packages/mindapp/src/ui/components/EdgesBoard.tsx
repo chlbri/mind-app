@@ -23,7 +23,7 @@ export const EdgesBoard: Component = () => {
       const entries = Object.entries(context.edgesPositions);
       return entries.map(([id, vector]) => ({ id, ...vector }));
     },
-    // equals: () => false,
+    equals: () => false,
   });
 
   // const datas = createMemo(() => {

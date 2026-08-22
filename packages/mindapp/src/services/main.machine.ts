@@ -120,7 +120,7 @@ export const machine = createMachine(
       SELECT: 'string',
       DESELECT: 'never',
       ADD_EDGE: use(extremities),
-      START_NEW_EDGE: { from: 'string', point: use(point) },
+      START_NEW_EDGE: 'string',
       MOVE_NEW_EDGE: use(point),
       CLEAR_NEW_EDGE: 'never',
       ZOOM: 'number',
@@ -150,17 +150,17 @@ export const machine = createMachine(
   },
 ).provideOptions(({ assign, batch, erase, filter }) => ({
   actions: {
-    configure: batch(
-      assign('context.data', () => ({ nodes: [], edges: [] })),
-      assign('context.data.nodes', { CONFIGURE: ({ payload: { nodes } }) => nodes }),
-      assign('context.data.edges', { CONFIGURE: ({ payload: { edges } }) => edges }),
-      assign('context.edgesPositions', () => ({})),
-      assign('context.newEdge', () => undefined),
-      assign('context.updatingUI', () => false),
-      assign('context.zoom', () => 1),
-      assign('pContext.generatedId', () => null),
-      assign('pContext.previousZoom', () => undefined),
-    ),
+    // configure: batch(
+    //   assign('context.data', () => ({ nodes: [], edges: [] })),
+    //   assign('context.data.nodes', { CONFIGURE: ({ payload: { nodes } }) => nodes }),
+    //   assign('context.data.edges', { CONFIGURE: ({ payload: { edges } }) => edges }),
+    //   assign('context.edgesPositions', () => ({})),
+    //   assign('context.newEdge', () => undefined),
+    //   assign('context.updatingUI', () => false),
+    //   assign('context.zoom', () => 1),
+    //   assign('pContext.generatedId', () => null),
+    //   assign('pContext.previousZoom', () => undefined),
+    // ),
 
     addDimension: assign('pContext.dimensions', {
       ADD_DIMENSION: ({ payload: { id, dimension }, pContext: { dimensions } }) => {
@@ -265,13 +265,6 @@ export const machine = createMachine(
       }),
       erase('context.newEdge'),
     ),
-
-    moveNewEdge: assign('context.newEdge', {
-      MOVE_NEW_EDGE: ({ context: { newEdge }, payload }) => {
-        if (!newEdge) return undefined;
-        return { ...newEdge, x1: payload.x, y1: payload.y };
-      },
-    }),
 
     clearNewEdge: erase('context.newEdge'),
     deselect: erase('context.selected'),

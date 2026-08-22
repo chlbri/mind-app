@@ -64,7 +64,7 @@ export const FlowChart: Component<FlowProps> = props => {
   const primaryNodes = props.config?.nodes ?? DEFAULT_NODES;
   const primaryEdges = props.config?.edges;
 
-  const { service, getBoardPoint } = useFlow();
+  const { service } = useFlow();
 
   const hasNewEdge = useState(service, { selector: s => !!s.context.newEdge });
 
@@ -82,8 +82,10 @@ export const FlowChart: Component<FlowProps> = props => {
       class='relative h-full w-full'
       onMouseUp={() => service.send('CLEAR_NEW_EDGE')}
       onMouseMove={event => {
-        const boardPoint = getBoardPoint(event.clientX, event.clientY);
-        service.send({ type: 'MOVE_NEW_EDGE', payload: boardPoint });
+        service.send({
+          type: 'MOVE_NEW_EDGE',
+          payload: { x: event.clientX, y: event.clientY },
+        });
       }}
       style={{}}
     >

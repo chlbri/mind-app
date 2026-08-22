@@ -5,7 +5,15 @@ import {
   DragOverlay,
 } from '@thisbeyond/solid-dnd';
 import { dequal } from 'dequal';
-import { Component, createEffect, createSignal, For, on, Show } from 'solid-js';
+import {
+  Component,
+  createEffect,
+  createSignal,
+  /*   For, */
+  Index,
+  on,
+  Show,
+} from 'solid-js';
 
 import { DragBounds } from './Bounds';
 import { EdgesBoard } from './EdgesBoard';
@@ -168,8 +176,8 @@ export const NodesBoard: Component = () => {
           node.style.setProperty('left', X + 'px');
           node.style.removeProperty('transform');
 
+          service.send({ type: 'MOVE', payload: { id: `${id}`, x: X, y: Y } });
           setTimeout(() => {
-            service.send({ type: 'MOVE', payload: { id: `${id}`, x: X, y: Y } });
             setTransform({ x: 0, y: 0 });
           }, 0);
         }}
@@ -227,7 +235,23 @@ export const NodesBoard: Component = () => {
             >
               <DragBounds />
               <EdgesBoard />
-              <For each={nodes()} children={NodeComponent} />
+
+              {/* <For each={nodes()} children={NodeComponent} /> */}
+
+              <Index each={nodes()} fallback={<p>Empty</p>}>
+                {node => {
+                  return (
+                    <NodeComponent
+                      id={node().id}
+                      x={node().x}
+                      y={node().y}
+                      label={node().label}
+                      content={node().content}
+                      input={node().input}
+                    />
+                  );
+                }}
+              </Index>
             </div>
           </div>
         </div>
