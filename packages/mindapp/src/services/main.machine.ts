@@ -3,6 +3,7 @@ import { type } from '@bemedev/app/bemedev';
 import { nanoid } from 'nanoid';
 
 import {
+  dimension,
   edgeJSON,
   extremities,
   newEdge,
@@ -77,6 +78,8 @@ export const machine = createMachine(
             target: '/construction',
           },
 
+          ADD_DIMENSION: { actions: ['addDimension'] },
+
           ADD_SIBLING: {
             actions: [
               'generateID',
@@ -122,12 +125,14 @@ export const machine = createMachine(
       CLEAR_NEW_EDGE: 'never',
       ZOOM: 'number',
       TOGGLE_ZOOM: 'never',
+      ADD_DIMENSION: { id: 'string', dimension: use(dimension) },
     })),
 
     sync: true,
-    pContext: type(({ union, optional }) => ({
+    pContext: type(({ union, optional, record, use }) => ({
       generatedId: union('string', 'null'),
       previousZoom: optional('number'),
+      dimensions: record(use(dimension)),
     })),
 
     context: type(({ optional, use, array, record }) => ({
@@ -156,6 +161,14 @@ export const machine = createMachine(
       assign('pContext.generatedId', () => null),
       assign('pContext.previousZoom', () => undefined),
     ),
+
+    addDimension: assign('pContext.dimensions', {
+      ADD_DIMENSION: ({ payload: { id, dimension }, pContext: { dimensions } }) => {
+        dimensions[id] = dimension;
+        console.log({ dimensions });
+        return dimensions;
+      },
+    }),
 
     generateID: assign('pContext.generatedId', () => nanoid()),
 
@@ -221,10 +234,12 @@ export const machine = createMachine(
 
     delete: assign(['context.data.nodes', 'context.data.edges'], {
       DELETE: ({ context: { data }, payload }) => {
+        console.log('DELETION !!');
         const nodes = data?.nodes?.filter(({ id }) => id !== payload);
         const edges = data?.edges?.filter(
           ({ id, from, to }) => id !== payload && from !== payload && to !== payload,
         );
+        console.log('edges', edges?.length);
 
         return [nodes, edges];
       },
@@ -256,7 +271,6 @@ export const machine = createMachine(
     }),
 
     clearNewEdge: erase('context.newEdge'),
-
     deselect: erase('context.selected'),
 
     zoom: assign(['context.zoom', 'pContext.previousZoom'], {

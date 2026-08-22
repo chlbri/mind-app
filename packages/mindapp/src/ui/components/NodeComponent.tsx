@@ -1,7 +1,15 @@
 /* eslint-disable @typescript-eslint/no-namespace */
 import { useState } from '@bemedev/app-solidjs';
 import { createDraggable } from '@thisbeyond/solid-dnd';
-import { Component, createSignal, onMount, Show } from 'solid-js';
+import { dequal } from 'dequal';
+import {
+  Component,
+  createEffect,
+  createMemo,
+  createSignal,
+  onMount,
+  Show,
+} from 'solid-js';
 import { produce } from 'solid-js/store';
 
 import { useFlow } from './FlowChart.context';
@@ -62,6 +70,8 @@ export const NodeComponent: Component<Props> = props => {
     selector: s => s.context.selected === props.id,
   });
 
+  const dimension = createMemo(() => dimensions()[props.id], {}, { equals: dequal });
+
   onMount(() => {
     const _inputRef = inputRef;
     const _outputRef = outputRef;
@@ -93,6 +103,15 @@ export const NodeComponent: Component<Props> = props => {
 
     const input = { x: props.x + inputOffsetX, y: props.y + inputOffsetY };
 
+    const dimension = {
+      width,
+      height,
+      output,
+      input,
+      outputOffset: { x: outputOffsetX, y: outputOffsetY },
+      inputOffset: { x: inputOffsetX, y: inputOffsetY },
+    };
+
     setDimensions(
       produce(data => {
         data[props.id] = {
@@ -117,6 +136,10 @@ export const NodeComponent: Component<Props> = props => {
 
   const draggable = createDraggable(props.id);
   void draggable;
+
+  createEffect(() => {
+    console.log({ dimension: dimension() });
+  });
 
   return (
     <div
@@ -259,7 +282,7 @@ export const NodeComponent: Component<Props> = props => {
           onMouseDown={event => {
             event.stopPropagation();
             service.send('DESELECT');
-            const output = dimensions()[props.id]?.output;
+            const output = dimension()?.output;
             const boardPoint = getBoardPoint(event.clientX, event.clientY);
             if (output)
               service.send({

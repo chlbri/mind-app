@@ -69,7 +69,6 @@ export const FlowChart: Component<FlowProps> = props => {
   const hasNewEdge = useState(service, { selector: s => !!s.context.newEdge });
 
   onMount(() => {
-    service.start();
     service.send({
       type: 'CONFIGURE',
       payload: { nodes: primaryNodes, edges: primaryEdges ?? [] },

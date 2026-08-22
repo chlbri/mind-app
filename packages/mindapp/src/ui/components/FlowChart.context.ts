@@ -5,7 +5,7 @@ import { produce } from 'solid-js/store';
 
 import { createContext } from '../../helpers/createContext';
 import { machine } from '../../services/main.machine';
-import type { Point, Vector } from '../../services/main.typings';
+import type { Point } from '../../services/main.typings';
 import {
   BOUNDS_CONSTRAINTS,
   DEFAULT_INPUT_OFFSET,
@@ -41,8 +41,10 @@ export const [Provider, useFlow] = createContext(
      */
     const service = interpret(machine, {
       context: { zoom: 1, edgesPositions: {} },
-      pContext: { generatedId: null },
+      pContext: { generatedId: null, dimensions: {} },
     });
+
+    service.start();
 
     const [boardRef, setBoardRef] = createSignal<HTMLDivElement>();
 
@@ -199,31 +201,31 @@ export const [Provider, useFlow] = createContext(
 
         buildUI: batch(
           assign('context.edgesPositions', {
-            else: ({ context: { data, edgesPositions = {} } }) => {
+            else: ({ context: { data, edgesPositions } }) => {
               const edges = data?.edges ?? [];
-              const next: Record<string, Vector> = {};
+              edgesPositions = {};
 
               edges.forEach(({ from, id, to }) => {
                 const output = dimensions()[from]?.output;
                 const input = dimensions()[to]?.input;
 
                 if (output && input) {
-                  next[id] = {
+                  edgesPositions[id] = {
                     x0: output.x,
                     y0: output.y,
                     x1: input.x,
                     y1: input.y,
                   };
-                } else if (edgesPositions[id]) {
-                  next[id] = edgesPositions[id];
+                } else {
+                  delete edgesPositions[id];
                 }
               });
 
-              return next;
+              return edgesPositions;
             },
-            MOVE: ({ context: { data, edgesPositions = {} }, payload }) => {
+            MOVE: ({ context: { data, edgesPositions }, payload }) => {
               const edges = data?.edges ?? [];
-              const next: Record<string, Vector> = { ...edgesPositions };
+              // const next: Record<string, Vector> = { ...edgesPositions };
 
               edges.forEach(({ from, to, id }) => {
                 if (from === payload.id) {
@@ -231,18 +233,14 @@ export const [Provider, useFlow] = createContext(
                     dimensions()[payload.id]?.outputOffset ??
                     getDefaultOutputOffset(dimensions()[payload.id]?.width);
 
-                  const x0 = payload.x + offset.x;
-                  const y0 = payload.y + offset.y;
-                  next[id] = { ...next[id], x0, y0 };
+                  const x = payload.x + offset.x;
+                  const y = payload.y + offset.y;
+                  edgesPositions[id].x0 = x;
+                  edgesPositions[id].y0 = y;
 
                   setDimensions(
                     produce(data => {
-                      if (data[payload.id]) {
-                        data[payload.id] = {
-                          ...data[payload.id],
-                          output: { x: x0, y: y0 },
-                        };
-                      }
+                      if (data[payload.id]) data[payload.id].output = { x, y };
                     }),
                   );
                 }
@@ -250,24 +248,20 @@ export const [Provider, useFlow] = createContext(
                   const offset =
                     dimensions()[payload.id]?.inputOffset ?? DEFAULT_INPUT_OFFSET;
 
-                  const x1 = payload.x + offset.x;
-                  const y1 = payload.y + offset.y;
-                  next[id] = { ...next[id], x1, y1 };
+                  const x = payload.x + offset.x;
+                  const y = payload.y + offset.y;
+                  edgesPositions[id].x1 = x;
+                  edgesPositions[id].y1 = y;
 
                   setDimensions(
                     produce(data => {
-                      if (data[payload.id]) {
-                        data[payload.id] = {
-                          ...data[payload.id],
-                          input: { x: x1, y: y1 },
-                        };
-                      }
+                      if (data[payload.id]) data[payload.id].input = { x, y };
                     }),
                   );
                 }
               });
 
-              return next;
+              return edgesPositions;
             },
           }),
 
@@ -277,7 +271,6 @@ export const [Provider, useFlow] = createContext(
         buildImmediateUI: assign('context.edgesPositions', {
           MOVE_IMMEDIATE: ({ context: { data, edgesPositions = {} }, payload }) => {
             const edges = data?.edges ?? [];
-            const next: Record<string, Vector> = { ...edgesPositions };
 
             edges.forEach(({ from, to, id }) => {
               if (from === payload.id) {
@@ -287,15 +280,14 @@ export const [Provider, useFlow] = createContext(
 
                 const x0 = payload.x + offset.x;
                 const y0 = payload.y + offset.y;
-                next[id] = { ...next[id], x0, y0 };
+                edgesPositions[id].x0 = x0;
+                edgesPositions[id].y0 = y0;
 
                 setDimensions(
                   produce(data => {
                     if (data[payload.id]) {
-                      data[payload.id] = {
-                        ...data[payload.id],
-                        output: { x: x0, y: y0 },
-                      };
+                      data[payload.id].output.x = x0;
+                      data[payload.id].output.y = y0;
                     }
                   }),
                 );
@@ -307,7 +299,8 @@ export const [Provider, useFlow] = createContext(
 
                 const x1 = payload.x + offset.x;
                 const y1 = payload.y + offset.y;
-                next[id] = { ...next[id], x1, y1 };
+                edgesPositions[id].x1 = x1;
+                edgesPositions[id].y1 = y1;
 
                 setDimensions(
                   produce(data => {
@@ -322,7 +315,7 @@ export const [Provider, useFlow] = createContext(
               }
             });
 
-            return next;
+            return edgesPositions;
           },
         }),
       },

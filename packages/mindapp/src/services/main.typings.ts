@@ -27,12 +27,13 @@ export const nodeJSON = type(({ optional, use }) => ({
 export const edgeJSON = extremities;
 
 /** Schema definition for layout dimensions and connection points of a node. */
-export const dimensions = type(({ optional, use }) => ({
+export const dimension = type(({ optional, use }) => ({
   width: 'number',
   height: 'number',
-  id: 'string',
   output: use(point),
   input: optional(use(point)),
+  inputOffset: optional(use(point)),
+  outputOffset: optional(use(point)),
 }));
 
 /**
