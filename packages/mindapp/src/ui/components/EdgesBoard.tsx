@@ -9,14 +9,13 @@ import { useFlow } from './FlowChart.context';
  * edge creation previews.
  *
  * @returns The rendered SVG JSX element.
+ *
+ * @see {@linkcode EdgeComponent}, {@linkcode useFlow}
  */
 export const EdgesBoard: Component = () => {
   const { service } = useFlow();
 
-  const newEdge = useState(service, {
-    selector: s => s.context.newEdge,
-    // equals: () => false,
-  });
+  const newEdge = useState(service, { selector: s => s.context.newEdge });
 
   const datas = useState(service, {
     selector: ({ context }) => {
@@ -25,11 +24,6 @@ export const EdgesBoard: Component = () => {
     },
     equals: () => false,
   });
-
-  // const datas = createMemo(() => {
-  //   const entries = Object.entries(edgesPositions());
-  //   return entries.map(([id, vector]) => ({ id, ...vector }));
-  // });
 
   return (
     <svg class='pointer-events-none h-full w-full overflow-visible'>

@@ -15,10 +15,10 @@ import {
   Show,
 } from 'solid-js';
 
+import { CANVAS_FACTOR, SCROLL_MULTIPLIER } from '../../services/main.machine.data';
 import { DragBounds } from './Bounds';
 import { EdgesBoard } from './EdgesBoard';
 import { useFlow } from './FlowChart.context';
-import { CANVAS_FACTOR, SCROLL_MULTIPLIER } from './FlowChart.data';
 import { NodeComponent } from './NodeComponent';
 
 /**
@@ -26,6 +26,8 @@ import { NodeComponent } from './NodeComponent';
  * panning gestures, and rendered nodes/edges.
  *
  * @returns The rendered Solid component.
+ *
+ * @see {@linkcode DragBounds}, {@linkcode EdgesBoard}, {@linkcode NodeComponent}, {@linkcode useFlow}, {@linkcode CANVAS_FACTOR}, {@linkcode SCROLL_MULTIPLIER}
  */
 export const NodesBoard: Component = () => {
   let containerRef: HTMLDivElement;
@@ -99,7 +101,11 @@ export const NodesBoard: Component = () => {
   const CANVAS_SIZE = CANVAS_FACTOR * 100;
   const MARGIN_X = 53 * CANVAS_FACTOR;
   const MARGIN_Y = 85 * CANVAS_FACTOR;
+
+  /** Computes the dynamic canvas width string in CSS units adjusted for zoom. */
   const cWidth = () => `calc((${CANVAS_SIZE}vw - ${MARGIN_X}px) * ${zoom()})`;
+
+  /** Computes the dynamic canvas height string in CSS units adjusted for zoom. */
   const cHeight = () => `calc((${CANVAS_SIZE}vh - ${MARGIN_Y}px) * ${zoom()})`;
 
   return (

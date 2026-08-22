@@ -1,7 +1,8 @@
 import { useState } from '@bemedev/app-solidjs';
 import { Component, createEffect, createSignal, Show } from 'solid-js';
 
-import type { Vector } from '../../services/main.typings';
+import type { Vector } from '#services/main.machine.typings';
+
 import { useFlow } from './FlowChart.context';
 
 /** Properties for rendering an SVG connection edge between two points. */
@@ -28,6 +29,8 @@ const calculateOffset = (value: number) => (value * 100) / 200;
  * @param vector - Vector coordinates of type {@linkcode Vector}.
  *
  * @returns SVG cubic bezier path string.
+ *
+ * @see {@linkcode calculateOffset}
  */
 const draw = ({ x0, y0, x1, y1 }: Vector) => {
   return `M ${x0} ${y0} C ${x0 + calculateOffset(Math.abs(x1 - x0))} ${y0}, ${x1 - calculateOffset(Math.abs(x1 - x0))} ${y1}, ${x1} ${y1}`;
@@ -40,6 +43,8 @@ const draw = ({ x0, y0, x1, y1 }: Vector) => {
  * @param props - Edge properties of type {@linkcode Props}.
  *
  * @returns The rendered SVG JSX elements.
+ *
+ * @see {@linkcode draw}, {@linkcode useFlow}
  */
 export const EdgeComponent: Component<Props> = props => {
   const [middlePoint, setMiddlePoint] = createSignal({

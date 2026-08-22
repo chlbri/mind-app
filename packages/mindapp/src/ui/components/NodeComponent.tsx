@@ -3,12 +3,13 @@ import { useState } from '@bemedev/app-solidjs';
 import { createDraggable } from '@thisbeyond/solid-dnd';
 import { Component, Show } from 'solid-js';
 
-import { useFlow } from './FlowChart.context';
 import {
   HANDLE_CONTAINER_OFFSET_X,
   HANDLE_MARGIN_TOP,
   HANDLE_SIZE,
-} from './FlowChart.data';
+} from '#services/main.machine.data';
+
+import { useFlow } from './FlowChart.context';
 
 declare module 'solid-js' {
   namespace JSX {
@@ -41,6 +42,8 @@ type Props = {
  * @param props - Node rendering properties of type {@linkcode Props}.
  *
  * @returns The rendered Solid component.
+ *
+ * @see {@linkcode useFlow}, {@linkcode HANDLE_CONTAINER_OFFSET_X}, {@linkcode HANDLE_MARGIN_TOP}, {@linkcode HANDLE_SIZE}
  */
 export const NodeComponent: Component<Props> = props => {
   const { service } = useFlow();

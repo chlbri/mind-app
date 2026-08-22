@@ -2,9 +2,9 @@ import { useState } from '@bemedev/app-solidjs';
 import type { inferT } from '@bemedev/app/typings';
 import { Component, onCleanup, onMount } from 'solid-js';
 
-import type { edgeJSON, nodeJSON } from '../../services/main.typings';
+import { DEFAULT_NODES } from '../../services/main.machine.data';
+import type { edgeJSON, nodeJSON } from '../../services/main.machine.typings';
 import { useFlow } from './FlowChart.context';
-import { DEFAULT_NODES } from './FlowChart.data';
 import { NodesBoard } from './NodesBoard';
 
 /** Serialized node properties type inferred from schema {@linkcode nodeJSON}. */
@@ -59,6 +59,8 @@ export type FlowProps = {
  *   {@linkcode FlowProps}.
  *
  * @returns The rendered Solid component.
+ *
+ * @see {@linkcode NodesBoard}, {@linkcode useFlow}, {@linkcode DEFAULT_NODES}
  */
 export const FlowChart: Component<FlowProps> = props => {
   const primaryNodes = props.config?.nodes ?? DEFAULT_NODES;

@@ -1,4 +1,4 @@
-import type { NodeProps } from './FlowChart';
+import type { NodeProps } from '../ui/components/FlowChart';
 
 /** Horizontal gap in pixels between a parent node and newly created child node. */
 export const PARENT_CHILD_GAP_WIDTH = 100;
@@ -47,6 +47,8 @@ export const CONTAINER_DIMENSIONS = { WIDTH: 5000, HEIGHT: 3500 };
  * @param width - Node width in pixels, defaults to `0`.
  *
  * @returns 2D offset coordinates for the output handle.
+ *
+ * @see {@linkcode HANDLE_CENTER_X_OFFSET}, {@linkcode HANDLE_CENTER_Y}
  */
 export const getDefaultOutputOffset = (width = 0) => ({
   x: width + HANDLE_CENTER_X_OFFSET,

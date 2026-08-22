@@ -2,6 +2,12 @@ import { createMachine } from '@bemedev/app';
 import { toArray, type } from '@bemedev/app/bemedev';
 import { nanoid } from 'nanoid';
 
+import { DEFAULT_INPUT_OFFSET, getDefaultOutputOffset } from './main.machine.data';
+import {
+  buildEdgeId,
+  buildNodeID,
+  calculateDimensions,
+} from './main.machine.helpers';
 import {
   dimension,
   edgeJSON,
@@ -10,34 +16,13 @@ import {
   nodeJSON,
   point,
   vector,
-} from './main.typings';
-
-/**
- * Constructs a unique edge identifier string from source and destination node IDs.
- *
- * @param out - The source node ID string.
- * @param _in - The destination node ID string.
- *
- * @returns Formatted edge identifier string.
- */
-export const buildEdgeId = (out: string, _in: string) => {
-  return `edge = ${out} => ${_in}`;
-};
-
-/**
- * Constructs a formatted node identifier string from a generated ID.
- *
- * @param generated - The generated unique ID string or `null`/`undefined`.
- *
- * @returns Formatted node identifier string.
- */
-export const buildNodeID = (generated?: string | null) => {
-  return `node-${generated}`;
-};
+} from './main.machine.typings';
 
 /**
  * State machine managing flowchart state transitions, nodes, edges, selection, and
  * layout actions.
+ *
+ * @see {@linkcode calculateDimensions}, {@linkcode buildEdgeId}, {@linkcode buildNodeID}, {@linkcode getDefaultOutputOffset}, {@linkcode DEFAULT_INPUT_OFFSET}
  */
 export const machine = createMachine(
   {
@@ -55,9 +40,7 @@ export const machine = createMachine(
       working: {
         on: {
           MOVE_IMMEDIATE: {
-            actions: [
-              { name: 'buildImmediateUI', description: 'Must be in the ui' },
-            ],
+            actions: [{ name: 'buildUI', description: 'Must be in the ui' }],
           },
 
           ADD_CHILD: {
@@ -150,17 +133,141 @@ export const machine = createMachine(
   },
 ).provideOptions(({ assign, batch, erase, filter }) => ({
   actions: {
-    // configure: batch(
-    //   assign('context.data', () => ({ nodes: [], edges: [] })),
-    //   assign('context.data.nodes', { CONFIGURE: ({ payload: { nodes } }) => nodes }),
-    //   assign('context.data.edges', { CONFIGURE: ({ payload: { edges } }) => edges }),
-    //   assign('context.edgesPositions', () => ({})),
-    //   assign('context.newEdge', () => undefined),
-    //   assign('context.updatingUI', () => false),
-    //   assign('context.zoom', () => 1),
-    //   assign('pContext.generatedId', () => null),
-    //   assign('pContext.previousZoom', () => undefined),
-    // ),
+    configure: batch(
+      assign('context.data', { CONFIGURE: ({ payload }) => payload }),
+      assign('context.newEdge', () => undefined),
+      assign('context.updatingUI', () => false),
+      assign('pContext.generatedId', () => null),
+      assign('pContext.previousZoom', () => undefined),
+
+      assign('pContext.dimensions', {
+        CONFIGURE: ({ payload: { nodes }, pContext: { dimensions } }) => {
+          nodes.forEach(({ id, position }) => {
+            dimensions[id] = calculateDimensions(position);
+          });
+
+          return dimensions;
+        },
+      }),
+    ),
+
+    startNewEdge: assign('context.newEdge', {
+      START_NEW_EDGE: ({ payload: from, pContext: { dimensions } }) => {
+        const { x, y } = dimensions[from].output;
+        return { from, x0: x, y0: y, x1: x, y1: y };
+      },
+    }),
+
+    buildUI: batch(
+      assign(['context.edgesPositions', 'pContext.dimensions'], {
+        MOVE: ({
+          context: { data, edgesPositions },
+          payload,
+          pContext: { dimensions },
+        }) => {
+          const edges = data?.edges;
+          const dimension = dimensions[payload.id];
+
+          const outputOffset =
+            dimension?.outputOffset ?? getDefaultOutputOffset(dimension?.width);
+
+          const inputOffset = dimension?.inputOffset ?? DEFAULT_INPUT_OFFSET;
+
+          const output = {
+            x: payload.x + outputOffset.x,
+            y: payload.y + outputOffset.y,
+          };
+
+          const input = {
+            x: payload.x + inputOffset.x,
+            y: payload.y + inputOffset.y,
+          };
+
+          if (dimension) {
+            dimension.output = output;
+            dimension.input = input;
+          }
+
+          edges?.forEach(({ from, to, id }) => {
+            if (from === payload.id) {
+              edgesPositions[id].x0 = output.x;
+              edgesPositions[id].y0 = output.y;
+            }
+            if (to === payload.id) {
+              edgesPositions[id].x1 = input.x;
+              edgesPositions[id].y1 = input.y;
+            }
+          });
+
+          return [edgesPositions, dimensions];
+        },
+        MOVE_IMMEDIATE: ({
+          context: { data, edgesPositions },
+          payload,
+          pContext: { dimensions },
+        }) => {
+          const edges = data?.edges;
+
+          edges?.forEach(({ from, to, id }) => {
+            if (from === payload.id) {
+              const dimension = dimensions[payload.id];
+              const offset =
+                dimension?.outputOffset ?? getDefaultOutputOffset(dimension?.width);
+
+              const x0 = payload.x + offset.x;
+              const y0 = payload.y + offset.y;
+              edgesPositions[id].x0 = x0;
+              edgesPositions[id].y0 = y0;
+
+              if (dimension) {
+                dimension.output.x = x0;
+                dimension.output.y = y0;
+              }
+            }
+
+            if (to === payload.id) {
+              const dimension = dimensions[payload.id];
+              const offset = dimension?.inputOffset ?? DEFAULT_INPUT_OFFSET;
+
+              const x1 = payload.x + offset.x;
+              const y1 = payload.y + offset.y;
+              edgesPositions[id].x1 = x1;
+              edgesPositions[id].y1 = y1;
+
+              if (dimension) {
+                dimension.input = { x: x1, y: y1 };
+              }
+            }
+          });
+
+          return [edgesPositions, dimensions];
+        },
+        else: ({ context: { data, edgesPositions }, pContext: { dimensions } }) => {
+          const edges = data?.edges ?? [];
+          edgesPositions = {};
+
+          edges.forEach(({ from, id, to }) => {
+            const output = dimensions[from]?.output;
+            const input = dimensions[to]?.input;
+
+            if (output && input) {
+              edgesPositions[id] = {
+                x0: output.x,
+                y0: output.y,
+                x1: input.x,
+                y1: input.y,
+              };
+            } else {
+              delete edgesPositions[id];
+            }
+          });
+
+          return [edgesPositions, dimensions];
+        },
+      }),
+
+      assign('context.updatingUI', () => true),
+    ),
 
     addDimension: assign('pContext.dimensions', {
       ADD_DIMENSION: ({ payload: { id, dimension }, pContext: { dimensions } }) => {
@@ -270,7 +377,7 @@ export const machine = createMachine(
     deselect: erase('context.selected'),
 
     zoom: assign(['context.zoom', 'pContext.previousZoom'], {
-      ZOOM: ({ context: { zoom = 1 }, payload }) => {
+      ZOOM: ({ context: { zoom }, payload }) => {
         const next = zoom + payload;
         const clamped = Math.min(Math.max(Number(next.toFixed(2)), 0.2), 3);
         return [clamped, undefined];

@@ -2,8 +2,9 @@ import { useState } from '@bemedev/app-solidjs';
 import { useDragDropContext, type Transformer } from '@thisbeyond/solid-dnd';
 import { type Component } from 'solid-js';
 
+import { BOUNDS_CONSTRAINTS } from '#services/main.machine.data';
+
 import { useFlow } from './FlowChart.context';
-import { BOUNDS_CONSTRAINTS } from './FlowChart.data';
 
 /**
  * Drag boundary transformer component that clamps draggable nodes within container
@@ -11,6 +12,8 @@ import { BOUNDS_CONSTRAINTS } from './FlowChart.data';
  *
  * @returns `null` as this component performs side-effect transformer registrations
  *   only.
+ *
+ * @see {@linkcode useFlow}, {@linkcode BOUNDS_CONSTRAINTS}
  */
 export const DragBounds: Component = () => {
   const {

@@ -36,6 +36,9 @@ export const dimension = type(({ optional, use }) => ({
   outputOffset: optional(use(point)),
 }));
 
+/** Node layout dimension type inferred from schema {@linkcode dimension}. */
+export type Dimension = inferT<typeof dimension>;
+
 /**
  * Schema definition for a 2D line vector representing edge coordinates `(x0, y0)` to
  * `(x1, y1)`.

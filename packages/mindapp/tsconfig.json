@@ -22,6 +22,11 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "isolatedModules": true,
+    "paths": {
+      "#main-machine": ["./src/services/main.machine"],
+      "#services/*": ["./src/services/*"],
+      "#helpers/*": ["./src/helpers/*"]
+    },
     "noEmit": true,
     "declarationMap": true
   }
