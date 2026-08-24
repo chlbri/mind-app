@@ -336,16 +336,6 @@ export const machine = createMachine(
 
     select: assign('selected', { SELECT: ({ payload }) => payload }),
 
-    // delete: assign(['context.data.nodes', 'context.data.edges'], {
-    //   DELETE: ({ context: { data }, payload }) => {
-    //     const nodes = data?.nodes?.filter(({ id }) => id !== payload);
-    //     const edges = data?.edges?.filter(
-    //       ({ id, from, to }) => id !== payload && from !== payload && to !== payload,
-    //     );
-
-    //     return [nodes, edges];
-    //   },
-    // }),
     delete: batch(
       filter('data.edges', {
         DELETE: ({ id, from, to }, _, { payload }) => {

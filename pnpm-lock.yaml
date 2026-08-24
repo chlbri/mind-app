@@ -69,8 +69,8 @@ importers:
         specifier: ^2.5.0
         version: 2.5.0
       '@bemedev/app-solidjs':
-        specifier: ^2.5.0
-        version: 2.5.0(@bemedev/app@2.5.0)(solid-js@1.9.15)
+        specifier: ^2.5.1
+        version: 2.5.1(@bemedev/app@2.5.0)(solid-js@1.9.15)
       '@bemedev/decompose':
         specifier: ^2.3.0
         version: 2.3.0
@@ -242,8 +242,8 @@ importers:
         specifier: ^2.5.0
         version: 2.5.0(@bemedev/app@2.5.0)(supports-color@10.2.2)
       '@bemedev/app-solidjs':
-        specifier: ^2.5.0
-        version: 2.5.0(@bemedev/app@2.5.0)(solid-js@1.9.15)
+        specifier: ^2.5.1
+        version: 2.5.1(@bemedev/app@2.5.0)(solid-js@1.9.15)
       '@bemedev/dev-utils':
         specifier: ^1.2.0
         version: 1.2.0(rolldown@1.2.5)(rollup@4.62.5)(supports-color@10.2.2)(vite@8.2.2(@types/node@26.2.0)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.50.0)(tsx@4.23.12))(vitest@4.1.11)
@@ -883,8 +883,8 @@ packages:
     peerDependencies:
       '@bemedev/app': ^2.5.0
 
-  '@bemedev/app-solidjs@2.5.0':
-    resolution: {integrity: sha512-iTO1O5pLuSRoQ0mwMrQ+pnGhp8mt9EBcI5ILQnuklaHM/3KWcGVyuVzW2onmXyu80bA0h5i7dvjVG+Q7cqSLfQ==}
+  '@bemedev/app-solidjs@2.5.1':
+    resolution: {integrity: sha512-oWthgn7Ydzsh1bT021iZVQPCbu5rWpmdKx2DeFiaAQblXA9/4SJNU6ubXKB6EdcRaNp3YK2+UXYHyXL79Gv5Xw==}
     engines: {node: '>=24'}
     peerDependencies:
       '@bemedev/app': ^2.5.0
@@ -3292,8 +3292,8 @@ packages:
   base64-js@1.5.1:
     resolution: {integrity: sha512-AKpaYlHn8t4SVbOHCy+b5+KKgvR4vrsD8vbvrbiQJps7fKDTkjkDry6ji0rUJjC0kzbNePLwzxq8iypo41qeWA==}
 
-  baseline-browser-mapping@2.11.17:
-    resolution: {integrity: sha512-KAUDn1OSS0fmPlGO+NOUMRcOQ/b/shUBH3OgkG73mPgdf+JD/BQ6fHboGxNOxnUmlwcq+lLq3dTkayRPuSfXwg==}
+  baseline-browser-mapping@2.11.18:
+    resolution: {integrity: sha512-1iEmLEYSiE1SeBoAfPo/Mnx3PzfzHUkDK61ASkCpuk3YXugYLH5DYK1SzqV55F8FMI6s0F+/tCP7Polz1QRjxw==}
     engines: {node: '>=6.0.0'}
     hasBin: true
 
@@ -5020,18 +5020,14 @@ packages:
     peerDependencies:
       seroval: ^1.0
 
-  seroval-plugins@1.6.2:
-    resolution: {integrity: sha512-TfxuUjlbBESzUOWdTkTKqvSmav0ABym+itetDXLK6mDz8SmrpdI30aF8RTXE8Bvq+tH/1yIDkvy3W0lfQb1ipQ==}
+  seroval-plugins@1.6.3:
+    resolution: {integrity: sha512-zQIy62HW683pMIUOKv9yKueQmOr+xMjpP2eH/qEPhr6nTAC+pJTh508md571Oduf/K/QpAoyeWpOhOp1+RFeDA==}
     engines: {node: '>=10'}
     peerDependencies:
       seroval: ^1.0
 
   seroval@1.5.6:
     resolution: {integrity: sha512-rVQVWjjSvlINzaQPZH5JFqsqEsIWdTxY3iJZCnTL/5gQbXIRooVZKI60tVCkOVfzcRPejboxO2t0P89dg5mQaA==}
-    engines: {node: '>=10'}
-
-  seroval@1.6.2:
-    resolution: {integrity: sha512-mPT+SD2TrlB6wvte1KkYOYUkubaTbd6pZ/6Kk3C9nxzrHmCZyhxOO7XGAeL7f+yLKZglzGtM9odUVvg/EhO+vQ==}
     engines: {node: '>=10'}
 
   seroval@1.6.3:
@@ -6713,7 +6709,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@bemedev/app-solidjs@2.5.0(@bemedev/app@2.5.0)(solid-js@1.9.15)':
+  '@bemedev/app-solidjs@2.5.1(@bemedev/app@2.5.0)(solid-js@1.9.15)':
     dependencies:
       '@bemedev/app': 2.5.0
       solid-js: 1.9.15
@@ -7996,8 +7992,8 @@ snapshots:
     dependencies:
       '@tanstack/history': 1.162.1
       cookie-es: 3.1.1
-      seroval: 1.6.2
-      seroval-plugins: 1.6.2(seroval@1.6.2)
+      seroval: 1.6.3
+      seroval-plugins: 1.6.3(seroval@1.6.3)
 
   '@tanstack/router-devtools-core@1.168.1(@tanstack/router-core@1.171.27)(csstype@3.2.3)':
     dependencies:
@@ -8347,7 +8343,7 @@ snapshots:
       consola: 3.4.2
       defu: 6.1.7
       get-port-please: 3.2.0
-      h3: 1.15.11
+      h3: 1.15.3
       http-shutdown: 1.2.2
       jiti: 1.21.7
       mlly: 1.8.2
@@ -8628,7 +8624,7 @@ snapshots:
 
   base64-js@1.5.1: {}
 
-  baseline-browser-mapping@2.11.17: {}
+  baseline-browser-mapping@2.11.18: {}
 
   bidi-js@1.0.3:
     dependencies:
@@ -8665,7 +8661,7 @@ snapshots:
 
   browserslist@4.28.8:
     dependencies:
-      baseline-browser-mapping: 2.11.17
+      baseline-browser-mapping: 2.11.18
       caniuse-lite: 1.0.30001809
       electron-to-chromium: 1.5.412
       node-releases: 2.0.53
@@ -10440,13 +10436,11 @@ snapshots:
     dependencies:
       seroval: 1.5.6
 
-  seroval-plugins@1.6.2(seroval@1.6.2):
+  seroval-plugins@1.6.3(seroval@1.6.3):
     dependencies:
-      seroval: 1.6.2
+      seroval: 1.6.3
 
   seroval@1.5.6: {}
-
-  seroval@1.6.2: {}
 
   seroval@1.6.3: {}
 

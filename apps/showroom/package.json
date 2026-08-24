@@ -29,7 +29,7 @@
   },
   "dependencies": {
     "@bemedev/app": "^2.5.0",
-    "@bemedev/app-solidjs": "^2.5.0",
+    "@bemedev/app-solidjs": "^2.5.1",
     "@bemedev/decompose": "^2.3.0",
     "@bemedev/i18n": "^0.7.0",
     "@bemedev/mind-flow": "workspace:^",

@@ -5,7 +5,7 @@ import {
   DragOverlay,
 } from '@thisbeyond/solid-dnd';
 import { dequal } from 'dequal';
-import { Component, createEffect, createSignal, For, on, Show } from 'solid-js';
+import { Component, createEffect, createSignal, Index, on, Show } from 'solid-js';
 
 import { CANVAS_FACTOR, SCROLL_MULTIPLIER } from '../../services/main.machine.data';
 import { DragBounds } from './Bounds';
@@ -234,7 +234,11 @@ export const NodesBoard: Component = () => {
               <DragBounds />
               <EdgesBoard />
 
-              <For each={nodes()} fallback={<p>Empty</p>} children={NodeComponent} />
+              <Index
+                each={nodes()}
+                fallback={<p>Empty</p>}
+                children={item => <NodeComponent {...item()} />}
+              />
             </div>
           </div>
         </div>

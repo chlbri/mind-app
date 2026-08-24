@@ -1,5 +1,6 @@
 import { createState } from '@bemedev/app-solidjs';
-import { Component, For, Show } from 'solid-js';
+import { dequal } from 'dequal';
+import { Component, Index, Show } from 'solid-js';
 
 import { EdgeComponent } from './EdgeComponent';
 import { useFlow } from './FlowChart.context';
@@ -22,7 +23,10 @@ export const EdgesBoard: Component = () => {
       const entries = Object.entries(context.edgesPositions);
       return entries.map(([id, vector]) => ({ id, ...vector }));
     },
-    equals: () => false,
+    equals: dequal,
+    stateEquals: (_, next) => {
+      return next.event.type === 'SELECT';
+    },
   });
 
   return (
@@ -40,7 +44,7 @@ export const EdgesBoard: Component = () => {
         )}
       </Show>
 
-      <For each={datas()} children={EdgeComponent} />
+      <Index each={datas()} children={item => <EdgeComponent {...item()} />} />
     </svg>
   );
 };
