@@ -1,6 +1,8 @@
 /* eslint-disable @typescript-eslint/no-namespace */
+import { toArray } from '@bemedev/app';
 import { createState } from '@bemedev/app-solidjs';
 import { createDraggable } from '@thisbeyond/solid-dnd';
+import { dequal } from 'dequal';
 import { Component, Show } from 'solid-js';
 
 import {
@@ -23,16 +25,6 @@ declare module 'solid-js' {
 type Props = {
   /** Unique identifier of the node. */
   id: string;
-  /** Horizontal position of the node in board coordinates. */
-  x: number;
-  /** Vertical position of the node in board coordinates. */
-  y: number;
-  /** Optional header label for the node. */
-  label?: string;
-  /** Body content text of the node. */
-  content: string;
-  /** Whether the node has an input handle. */
-  input: boolean;
 };
 
 /**
@@ -47,6 +39,22 @@ type Props = {
  */
 export const NodeComponent: Component<Props> = props => {
   const { service } = useFlow();
+
+  const node = createState(service, {
+    selector: ({ context }) => {
+      const list = toArray.typed(context.data?.nodes);
+      const item = list.find(n => n.id === props.id);
+      if (!item) return undefined;
+      return {
+        x: item.position.x,
+        y: item.position.y,
+        label: item.data.label,
+        content: item.data.content ?? '',
+        input: item.input,
+      };
+    },
+    equals: dequal,
+  });
 
   const newEdge = createState(service, { selector: s => s.context.newEdge });
 
@@ -73,7 +81,7 @@ export const NodeComponent: Component<Props> = props => {
         'border border-[#e6d4be] z-[1]': !selected(),
       }}
 
-      style={{ top: `${props.y}px`, left: `${props.x}px` }}
+      style={{ top: `${node()?.y ?? 0}px`, left: `${node()?.x ?? 0}px` }}
       class='min-w-48'
       use:draggable={{ skipTransform: true }}
       id={props.id}
@@ -155,7 +163,7 @@ export const NodeComponent: Component<Props> = props => {
         </svg>
       </div>
 
-      <Show when={props.label} keyed>
+      <Show when={node()?.label} keyed>
         {label => (
           <span class='min-w-max border-b border-[#f0f0f0] p-3 whitespace-nowrap text-red-600 select-none'>
             {label}
@@ -163,11 +171,11 @@ export const NodeComponent: Component<Props> = props => {
         )}
       </Show>
 
-      <Show when={props.content} keyed>
+      <Show when={node()?.content} keyed>
         {content => <div class='p-3 select-none'>{content}</div>}
       </Show>
 
-      <Show when={props.input || hasParent()}>
+      <Show when={node()?.input || hasParent()}>
         <div
           id='outputs'
           class='pointer-events-none absolute top-0 z-10 flex cursor-default flex-col'

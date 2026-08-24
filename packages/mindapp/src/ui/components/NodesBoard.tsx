@@ -1,3 +1,4 @@
+import { toArray } from '@bemedev/app';
 import { createState } from '@bemedev/app-solidjs';
 import {
   DragDropProvider,
@@ -5,7 +6,7 @@ import {
   DragOverlay,
 } from '@thisbeyond/solid-dnd';
 import { dequal } from 'dequal';
-import { Component, createEffect, createSignal, Index, on, Show } from 'solid-js';
+import { Component, createEffect, createSignal, For, on, Show } from 'solid-js';
 
 import { CANVAS_FACTOR, SCROLL_MULTIPLIER } from '../../services/main.machine.data';
 import { DragBounds } from './Bounds';
@@ -38,6 +39,7 @@ export const NodesBoard: Component = () => {
     selector: s => s.context.newEdge,
     equals: dequal,
   });
+
   const zoom = createState(service, { selector: s => s.context.zoom ?? 1 });
 
   /**
@@ -75,19 +77,12 @@ export const NodesBoard: Component = () => {
    */
   const selected = (id: string | number) => selectedId() === id;
 
-  const nodes = createState(service, {
-    selector: s => {
-      const list = s.context.data?.nodes ?? [];
-      return list.map(item => ({
-        id: item.id,
-        x: item.position.x,
-        y: item.position.y,
-        label: item.data.label,
-        content: item.data.content ?? '',
-        input: item.input,
-      }));
+  const nodeIds = createState(service, {
+    selector: ({ context }) => {
+      const list = toArray.typed(context.data?.nodes);
+      return list.map(item => item.id);
     },
-    equals: dequal,
+    equals: (prev, next) => prev.length === next.length,
   });
 
   const CANVAS_SIZE = CANVAS_FACTOR * 100;
@@ -234,11 +229,7 @@ export const NodesBoard: Component = () => {
               <DragBounds />
               <EdgesBoard />
 
-              <Index
-                each={nodes()}
-                fallback={<p>Empty</p>}
-                children={item => <NodeComponent {...item()} />}
-              />
+              <For each={nodeIds()}>{id => <NodeComponent id={id} />}</For>
             </div>
           </div>
         </div>

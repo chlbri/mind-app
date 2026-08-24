@@ -1,6 +1,5 @@
 import { createState } from '@bemedev/app-solidjs';
-import { dequal } from 'dequal';
-import { Component, Index, Show } from 'solid-js';
+import { Component, For, Show } from 'solid-js';
 
 import { EdgeComponent } from './EdgeComponent';
 import { useFlow } from './FlowChart.context';
@@ -16,35 +15,20 @@ import { useFlow } from './FlowChart.context';
 export const EdgesBoard: Component = () => {
   const { service } = useFlow();
 
-  const newEdge = createState(service, { selector: s => s.context.newEdge });
+  const hasNewEdge = createState(service, { selector: s => !!s.context.newEdge });
 
-  const datas = createState(service, {
-    selector: ({ context }) => {
-      const entries = Object.entries(context.edgesPositions);
-      return entries.map(([id, vector]) => ({ id, ...vector }));
-    },
-    equals: dequal,
-    stateEquals: (_, next) => {
-      return next.event.type === 'SELECT';
-    },
+  const edgeIds = createState(service, {
+    selector: ({ context }) => Object.keys(context.edgesPositions),
+    equals: (prev, next) => prev.length === next.length,
   });
 
   return (
     <svg class='pointer-events-none h-full w-full overflow-visible'>
-      <Show when={newEdge()}>
-        {value => (
-          <EdgeComponent
-            id='__#new-edge#__TEMP'
-            isNew
-            x0={value().x0}
-            y0={value().y0}
-            x1={value().x1}
-            y1={value().y1}
-          />
-        )}
+      <Show when={hasNewEdge()}>
+        <EdgeComponent id='__#new-edge#__TEMP' isNew />
       </Show>
 
-      <Index each={datas()} children={item => <EdgeComponent {...item()} />} />
+      <For each={edgeIds()}>{id => <EdgeComponent id={id} />}</For>
     </svg>
   );
 };
