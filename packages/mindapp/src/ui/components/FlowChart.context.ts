@@ -1,368 +1,260 @@
 import { interpret } from '@bemedev/app';
-import { dequal } from 'dequal/lite';
-import { createSignal, untrack } from 'solid-js';
-import { produce } from 'solid-js/store';
 
-import { createContext } from '../../helpers/createContext';
-import { machine } from '../../services/main.machine';
-import type { Point } from '../../services/main.typings';
+import { createContext } from '#helpers/createContext';
+import { machine } from '#main-machine';
 import {
   BOUNDS_CONSTRAINTS,
   DEFAULT_INPUT_OFFSET,
   getDefaultOutputOffset,
   PARENT_CHILD_GAP_WIDTH,
-} from './FlowChart.data';
-
-/** Layout dimensions and handle offset coordinates for a flowchart node. */
-type Dimensions = {
-  /** Node width in pixels. */
-  width: number;
-  /** Node height in pixels. */
-  height: number;
-  /** Output handle point coordinates of type {@linkcode Point}. */
-  output: Point;
-  /** Input handle point coordinates of type {@linkcode Point}. */
-  input?: Point;
-  /** Output handle relative offset point of type {@linkcode Point}. */
-  outputOffset?: Point;
-  /** Input handle relative offset point of type {@linkcode Point}. */
-  inputOffset?: Point;
-};
-
-const service = interpret(machine, {
-  context: { zoom: 1, edgesPositions: {} },
-  pContext: { generatedId: null, dimensions: {} },
-});
-
-service.start();
+} from '#services/main.machine.data';
+import type { Dimension, Point } from '#services/main.machine.typings';
 
 /**
  * Solid Context Provider component and hook for accessing flowchart board state,
  * services, and zoom.
+ *
+ * @see {@linkcode machine}, {@linkcode createContext}
  */
 export const [Provider, useFlow] = createContext(
   () => {
-    /**
-     * Shared state machine interpreter service instance for flowchart state
-     * management.
-     */
+    /** Shared service for flowchart state management. */
+    const service = interpret(machine, {
+      context: { zoom: 1, edgesPositions: {}, bounds: { x: 0, y: 0 } },
+      pContext: {
+        generatedId: null,
+        dimensions: {},
 
-    const [boardRef, setBoardRef] = createSignal<HTMLDivElement>();
+        /**
+         * Converts viewport screen coordinates to unscaled board coordinates.
+         *
+         * @param clientX - Client X coordinate in pixels.
+         * @param clientY - Client Y coordinate in pixels.
+         * @param el - Board layout details of type {@linkcode Board}.
+         *
+         * @returns Calculated 2D coordinate of type {@linkcode Point}.
+         */
+        getBoardPosition(clientX, clientY, el): Point {
+          if (!el) return { x: clientX, y: clientY };
+          const currentZoom = service.state.context.zoom;
+          const x = (clientX - el.self.left) / currentZoom;
+          const y = (clientY - el.self.top) / currentZoom;
+          return { x, y };
+        },
 
-    const [dimensions, setDimensions] = createSignal<Record<string, Dimensions>>(
-      {},
-      { equals: dequal },
-    );
+        /**
+         * Clamps given coordinates within board boundaries.
+         *
+         * @param board - Board layout and container details of type
+         *   {@linkcode Board}.
+         * @param x - Desired X position in pixels.
+         * @param y - Desired Y position in pixels.
+         * @param nodeWidth - Node width in pixels, defaults to `192`.
+         * @param nodeHeight - Node height in pixels, defaults to `50`.
+         *
+         * @returns Clamped coordinate of type {@linkcode Point}.
+         *
+         * @see {@linkcode BOUNDS_CONSTRAINTS}
+         */
+        clampPosition(board, x, y, nodeWidth = 192, nodeHeight = 50): Point {
+          const container = board?.parent;
+          if (!container) return { x, y };
 
-    /**
-     * Converts client viewport coordinates to board canvas coordinates adjusted for
-     * zoom and scroll.
-     *
-     * @param clientX - Viewport horizontal coordinate.
-     * @param clientY - Viewport vertical coordinate.
-     *
-     * @returns Board coordinate point of type {@linkcode Point}.
-     */
-    const getBoardPoint = (clientX: number, clientY: number): Point => {
-      const el = boardRef();
-      if (!el) return { x: clientX, y: clientY };
+          const currentZoom = service.state.context.zoom ?? 1;
 
-      const rect = el.getBoundingClientRect();
-      const currentZoom = service.state.context.zoom;
-      const x = (clientX - rect.left) / currentZoom;
-      const y = (clientY - rect.top) / currentZoom;
-      return { x, y };
-    };
+          const minX =
+            container.scrollLeft / currentZoom + BOUNDS_CONSTRAINTS.horizontal;
 
-    /**
-     * Clamps node coordinates within the visible container boundaries.
-     *
-     * @param x - Desired horizontal X coordinate.
-     * @param y - Desired vertical Y coordinate.
-     * @param nodeWidth - Width of the node element in pixels, defaults to `192`.
-     * @param nodeHeight - Height of the node element in pixels, defaults to `50`.
-     *
-     * @returns Clamped coordinate point of type {@linkcode Point}.
-     */
-    const clampPosition = (
-      x: number,
-      y: number,
-      nodeWidth = 192,
-      nodeHeight = 50,
-    ): Point => {
-      const container = boardRef()?.parentElement;
-      if (!container) return { x, y };
+          const maxX = Math.max(
+            minX,
+            (container.scrollLeft + container.width) / currentZoom -
+              BOUNDS_CONSTRAINTS.horizontal -
+              nodeWidth,
+          );
 
-      const currentZoom = service.state.context.zoom ?? 1;
+          const minY =
+            container.scrollTop / currentZoom + BOUNDS_CONSTRAINTS.vertical;
 
-      const minX =
-        container.scrollLeft / currentZoom + BOUNDS_CONSTRAINTS.horizontal;
+          const maxY = Math.max(
+            minY,
+            (container.scrollTop + container.height) / currentZoom -
+              BOUNDS_CONSTRAINTS.vertical -
+              nodeHeight,
+          );
 
-      const maxX = Math.max(
-        minX,
-        (container.scrollLeft + container.clientWidth) / currentZoom -
-          BOUNDS_CONSTRAINTS.horizontal -
-          nodeWidth,
-      );
+          return {
+            x: Math.min(Math.max(x, minX), maxX),
+            y: Math.min(Math.max(y, minY), maxY),
+          };
+        },
 
-      const minY = container.scrollTop / currentZoom + BOUNDS_CONSTRAINTS.vertical;
+        /**
+         * Computes node dimension, connection points, and handle offsets.
+         *
+         * @param position - Node position of type {@linkcode Point}.
+         * @param parentDimension - Optional sizing and offsets to inherit.
+         *
+         * @returns Calculated dimension object of type {@linkcode Dimension}.
+         *
+         * @see {@linkcode DEFAULT_INPUT_OFFSET}, {@linkcode getDefaultOutputOffset}
+         */
+        calculateDimensions: (
+          position: Point,
+          parentDimension: Pick<
+            Dimension,
+            'width' | 'height' | 'outputOffset' | 'inputOffset'
+          > = { width: 192, height: 50, inputOffset: DEFAULT_INPUT_OFFSET },
+        ): Dimension => {
+          const width = parentDimension.width;
+          const height = parentDimension.height;
+          const outputOffset =
+            parentDimension.outputOffset ?? getDefaultOutputOffset(width);
+          const inputOffset = parentDimension.inputOffset!;
 
-      const maxY = Math.max(
-        minY,
-        (container.scrollTop + container.clientHeight) / currentZoom -
-          BOUNDS_CONSTRAINTS.vertical -
-          nodeHeight,
-      );
+          const output = {
+            x: position.x + outputOffset.x,
+            y: position.y + outputOffset.y,
+          };
+          const input = {
+            x: position.x + inputOffset.x,
+            y: position.y + inputOffset.y,
+          };
 
-      return {
-        x: Math.min(Math.max(x, minX), maxX),
-        y: Math.min(Math.max(y, minY), maxY),
-      };
-    };
+          return { width, height, output, input, outputOffset, inputOffset };
+        },
+      },
+    });
 
-    service.addOptions(({ batch, assign }) => ({
+    // #endregion
+
+    service.addOptions(({ assign }) => ({
       actions: {
-        placeChild: assign('context.data.nodes', {
-          ADD_CHILD: ({ payload, context: { data }, pContext: { generatedId } }) => {
-            const nodes = data?.nodes ?? [];
+        placeChild: assign('data.nodes', {
+          ADD_CHILD: ({ payload, context: { data, board }, pContext }) => {
+            if (!board) return data?.nodes;
+            const nodes = data?.nodes;
             if (!payload) return nodes;
 
-            const parentNode = nodes.find(node => node.id === payload);
+            const parentNode = nodes?.find(node => node.id === payload);
             if (!parentNode) return nodes;
 
-            const dimension = untrack(() => dimensions()[payload]);
+            const parentDimension = pContext.dimensions[payload];
 
-            const id = `node-${generatedId}`;
-            const width = dimension?.width ?? 0;
-            const height = dimension?.height ?? 0;
+            const id = `node-${pContext.generatedId}`;
+            const width = parentDimension?.width ?? 192;
+            const height = parentDimension?.height ?? 50;
             const initialX = parentNode.position.x + width + PARENT_CHILD_GAP_WIDTH;
             const initialY = parentNode.position.y;
-            const position = clampPosition(initialX, initialY, width, height);
+            const position = pContext.clampPosition(
+              board,
+              initialX,
+              initialY,
+              width,
+              height,
+            );
+            const dimension = pContext.calculateDimensions(
+              position,
+              parentDimension,
+            );
 
-            return [
-              ...nodes,
-              { id, data: { content: '<Nouveau nœud>' }, input: true, position },
-            ];
+            nodes?.push({
+              id,
+              data: { content: '<Nouveau nœud>' },
+              input: true,
+              position,
+            });
+            pContext.dimensions[id] = dimension;
+
+            return nodes;
           },
         }),
 
-        placeParent: assign('context.data.nodes', {
-          ADD_PARENT: ({
-            context: { data, zoom = 1 },
-            pContext: { generatedId },
-          }) => {
-            const nodes = data?.nodes ?? [];
-            const id = `node-${generatedId}`;
-            const container = boardRef()?.parentElement;
+        placeParent: assign('data.nodes', {
+          ADD_PARENT: ({ context: { data, zoom = 1, board }, pContext }) => {
+            if (!board) return data?.nodes;
+            const nodes = data?.nodes;
+            const id = `node-${pContext.generatedId}`;
+            const container = board.parent;
             const scrollLeft = container?.scrollLeft ?? 0;
             const scrollTop = container?.scrollTop ?? 0;
-            const width = container?.clientWidth ?? 0;
-            const height = container?.clientHeight ?? 0;
+            const width = container?.width ?? 0;
+            const height = container?.height ?? 0;
             const currentZoom = zoom;
             const x = (scrollLeft + width / 2) / currentZoom;
             const y = (scrollTop + height / 2) / currentZoom;
+            const position = pContext.clampPosition(board, x, y);
+            const dimension = pContext.calculateDimensions(position);
 
-            return [
-              ...nodes,
-              {
-                id,
-                data: { content: '<Nouveau nœud>' },
-                input: false,
-                position: { x, y },
-              },
-            ];
-          },
-        }),
-
-        placeSibling: assign('context.data.nodes', {
-          ADD_SIBLING: ({
-            payload,
-            context: { data },
-            pContext: { generatedId },
-          }) => {
-            const edges = data?.edges ?? [];
-            const nodes = data?.nodes ?? [];
-            const parentID = edges.find(edge => edge.to === payload)?.from;
-            if (!parentID) return nodes;
-
-            const parentNode = nodes.find(node => node.id === parentID);
-            if (!parentNode) return nodes;
-
-            const dimension = untrack(() => dimensions()[parentID]);
-            if (!dimension) return nodes;
-
-            const id = `node-${generatedId}`;
-            const width = dimension.width;
-            const height = dimension.height;
-            const initialX = parentNode.position.x + width + PARENT_CHILD_GAP_WIDTH;
-            const initialY = parentNode.position.y + PARENT_CHILD_GAP_WIDTH;
-            const position = clampPosition(initialX, initialY, width, height);
-
-            setDimensions(
-              produce(draft => {
-                draft[id] = {
-                  width,
-                  height,
-                  input: { x: 0, y: 0 },
-                  output: { x: width, y: height },
-                };
-              }),
-            );
-
-            return [
-              ...nodes,
-              { id, data: { content: '<Nouveau nœud>' }, input: true, position },
-            ];
-          },
-        }),
-
-        startNewEdge: assign('context.newEdge', {
-          START_NEW_EDGE: ({
-            payload: {
-              from,
-              point: { x: x1, y: y1 },
-            },
-          }) => {
-            const output = untrack(() => dimensions()[from]?.output);
-            if (!output) return undefined;
-            const { x: x0, y: y0 } = output;
-            return { from, x0, y0, x1, y1 };
-          },
-        }),
-
-        buildUI: batch(
-          assign('context.edgesPositions', {
-            else: ({ context: { data, edgesPositions } }) => {
-              const edges = data?.edges ?? [];
-              edgesPositions = {};
-
-              edges.forEach(({ from, id, to }) => {
-                const output = untrack(() => dimensions()[from]?.output);
-                const input = untrack(() => dimensions()[to]?.input);
-
-                if (output && input) {
-                  edgesPositions[id] = {
-                    x0: output.x,
-                    y0: output.y,
-                    x1: input.x,
-                    y1: input.y,
-                  };
-                } else {
-                  delete edgesPositions[id];
-                }
-              });
-
-              return edgesPositions;
-            },
-            MOVE: ({ context: { data, edgesPositions }, payload }) => {
-              const edges = data?.edges ?? [];
-              // const next: Record<string, Vector> = { ...edgesPositions };
-
-              edges.forEach(({ from, to, id }) => {
-                if (from === payload.id) {
-                  const dimension = untrack(() => dimensions()[payload.id]);
-                  const offset =
-                    dimension?.outputOffset ??
-                    getDefaultOutputOffset(dimension?.width);
-
-                  const x = payload.x + offset.x;
-                  const y = payload.y + offset.y;
-                  edgesPositions[id].x0 = x;
-                  edgesPositions[id].y0 = y;
-
-                  setDimensions(
-                    produce(data => {
-                      if (data[payload.id]) data[payload.id].output = { x, y };
-                    }),
-                  );
-                }
-                if (to === payload.id) {
-                  const dimension = untrack(() => dimensions()[payload.id]);
-                  const offset = dimension?.inputOffset ?? DEFAULT_INPUT_OFFSET;
-
-                  const x = payload.x + offset.x;
-                  const y = payload.y + offset.y;
-                  edgesPositions[id].x1 = x;
-                  edgesPositions[id].y1 = y;
-
-                  setDimensions(
-                    produce(data => {
-                      if (data[payload.id]) data[payload.id].input = { x, y };
-                    }),
-                  );
-                }
-              });
-
-              return edgesPositions;
-            },
-          }),
-
-          assign('context.updatingUI', () => true),
-        ),
-
-        buildImmediateUI: assign('context.edgesPositions', {
-          MOVE_IMMEDIATE: ({ context: { data, edgesPositions = {} }, payload }) => {
-            const edges = data?.edges ?? [];
-
-            edges.forEach(({ from, to, id }) => {
-              if (from === payload.id) {
-                const dimension = untrack(() => dimensions()[payload.id]);
-                const offset =
-                  dimension?.outputOffset ??
-                  getDefaultOutputOffset(dimension?.width);
-
-                const x0 = payload.x + offset.x;
-                const y0 = payload.y + offset.y;
-                edgesPositions[id].x0 = x0;
-                edgesPositions[id].y0 = y0;
-
-                setDimensions(
-                  produce(data => {
-                    if (data[payload.id]) {
-                      data[payload.id].output.x = x0;
-                      data[payload.id].output.y = y0;
-                    }
-                  }),
-                );
-              }
-
-              if (to === payload.id) {
-                const dimension = untrack(() => dimensions()[payload.id]);
-                const offset = dimension?.inputOffset ?? DEFAULT_INPUT_OFFSET;
-
-                const x1 = payload.x + offset.x;
-                const y1 = payload.y + offset.y;
-                edgesPositions[id].x1 = x1;
-                edgesPositions[id].y1 = y1;
-
-                setDimensions(
-                  produce(data => {
-                    if (data[payload.id]) {
-                      data[payload.id] = {
-                        ...data[payload.id],
-                        input: { x: x1, y: y1 },
-                      };
-                    }
-                  }),
-                );
-              }
+            nodes?.push({
+              id,
+              data: { content: '<Nouveau nœud>' },
+              input: false,
+              position,
             });
 
-            return edgesPositions;
+            pContext.dimensions[id] = dimension;
+            return nodes;
+          },
+        }),
+
+        placeSibling: assign('data.nodes', {
+          ADD_SIBLING: ({ payload, context: { data, board }, pContext }) => {
+            if (!board) return data?.nodes;
+            const edges = data?.edges;
+            const nodes = data?.nodes;
+            const parentID = edges?.find(edge => edge.to === payload)?.from;
+            if (!parentID) return nodes;
+
+            const parentNode = nodes?.find(node => node.id === parentID);
+            if (!parentNode) return nodes;
+
+            const parentDimension = pContext.dimensions[parentID];
+            const id = `node-${pContext.generatedId}`;
+            const width = parentDimension?.width ?? 192;
+            const height = parentDimension?.height ?? 50;
+            const initialX = parentNode.position.x + width + PARENT_CHILD_GAP_WIDTH;
+            const initialY = parentNode.position.y + PARENT_CHILD_GAP_WIDTH;
+            const position = pContext.clampPosition(
+              board,
+              initialX,
+              initialY,
+              width,
+              height,
+            );
+            const dimension = pContext.calculateDimensions(
+              position,
+              parentDimension,
+            );
+
+            nodes?.push({
+              id,
+              data: { content: '<Nouveau nœud>' },
+              input: true,
+              position,
+            });
+
+            pContext.dimensions[id] = dimension;
+            return nodes;
+          },
+        }),
+
+        moveNewEdge: assign('newEdge', {
+          MOVE_NEW_EDGE: ({ context: { newEdge, board }, payload, pContext }) => {
+            if (!board) return undefined;
+            if (!newEdge) return undefined;
+            const { x: x1, y: y1 } = pContext.getBoardPosition(
+              payload.x,
+              payload.y,
+              board,
+            );
+            return { ...newEdge, x1, y1 };
           },
         }),
       },
     }));
 
     service.start();
-
-    return {
-      dimensions: [dimensions, setDimensions] as const,
-      board: [boardRef, setBoardRef] as const,
-      getBoardPoint,
-      service,
-      // clampPosition,
-    };
+    return service;
   },
   { name: 'FlowContext' },
 );

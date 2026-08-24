@@ -11,6 +11,8 @@ import { Provider } from './components/FlowChart.context';
  *   {@linkcode FlowProps}.
  *
  * @returns The rendered Solid component.
+ *
+ * @see {@linkcode Provider}
  */
 export const Flow: Component<FlowProps> = props => (
   <Provider>

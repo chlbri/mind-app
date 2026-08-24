@@ -1,16 +1,25 @@
-import { useState } from '@bemedev/app-solidjs';
+import { toArray } from '@bemedev/app';
+import { createState } from '@bemedev/app-solidjs';
 import {
   DragDropProvider,
   DragDropSensors,
   DragOverlay,
 } from '@thisbeyond/solid-dnd';
 import { dequal } from 'dequal';
-import { Component, createEffect, createSignal, For, on, Show } from 'solid-js';
+import {
+  Component,
+  createEffect,
+  createSignal,
+  For,
+  on,
+  onMount,
+  Show,
+} from 'solid-js';
 
+import { CANVAS_FACTOR, SCROLL_MULTIPLIER } from '../../services/main.machine.data';
 import { DragBounds } from './Bounds';
 import { EdgesBoard } from './EdgesBoard';
 import { useFlow } from './FlowChart.context';
-import { CANVAS_FACTOR, SCROLL_MULTIPLIER } from './FlowChart.data';
 import { NodeComponent } from './NodeComponent';
 
 /**
@@ -18,25 +27,56 @@ import { NodeComponent } from './NodeComponent';
  * panning gestures, and rendered nodes/edges.
  *
  * @returns The rendered Solid component.
+ *
+ * @see {@linkcode DragBounds}, {@linkcode EdgesBoard}, {@linkcode NodeComponent}, {@linkcode useFlow}, {@linkcode CANVAS_FACTOR}, {@linkcode SCROLL_MULTIPLIER}
  */
 export const NodesBoard: Component = () => {
   let containerRef: HTMLDivElement;
   const [isPanning, setIsPanning] = createSignal(false);
   const [transform, setTransform] = createSignal({ x: 0, y: 0 });
   const [id, setId] = createSignal<string | number>('');
+  const [ref, setRef] = createSignal<HTMLDivElement | undefined>();
   let percentX = 0;
   let percentY = 0;
 
-  const {
-    board: [, setRef],
-    service,
-  } = useFlow();
+  const service = useFlow();
 
-  const newEdge = useState(service, {
+  const newEdge = createState(service, {
     selector: s => s.context.newEdge,
     equals: dequal,
   });
-  const zoom = useState(service, { selector: s => s.context.zoom ?? 1 });
+
+  const zoom = createState(service, { selector: s => s.context.zoom ?? 1 });
+
+  /**
+   * Dispatches the current board geometry and parent container dimensions to the
+   * state machine service.
+   */
+  const sendBoard = () => {
+    const el = ref();
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    const parent = () => ref()?.parentElement;
+
+    const payload = {
+      self: {
+        left: rect.left,
+        top: rect.top,
+        width: el.clientWidth,
+        height: el.clientHeight,
+      },
+      parent: parent()
+        ? {
+            scrollLeft: parent()!.scrollLeft,
+            scrollTop: parent()!.scrollTop,
+            height: parent()!.clientHeight,
+            width: parent()!.clientWidth,
+          }
+        : undefined,
+    };
+
+    service.send({ type: 'SET_BOARD', payload });
+  };
 
   /**
    * Calculates and saves the normalized scroll percentages across X and Y axes for
@@ -47,6 +87,7 @@ export const NodesBoard: Component = () => {
     const maxScrollY = containerRef.scrollHeight - containerRef.clientHeight;
     percentX = maxScrollX > 0 ? containerRef.scrollLeft / maxScrollX : 0;
     percentY = maxScrollY > 0 ? containerRef.scrollTop / maxScrollY : 0;
+    sendBoard();
   };
 
   createEffect(
@@ -62,7 +103,9 @@ export const NodesBoard: Component = () => {
     ),
   );
 
-  const selectedId = useState(service, { selector: s => s.context?.selected });
+  onMount(sendBoard);
+
+  const selectedId = createState(service, { selector: s => s.context?.selected });
 
   /**
    * Determines whether the given element ID matches the currently selected entity.
@@ -73,25 +116,22 @@ export const NodesBoard: Component = () => {
    */
   const selected = (id: string | number) => selectedId() === id;
 
-  const nodes = useState(service, {
-    selector: s => {
-      const list = s.context.data?.nodes ?? [];
-      return list.map(item => ({
-        id: item.id,
-        x: item.position.x,
-        y: item.position.y,
-        label: item.data.label,
-        content: item.data.content ?? '',
-        input: item.input,
-      }));
+  const nodeIds = createState(service, {
+    selector: ({ context }) => {
+      const list = toArray.typed(context.data?.nodes);
+      return list.map(item => item.id);
     },
-    equals: dequal,
+    equals: (prev, next) => prev.length === next.length,
   });
 
   const CANVAS_SIZE = CANVAS_FACTOR * 100;
   const MARGIN_X = 53 * CANVAS_FACTOR;
   const MARGIN_Y = 85 * CANVAS_FACTOR;
+
+  /** Computes the dynamic canvas width string in CSS units adjusted for zoom. */
   const cWidth = () => `calc((${CANVAS_SIZE}vw - ${MARGIN_X}px) * ${zoom()})`;
+
+  /** Computes the dynamic canvas height string in CSS units adjusted for zoom. */
   const cHeight = () => `calc((${CANVAS_SIZE}vh - ${MARGIN_Y}px) * ${zoom()})`;
 
   return (
@@ -168,8 +208,8 @@ export const NodesBoard: Component = () => {
           node.style.setProperty('left', X + 'px');
           node.style.removeProperty('transform');
 
+          service.send({ type: 'MOVE', payload: { id: `${id}`, x: X, y: Y } });
           setTimeout(() => {
-            service.send({ type: 'MOVE', payload: { id: `${id}`, x: X, y: Y } });
             setTransform({ x: 0, y: 0 });
           }, 0);
         }}
@@ -187,6 +227,7 @@ export const NodesBoard: Component = () => {
             class='relative cursor-crosshair overflow-hidden'
             classList={{ 'cursor-grabbing': isPanning() }}
             style={{ height: cHeight(), width: cWidth() }}
+            onScroll={() => {}}
 
             onMouseDown={e => {
               if (newEdge() || e.button !== 0) return;
@@ -227,7 +268,7 @@ export const NodesBoard: Component = () => {
             >
               <DragBounds />
               <EdgesBoard />
-              <For each={nodes()} children={NodeComponent} />
+              <For each={nodeIds()}>{id => <NodeComponent id={id} />}</For>
             </div>
           </div>
         </div>

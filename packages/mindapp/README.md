@@ -44,24 +44,25 @@ export const FlowDemo = () => {
 You can provide initial node and edge configurations, as well as callback handlers:
 
 ```tsx
-import { Flow, type FlowProps } from '@bemedev/mind-flow';
+import { Flow, type NodeProps, type EdgeProps } from '@bemedev/mind-flow';
+import type { ComponentProps } from 'solid-js';
 import '@bemedev/mind-flow/style.css';
+
+type FlowProps = ComponentProps<typeof Flow>;
 
 const config: FlowProps['config'] = {
   nodes: [
     {
       id: 'node-1',
-      name: 'Start',
-      description: 'Starting point of workflow',
-      x: 100,
-      y: 100,
+      data: { label: 'Start', content: 'Starting point of workflow' },
+      input: false,
+      position: { x: 100, y: 100 },
     },
     {
       id: 'node-2',
-      name: 'Process',
-      description: 'Step 1 processing',
-      x: 400,
-      y: 100,
+      data: { label: 'Process', content: 'Step 1 processing' },
+      input: true,
+      position: { x: 400, y: 100 },
     },
   ],
   edges: [{ id: 'edge-1', from: 'node-1', to: 'node-2' }],
@@ -85,7 +86,6 @@ export const CustomFlow = () => {
 ## Exports
 
 - **`Flow`**: Root Solid.js flowchart component wrapping context provider and canvas.
-- **`FlowProps`**: Configuration and callback props for the `Flow` component.
 - **`NodeProps`**: Inferred type definition for node elements.
 - **`EdgeProps`**: Inferred type definition for edge connections.
 - **`CLASSES`**: Array of Tailwind CSS safelist class names used in the UI.

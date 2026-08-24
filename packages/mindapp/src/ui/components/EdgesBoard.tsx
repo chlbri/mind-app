@@ -1,4 +1,4 @@
-import { useState } from '@bemedev/app-solidjs';
+import { createState } from '@bemedev/app-solidjs';
 import { Component, For, Show } from 'solid-js';
 
 import { EdgeComponent } from './EdgeComponent';
@@ -9,44 +9,26 @@ import { useFlow } from './FlowChart.context';
  * edge creation previews.
  *
  * @returns The rendered SVG JSX element.
+ *
+ * @see {@linkcode EdgeComponent}, {@linkcode useFlow}
  */
 export const EdgesBoard: Component = () => {
-  const { service } = useFlow();
+  const service = useFlow();
 
-  const newEdge = useState(service, {
-    selector: s => s.context.newEdge,
-    // equals: () => false,
+  const hasNewEdge = createState(service, { selector: s => !!s.context.newEdge });
+
+  const edgeIds = createState(service, {
+    selector: ({ context }) => Object.keys(context.edgesPositions),
+    equals: (prev, next) => prev.length === next.length,
   });
-
-  const datas = useState(service, {
-    selector: ({ context }) => {
-      const entries = Object.entries(context.edgesPositions);
-      return entries.map(([id, vector]) => ({ id, ...vector }));
-    },
-    // equals: () => false,
-  });
-
-  // const datas = createMemo(() => {
-  //   const entries = Object.entries(edgesPositions());
-  //   return entries.map(([id, vector]) => ({ id, ...vector }));
-  // });
 
   return (
     <svg class='pointer-events-none h-full w-full overflow-visible'>
-      <Show when={newEdge()}>
-        {value => (
-          <EdgeComponent
-            id='__#new-edge#__TEMP'
-            isNew
-            x0={value().x0}
-            y0={value().y0}
-            x1={value().x1}
-            y1={value().y1}
-          />
-        )}
+      <Show when={hasNewEdge()}>
+        <EdgeComponent id='__#new-edge#__TEMP' isNew />
       </Show>
 
-      <For each={datas()} children={EdgeComponent} />
+      <For each={edgeIds()}>{id => <EdgeComponent id={id} />}</For>
     </svg>
   );
 };

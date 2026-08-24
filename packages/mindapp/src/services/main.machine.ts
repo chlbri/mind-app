@@ -1,7 +1,17 @@
 import { createMachine } from '@bemedev/app';
 import { toArray, type } from '@bemedev/app/bemedev';
+import type { useDragDropContext } from '@thisbeyond/solid-dnd';
 import { nanoid } from 'nanoid';
 
+/** Type alias for drag-drop state extracted from {@linkcode useDragDropContext}. */
+export type DragDropState = Exclude<ReturnType<typeof useDragDropContext>, null>[0];
+
+import { DEFAULT_INPUT_OFFSET, getDefaultOutputOffset } from './main.machine.data';
+import {
+  buildEdgeId,
+  buildNodeID,
+  calculateDimensions,
+} from './main.machine.helpers';
 import {
   dimension,
   edgeJSON,
@@ -10,38 +20,23 @@ import {
   nodeJSON,
   point,
   vector,
-} from './main.typings';
-
-/**
- * Constructs a unique edge identifier string from source and destination node IDs.
- *
- * @param out - The source node ID string.
- * @param _in - The destination node ID string.
- *
- * @returns Formatted edge identifier string.
- */
-export const buildEdgeId = (out: string, _in: string) => {
-  return `edge = ${out} => ${_in}`;
-};
-
-/**
- * Constructs a formatted node identifier string from a generated ID.
- *
- * @param generated - The generated unique ID string or `null`/`undefined`.
- *
- * @returns Formatted node identifier string.
- */
-export const buildNodeID = (generated?: string | null) => {
-  return `node-${generated}`;
-};
+  board,
+  type Dimension,
+  type Point,
+  type Board,
+} from './main.machine.typings';
 
 /**
  * State machine managing flowchart state transitions, nodes, edges, selection, and
  * layout actions.
+ *
+ * @see {@linkcode calculateDimensions}, {@linkcode buildEdgeId}, {@linkcode buildNodeID}, {@linkcode getDefaultOutputOffset}, {@linkcode DEFAULT_INPUT_OFFSET}
  */
 export const machine = createMachine(
   {
     initial: 'idle',
+
+    on: { SET_BOARD: { actions: ['setBoard'] } },
     states: {
       idle: {
         on: {
@@ -55,9 +50,7 @@ export const machine = createMachine(
       working: {
         on: {
           MOVE_IMMEDIATE: {
-            actions: [
-              { name: 'buildImmediateUI', description: 'Must be in the ui' },
-            ],
+            actions: [{ name: 'buildUI', description: 'Must be in the ui' }],
           },
 
           ADD_CHILD: {
@@ -99,6 +92,7 @@ export const machine = createMachine(
           DESELECT: { actions: ['deselect'] },
           ZOOM: { actions: ['zoom'] },
           TOGGLE_ZOOM: { actions: ['toggleZoom'] },
+          SET_BOARD: { actions: ['setBoard'] },
         },
       },
     },
@@ -110,6 +104,7 @@ export const machine = createMachine(
         edges: array(intersection(use(edgeJSON), { id: 'string' })),
       },
 
+      SET_BOARD: use(board),
       CONFIGURE_EMPTY: 'never',
       MOVE: { id: 'string', x: 'number', y: 'number' },
       MOVE_IMMEDIATE: { id: 'string', x: 'number', y: 'number' },
@@ -120,7 +115,7 @@ export const machine = createMachine(
       SELECT: 'string',
       DESELECT: 'never',
       ADD_EDGE: use(extremities),
-      START_NEW_EDGE: { from: 'string', point: use(point) },
+      START_NEW_EDGE: 'string',
       MOVE_NEW_EDGE: use(point),
       CLEAR_NEW_EDGE: 'never',
       ZOOM: 'number',
@@ -129,10 +124,42 @@ export const machine = createMachine(
     })),
 
     sync: true,
-    pContext: type(({ union, optional, record, use }) => ({
+    pContext: type(({ union, optional, record, use, custom }) => ({
       generatedId: union('string', 'null'),
       previousZoom: optional('number'),
       dimensions: record(use(dimension)),
+
+      getBoardPosition:
+        custom<(clientX: number, clientY: number, board: Board) => Point>(),
+
+      clampPosition:
+        custom<
+          (
+            board: Board,
+            x: number,
+            y: number,
+            nodeWidth?: number,
+            nodeHeight?: number,
+          ) => Point
+        >(),
+
+      calculateDimensions:
+        custom<
+          (
+            position: { x: number; y: number },
+            parentDimension?: Pick<
+              {
+                width: number;
+                height: number;
+                output: { x: number; y: number };
+                input?: { x: number; y: number } | undefined;
+                inputOffset?: { x: number; y: number } | undefined;
+                outputOffset?: { x: number; y: number } | undefined;
+              },
+              'width' | 'height' | 'inputOffset' | 'outputOffset'
+            >,
+          ) => Dimension
+        >(),
     })),
 
     context: type(({ optional, use, array, record }) => ({
@@ -140,39 +167,166 @@ export const machine = createMachine(
         nodes: array({ ...use(nodeJSON), id: 'string' }),
         edges: array({ ...use(edgeJSON), id: 'string' }),
       }),
+      board: optional(use(board)),
 
       edgesPositions: record(use(vector)),
       newEdge: optional(use(newEdge)),
       selected: optional('string'),
       updatingUI: optional('boolean'),
       zoom: 'number',
+      bounds: use(point),
     })),
   },
-).provideOptions(({ assign, batch, erase, filter }) => ({
+).provideOptions(({ assign, batch, erase, filter, action }) => ({
   actions: {
     configure: batch(
-      assign('context.data', () => ({ nodes: [], edges: [] })),
-      assign('context.data.nodes', { CONFIGURE: ({ payload: { nodes } }) => nodes }),
-      assign('context.data.edges', { CONFIGURE: ({ payload: { edges } }) => edges }),
-      assign('context.edgesPositions', () => ({})),
-      assign('context.newEdge', () => undefined),
-      assign('context.updatingUI', () => false),
-      assign('context.zoom', () => 1),
-      assign('pContext.generatedId', () => null),
-      assign('pContext.previousZoom', () => undefined),
+      assign('data', { CONFIGURE: ({ payload }) => payload }),
+      assign('newEdge', () => undefined),
+      assign('updatingUI', () => false),
+      action(({ pContext }) => {
+        pContext.generatedId = null;
+      }),
+      action({
+        CONFIGURE: ({ payload: { nodes }, pContext: { dimensions } }) => {
+          nodes.forEach(({ id, position }) => {
+            dimensions[id] = calculateDimensions(position);
+          });
+        },
+      }),
     ),
 
-    addDimension: assign('pContext.dimensions', {
-      ADD_DIMENSION: ({ payload: { id, dimension }, pContext: { dimensions } }) => {
-        dimensions[id] = dimension;
-        return dimensions;
+    startNewEdge: assign('newEdge', {
+      START_NEW_EDGE: ({ payload: from, pContext: { dimensions } }) => {
+        const { x, y } = dimensions[from].output;
+        return { from, x0: x, y0: y, x1: x, y1: y };
       },
     }),
 
-    generateID: assign('pContext.generatedId', () => nanoid()),
+    setBoard: assign('board', { SET_BOARD: ({ payload }) => payload }),
+
+    buildUI: batch(
+      assign('edgesPositions', {
+        MOVE: ({
+          context: { data, edgesPositions },
+          payload,
+          pContext: { dimensions },
+        }) => {
+          const edges = data?.edges;
+          const dimension = dimensions[payload.id];
+
+          const outputOffset =
+            dimension?.outputOffset ?? getDefaultOutputOffset(dimension?.width);
+
+          const inputOffset = dimension?.inputOffset ?? DEFAULT_INPUT_OFFSET;
+
+          const output = {
+            x: payload.x + outputOffset.x,
+            y: payload.y + outputOffset.y,
+          };
+
+          const input = {
+            x: payload.x + inputOffset.x,
+            y: payload.y + inputOffset.y,
+          };
+
+          if (dimension) {
+            dimension.output = output;
+            dimension.input = input;
+          }
+
+          edges?.forEach(({ from, to, id }) => {
+            if (from === payload.id) {
+              edgesPositions[id].x0 = output.x;
+              edgesPositions[id].y0 = output.y;
+            }
+            if (to === payload.id) {
+              edgesPositions[id].x1 = input.x;
+              edgesPositions[id].y1 = input.y;
+            }
+          });
+
+          return edgesPositions;
+        },
+        MOVE_IMMEDIATE: ({
+          context: { data, edgesPositions },
+          payload,
+          pContext: { dimensions },
+        }) => {
+          const edges = data?.edges;
+
+          edges?.forEach(({ from, to, id }) => {
+            if (from === payload.id) {
+              const dimension = dimensions[payload.id];
+              const offset =
+                dimension?.outputOffset ?? getDefaultOutputOffset(dimension?.width);
+
+              const x0 = payload.x + offset.x;
+              const y0 = payload.y + offset.y;
+              edgesPositions[id].x0 = x0;
+              edgesPositions[id].y0 = y0;
+
+              if (dimension) {
+                dimension.output.x = x0;
+                dimension.output.y = y0;
+              }
+            }
+
+            if (to === payload.id) {
+              const dimension = dimensions[payload.id];
+              const offset = dimension?.inputOffset ?? DEFAULT_INPUT_OFFSET;
+
+              const x1 = payload.x + offset.x;
+              const y1 = payload.y + offset.y;
+              edgesPositions[id].x1 = x1;
+              edgesPositions[id].y1 = y1;
+
+              if (dimension) {
+                dimension.input = { x: x1, y: y1 };
+              }
+            }
+          });
+
+          return edgesPositions;
+        },
+        else: ({ context: { data, edgesPositions }, pContext: { dimensions } }) => {
+          const edges = data?.edges ?? [];
+          edgesPositions = {};
+
+          edges.forEach(({ from, id, to }) => {
+            const output = dimensions[from]?.output;
+            const input = dimensions[to]?.input;
+
+            if (output && input) {
+              edgesPositions[id] = {
+                x0: output.x,
+                y0: output.y,
+                x1: input.x,
+                y1: input.y,
+              };
+            } else {
+              delete edgesPositions[id];
+            }
+          });
+
+          return edgesPositions;
+        },
+      }),
+
+      assign('updatingUI', () => true),
+    ),
+
+    addDimension: action({
+      ADD_DIMENSION: ({ payload: { id, dimension }, pContext: { dimensions } }) => {
+        dimensions[id] = dimension;
+      },
+    }),
+
+    generateID: action(({ pContext }) => {
+      pContext.generatedId = nanoid();
+    }),
 
     linkChild: batch(
-      assign('context.data.edges', {
+      assign('data.edges', {
         ADD_CHILD: ({ context: { data }, pContext, payload }) => {
           const edges = toArray.typed(data?.edges);
           const from = payload;
@@ -184,13 +338,13 @@ export const machine = createMachine(
         },
       }),
 
-      assign('context.selected', ({ pContext: { generatedId } }) =>
+      assign('selected', ({ pContext: { generatedId } }) =>
         buildNodeID(generatedId),
       ),
     ),
 
     linkSibling: batch(
-      assign('context.data.edges', {
+      assign('data.edges', {
         ADD_SIBLING: ({ pContext, payload, context: { data } }) => {
           const edges = toArray.typed(data?.edges);
           const generatedId = pContext?.generatedId;
@@ -204,16 +358,16 @@ export const machine = createMachine(
         },
       }),
 
-      assign('context.selected', ({ pContext: { generatedId } }) =>
+      assign('selected', ({ pContext: { generatedId } }) =>
         buildNodeID(generatedId),
       ),
     ),
 
-    selectParent: assign('context.selected', ({ pContext: { generatedId } }) =>
+    selectParent: assign('selected', ({ pContext: { generatedId } }) =>
       buildNodeID(generatedId),
     ),
 
-    moveNode: assign('context.data.nodes', {
+    moveNode: assign('data.nodes', {
       MOVE: ({ context: { data }, payload }) => {
         const { id, x, y } = payload;
 
@@ -228,32 +382,20 @@ export const machine = createMachine(
       },
     }),
 
-    select: assign('context.selected', { SELECT: ({ payload }) => payload }),
+    select: assign('selected', { SELECT: ({ payload }) => payload }),
 
-    // delete: assign(['context.data.nodes', 'context.data.edges'], {
-    //   DELETE: ({ context: { data }, payload }) => {
-    //     const nodes = data?.nodes?.filter(({ id }) => id !== payload);
-    //     const edges = data?.edges?.filter(
-    //       ({ id, from, to }) => id !== payload && from !== payload && to !== payload,
-    //     );
-
-    //     return [nodes, edges];
-    //   },
-    // }),
     delete: batch(
-      filter('context.data.edges', {
+      filter('data.edges', {
         DELETE: ({ id, from, to }, _, { payload }) => {
           return id !== payload && from !== payload && to !== payload;
         },
       }),
 
-      filter('context.data.nodes', {
-        DELETE: ({ id }, _, { payload }) => id !== payload,
-      }),
+      filter('data.nodes', { DELETE: ({ id }, _, { payload }) => id !== payload }),
     ),
 
     addEdge: batch(
-      assign('context.data.edges', {
+      assign('data.edges', {
         ADD_EDGE: ({ context, payload: { from, to } }) => {
           const edges = context.data?.edges ?? [];
           const id = buildEdgeId(from, to);
@@ -263,33 +405,32 @@ export const machine = createMachine(
           return out;
         },
       }),
-      erase('context.newEdge'),
+      erase('newEdge'),
     ),
 
-    moveNewEdge: assign('context.newEdge', {
-      MOVE_NEW_EDGE: ({ context: { newEdge }, payload }) => {
-        if (!newEdge) return undefined;
-        return { ...newEdge, x1: payload.x, y1: payload.y };
-      },
-    }),
+    clearNewEdge: erase('newEdge'),
+    deselect: erase('selected'),
 
-    clearNewEdge: erase('context.newEdge'),
-    deselect: erase('context.selected'),
-
-    zoom: assign(['context.zoom', 'pContext.previousZoom'], {
-      ZOOM: ({ context: { zoom = 1 }, payload }) => {
+    zoom: assign('zoom', {
+      ZOOM: ({ context: { zoom }, payload, pContext }) => {
         const next = zoom + payload;
         const clamped = Math.min(Math.max(Number(next.toFixed(2)), 0.2), 3);
-        return [clamped, undefined];
+        pContext.previousZoom = undefined;
+        return clamped;
       },
     }),
 
-    toggleZoom: assign(['context.zoom', 'pContext.previousZoom'], {
-      TOGGLE_ZOOM: ({ context: { zoom = 1 }, pContext: { previousZoom } }) => {
-        if (previousZoom !== undefined) {
-          return [previousZoom, undefined];
+    toggleZoom: assign('zoom', {
+      TOGGLE_ZOOM: ({ context: { zoom }, pContext }) => {
+        const previous = pContext.previousZoom;
+
+        if (previous !== undefined) {
+          pContext.previousZoom = undefined;
+          return previous;
         }
-        return [1, zoom];
+
+        pContext.previousZoom = zoom;
+        return 1;
       },
     }),
   },

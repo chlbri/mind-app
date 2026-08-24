@@ -1,10 +1,10 @@
-import { useState } from '@bemedev/app-solidjs';
+import { createState } from '@bemedev/app-solidjs';
 import type { inferT } from '@bemedev/app/typings';
 import { Component, onCleanup, onMount } from 'solid-js';
 
-import type { edgeJSON, nodeJSON } from '../../services/main.typings';
+import { DEFAULT_NODES } from '../../services/main.machine.data';
+import type { edgeJSON, nodeJSON } from '../../services/main.machine.typings';
 import { useFlow } from './FlowChart.context';
-import { DEFAULT_NODES } from './FlowChart.data';
 import { NodesBoard } from './NodesBoard';
 
 /** Serialized node properties type inferred from schema {@linkcode nodeJSON}. */
@@ -59,31 +59,36 @@ export type FlowProps = {
  *   {@linkcode FlowProps}.
  *
  * @returns The rendered Solid component.
+ *
+ * @see {@linkcode NodesBoard}, {@linkcode useFlow}, {@linkcode DEFAULT_NODES}
  */
 export const FlowChart: Component<FlowProps> = props => {
   const primaryNodes = props.config?.nodes ?? DEFAULT_NODES;
   const primaryEdges = props.config?.edges;
 
-  const { service, getBoardPoint } = useFlow();
+  const service = useFlow();
 
-  const hasNewEdge = useState(service, { selector: s => !!s.context.newEdge });
+  const hasNewEdge = createState(service, { selector: s => !!s.context.newEdge });
 
   onMount(() => {
+    service.resume();
     service.send({
       type: 'CONFIGURE',
       payload: { nodes: primaryNodes, edges: primaryEdges ?? [] },
     });
   });
 
-  onCleanup(service.stop);
+  onCleanup(service.pause);
 
   return (
     <div
       class='relative h-full w-full'
       onMouseUp={() => service.send('CLEAR_NEW_EDGE')}
       onMouseMove={event => {
-        const boardPoint = getBoardPoint(event.clientX, event.clientY);
-        service.send({ type: 'MOVE_NEW_EDGE', payload: boardPoint });
+        service.send({
+          type: 'MOVE_NEW_EDGE',
+          payload: { x: event.clientX, y: event.clientY },
+        });
       }}
       style={{}}
     >

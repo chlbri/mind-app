@@ -1,9 +1,10 @@
-import { useState } from '@bemedev/app-solidjs';
+import { createState } from '@bemedev/app-solidjs';
 import { useDragDropContext, type Transformer } from '@thisbeyond/solid-dnd';
 import { type Component } from 'solid-js';
 
+import { BOUNDS_CONSTRAINTS } from '#services/main.machine.data';
+
 import { useFlow } from './FlowChart.context';
-import { BOUNDS_CONSTRAINTS } from './FlowChart.data';
 
 /**
  * Drag boundary transformer component that clamps draggable nodes within container
@@ -11,14 +12,15 @@ import { BOUNDS_CONSTRAINTS } from './FlowChart.data';
  *
  * @returns `null` as this component performs side-effect transformer registrations
  *   only.
+ *
+ * @see {@linkcode useFlow}, {@linkcode BOUNDS_CONSTRAINTS}
  */
 export const DragBounds: Component = () => {
-  const {
-    board: [ref],
-    service,
-  } = useFlow();
+  const service = useFlow();
 
-  const zoom = useState(service, { selector: s => s.context.zoom ?? 1 });
+  const zoom = createState(service, { selector: ({ context }) => context.zoom });
+
+  const board = createState(service, { selector: ({ context }) => context.board });
 
   const [state, { addTransformer, removeTransformer, onDragStart, onDragEnd }] =
     useDragDropContext()!;
@@ -27,7 +29,7 @@ export const DragBounds: Component = () => {
     id: 'clamp-to-container',
     order: 100,
     callback: transform => {
-      const container = ref();
+      const container = board()?.self;
       const activeDraggable = state.active.draggable;
       if (!container || !activeDraggable) return transform;
 
@@ -40,7 +42,7 @@ export const DragBounds: Component = () => {
       const minBoardX = BOUNDS_CONSTRAINTS.horizontal;
       const maxBoardX = Math.max(
         minBoardX,
-        container.clientWidth / currentZoom -
+        container.width / currentZoom -
           node.offsetWidth -
           BOUNDS_CONSTRAINTS.horizontal,
       );
@@ -48,7 +50,7 @@ export const DragBounds: Component = () => {
       const minBoardY = BOUNDS_CONSTRAINTS.vertical;
       const maxBoardY = Math.max(
         minBoardY,
-        container.clientHeight / currentZoom -
+        container.height / currentZoom -
           node.offsetHeight -
           BOUNDS_CONSTRAINTS.vertical,
       );
