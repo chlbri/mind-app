@@ -1,4 +1,4 @@
-import { useState } from '@bemedev/app-solidjs';
+import { createState } from '@bemedev/app-solidjs';
 import { Component, createEffect, createSignal, Show } from 'solid-js';
 
 import type { Vector } from '#services/main.machine.typings';
@@ -60,7 +60,7 @@ export const EdgeComponent: Component<Props> = props => {
     setMiddlePoint({ x: middleX, y: middleY });
   });
 
-  const selected = useState(service, {
+  const selected = createState(service, {
     selector: s => s.context.selected === props.id,
   });
 

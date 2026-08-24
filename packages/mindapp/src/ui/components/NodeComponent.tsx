@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-namespace */
-import { useState } from '@bemedev/app-solidjs';
+import { createState } from '@bemedev/app-solidjs';
 import { createDraggable } from '@thisbeyond/solid-dnd';
 import { Component, Show } from 'solid-js';
 
@@ -48,13 +48,13 @@ type Props = {
 export const NodeComponent: Component<Props> = props => {
   const { service } = useFlow();
 
-  const newEdge = useState(service, { selector: s => s.context.newEdge });
+  const newEdge = createState(service, { selector: s => s.context.newEdge });
 
-  const selected = useState(service, {
+  const selected = createState(service, {
     selector: s => s.context.selected === props.id,
   });
 
-  const hasParent = useState(service, {
+  const hasParent = createState(service, {
     selector: ({ context: { data } }) => {
       const edges = data?.edges;
       if (!edges) return false;

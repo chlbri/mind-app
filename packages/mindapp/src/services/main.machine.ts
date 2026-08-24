@@ -131,27 +131,25 @@ export const machine = createMachine(
       zoom: 'number',
     })),
   },
-).provideOptions(({ assign, batch, erase, filter }) => ({
+).provideOptions(({ assign, batch, erase, filter, action }) => ({
   actions: {
     configure: batch(
-      assign('context.data', { CONFIGURE: ({ payload }) => payload }),
-      assign('context.newEdge', () => undefined),
-      assign('context.updatingUI', () => false),
-      assign('pContext.generatedId', () => null),
-      assign('pContext.previousZoom', () => undefined),
-
-      assign('pContext.dimensions', {
+      assign('data', { CONFIGURE: ({ payload }) => payload }),
+      assign('newEdge', () => undefined),
+      assign('updatingUI', () => false),
+      action(({ pContext }) => {
+        pContext.generatedId = null;
+      }),
+      action({
         CONFIGURE: ({ payload: { nodes }, pContext: { dimensions } }) => {
           nodes.forEach(({ id, position }) => {
             dimensions[id] = calculateDimensions(position);
           });
-
-          return dimensions;
         },
       }),
     ),
 
-    startNewEdge: assign('context.newEdge', {
+    startNewEdge: assign('newEdge', {
       START_NEW_EDGE: ({ payload: from, pContext: { dimensions } }) => {
         const { x, y } = dimensions[from].output;
         return { from, x0: x, y0: y, x1: x, y1: y };
@@ -159,7 +157,7 @@ export const machine = createMachine(
     }),
 
     buildUI: batch(
-      assign(['context.edgesPositions', 'pContext.dimensions'], {
+      assign('edgesPositions', {
         MOVE: ({
           context: { data, edgesPositions },
           payload,
@@ -199,7 +197,7 @@ export const machine = createMachine(
             }
           });
 
-          return [edgesPositions, dimensions];
+          return edgesPositions;
         },
         MOVE_IMMEDIATE: ({
           context: { data, edgesPositions },
@@ -240,7 +238,7 @@ export const machine = createMachine(
             }
           });
 
-          return [edgesPositions, dimensions];
+          return edgesPositions;
         },
         else: ({ context: { data, edgesPositions }, pContext: { dimensions } }) => {
           const edges = data?.edges ?? [];
@@ -262,24 +260,25 @@ export const machine = createMachine(
             }
           });
 
-          return [edgesPositions, dimensions];
+          return edgesPositions;
         },
       }),
 
-      assign('context.updatingUI', () => true),
+      assign('updatingUI', () => true),
     ),
 
-    addDimension: assign('pContext.dimensions', {
+    addDimension: action({
       ADD_DIMENSION: ({ payload: { id, dimension }, pContext: { dimensions } }) => {
         dimensions[id] = dimension;
-        return dimensions;
       },
     }),
 
-    generateID: assign('pContext.generatedId', () => nanoid()),
+    generateID: action(({ pContext }) => {
+      pContext.generatedId = nanoid();
+    }),
 
     linkChild: batch(
-      assign('context.data.edges', {
+      assign('data.edges', {
         ADD_CHILD: ({ context: { data }, pContext, payload }) => {
           const edges = toArray.typed(data?.edges);
           const from = payload;
@@ -291,13 +290,13 @@ export const machine = createMachine(
         },
       }),
 
-      assign('context.selected', ({ pContext: { generatedId } }) =>
+      assign('selected', ({ pContext: { generatedId } }) =>
         buildNodeID(generatedId),
       ),
     ),
 
     linkSibling: batch(
-      assign('context.data.edges', {
+      assign('data.edges', {
         ADD_SIBLING: ({ pContext, payload, context: { data } }) => {
           const edges = toArray.typed(data?.edges);
           const generatedId = pContext?.generatedId;
@@ -311,16 +310,16 @@ export const machine = createMachine(
         },
       }),
 
-      assign('context.selected', ({ pContext: { generatedId } }) =>
+      assign('selected', ({ pContext: { generatedId } }) =>
         buildNodeID(generatedId),
       ),
     ),
 
-    selectParent: assign('context.selected', ({ pContext: { generatedId } }) =>
+    selectParent: assign('selected', ({ pContext: { generatedId } }) =>
       buildNodeID(generatedId),
     ),
 
-    moveNode: assign('context.data.nodes', {
+    moveNode: assign('data.nodes', {
       MOVE: ({ context: { data }, payload }) => {
         const { id, x, y } = payload;
 
@@ -335,7 +334,7 @@ export const machine = createMachine(
       },
     }),
 
-    select: assign('context.selected', { SELECT: ({ payload }) => payload }),
+    select: assign('selected', { SELECT: ({ payload }) => payload }),
 
     // delete: assign(['context.data.nodes', 'context.data.edges'], {
     //   DELETE: ({ context: { data }, payload }) => {
@@ -348,19 +347,17 @@ export const machine = createMachine(
     //   },
     // }),
     delete: batch(
-      filter('context.data.edges', {
+      filter('data.edges', {
         DELETE: ({ id, from, to }, _, { payload }) => {
           return id !== payload && from !== payload && to !== payload;
         },
       }),
 
-      filter('context.data.nodes', {
-        DELETE: ({ id }, _, { payload }) => id !== payload,
-      }),
+      filter('data.nodes', { DELETE: ({ id }, _, { payload }) => id !== payload }),
     ),
 
     addEdge: batch(
-      assign('context.data.edges', {
+      assign('data.edges', {
         ADD_EDGE: ({ context, payload: { from, to } }) => {
           const edges = context.data?.edges ?? [];
           const id = buildEdgeId(from, to);
@@ -370,26 +367,32 @@ export const machine = createMachine(
           return out;
         },
       }),
-      erase('context.newEdge'),
+      erase('newEdge'),
     ),
 
-    clearNewEdge: erase('context.newEdge'),
-    deselect: erase('context.selected'),
+    clearNewEdge: erase('newEdge'),
+    deselect: erase('selected'),
 
-    zoom: assign(['context.zoom', 'pContext.previousZoom'], {
-      ZOOM: ({ context: { zoom }, payload }) => {
+    zoom: assign('zoom', {
+      ZOOM: ({ context: { zoom }, payload, pContext }) => {
         const next = zoom + payload;
         const clamped = Math.min(Math.max(Number(next.toFixed(2)), 0.2), 3);
-        return [clamped, undefined];
+        pContext.previousZoom = undefined;
+        return clamped;
       },
     }),
 
-    toggleZoom: assign(['context.zoom', 'pContext.previousZoom'], {
-      TOGGLE_ZOOM: ({ context: { zoom = 1 }, pContext: { previousZoom } }) => {
-        if (previousZoom !== undefined) {
-          return [previousZoom, undefined];
+    toggleZoom: assign('zoom', {
+      TOGGLE_ZOOM: ({ context: { zoom }, pContext }) => {
+        const previous = pContext.previousZoom;
+
+        if (previous !== undefined) {
+          pContext.previousZoom = undefined;
+          return previous;
         }
-        return [1, zoom];
+
+        pContext.previousZoom = zoom;
+        return 1;
       },
     }),
   },

@@ -1,4 +1,4 @@
-import { useState } from '@bemedev/app-solidjs';
+import { createState } from '@bemedev/app-solidjs';
 import { Component, For, Show } from 'solid-js';
 
 import { EdgeComponent } from './EdgeComponent';
@@ -15,9 +15,9 @@ import { useFlow } from './FlowChart.context';
 export const EdgesBoard: Component = () => {
   const { service } = useFlow();
 
-  const newEdge = useState(service, { selector: s => s.context.newEdge });
+  const newEdge = createState(service, { selector: s => s.context.newEdge });
 
-  const datas = useState(service, {
+  const datas = createState(service, {
     selector: ({ context }) => {
       const entries = Object.entries(context.edgesPositions);
       return entries.map(([id, vector]) => ({ id, ...vector }));

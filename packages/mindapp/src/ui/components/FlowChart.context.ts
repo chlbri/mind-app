@@ -100,17 +100,17 @@ export const [Provider, useFlow] = createContext(
 
     service.addOptions(({ assign }) => ({
       actions: {
-        placeChild: assign(['context.data.nodes', 'pContext.dimensions'], {
+        placeChild: assign('data.nodes', {
           ADD_CHILD: ({
             payload,
             context: { data },
             pContext: { generatedId, dimensions },
           }) => {
             const nodes = data?.nodes;
-            if (!payload) return [nodes, dimensions];
+            if (!payload) return nodes;
 
             const parentNode = nodes?.find(node => node.id === payload);
-            if (!parentNode) return [nodes, dimensions];
+            if (!parentNode) return nodes;
 
             const parentDimension = dimensions[payload];
 
@@ -130,11 +130,11 @@ export const [Provider, useFlow] = createContext(
             });
             dimensions[id] = dimension;
 
-            return [nodes, dimensions] as const;
+            return nodes;
           },
         }),
 
-        placeParent: assign(['context.data.nodes', 'pContext.dimensions'], {
+        placeParent: assign('data.nodes', {
           ADD_PARENT: ({
             context: { data, zoom = 1 },
             pContext: { generatedId, dimensions },
@@ -160,11 +160,11 @@ export const [Provider, useFlow] = createContext(
             });
 
             dimensions[id] = dimension;
-            return [nodes, dimensions];
+            return nodes;
           },
         }),
 
-        placeSibling: assign(['context.data.nodes', 'pContext.dimensions'], {
+        placeSibling: assign('data.nodes', {
           ADD_SIBLING: ({
             payload,
             context: { data },
@@ -173,10 +173,10 @@ export const [Provider, useFlow] = createContext(
             const edges = data?.edges;
             const nodes = data?.nodes;
             const parentID = edges?.find(edge => edge.to === payload)?.from;
-            if (!parentID) return [nodes, dimensions];
+            if (!parentID) return nodes;
 
             const parentNode = nodes?.find(node => node.id === parentID);
-            if (!parentNode) return [nodes, dimensions];
+            if (!parentNode) return nodes;
 
             const parentDimension = dimensions[parentID];
             const id = `node-${generatedId}`;
@@ -195,11 +195,11 @@ export const [Provider, useFlow] = createContext(
             });
 
             dimensions[id] = dimension;
-            return [nodes, dimensions];
+            return nodes;
           },
         }),
 
-        moveNewEdge: assign('context.newEdge', {
+        moveNewEdge: assign('newEdge', {
           MOVE_NEW_EDGE: ({ context: { newEdge }, payload }) => {
             if (!newEdge) return undefined;
             const { x: x1, y: y1 } = getBoardPoint(payload.x, payload.y);

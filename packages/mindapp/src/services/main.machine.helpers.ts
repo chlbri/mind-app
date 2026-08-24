@@ -29,8 +29,8 @@ export const buildNodeID = (generated?: string | null) => {
  * and optional parent dimension.
  *
  * @param position - Node position in board coordinates of type {@linkcode Point}.
- * @param parentDimension - Optional parent node dimension to inherit sizing and
- *   offsets from.
+ * @param parentDimension - Optional parent node dimension of type
+ *   {@linkcode Dimension} to inherit sizing and offsets from.
  *
  * @returns Node layout dimension object of type {@linkcode Dimension}.
  *

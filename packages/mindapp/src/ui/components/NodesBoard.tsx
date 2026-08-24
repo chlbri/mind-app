@@ -1,19 +1,11 @@
-import { useState } from '@bemedev/app-solidjs';
+import { createState } from '@bemedev/app-solidjs';
 import {
   DragDropProvider,
   DragDropSensors,
   DragOverlay,
 } from '@thisbeyond/solid-dnd';
 import { dequal } from 'dequal';
-import {
-  Component,
-  createEffect,
-  createSignal,
-  /*   For, */
-  Index,
-  on,
-  Show,
-} from 'solid-js';
+import { Component, createEffect, createSignal, For, on, Show } from 'solid-js';
 
 import { CANVAS_FACTOR, SCROLL_MULTIPLIER } from '../../services/main.machine.data';
 import { DragBounds } from './Bounds';
@@ -42,11 +34,11 @@ export const NodesBoard: Component = () => {
     service,
   } = useFlow();
 
-  const newEdge = useState(service, {
+  const newEdge = createState(service, {
     selector: s => s.context.newEdge,
     equals: dequal,
   });
-  const zoom = useState(service, { selector: s => s.context.zoom ?? 1 });
+  const zoom = createState(service, { selector: s => s.context.zoom ?? 1 });
 
   /**
    * Calculates and saves the normalized scroll percentages across X and Y axes for
@@ -72,7 +64,7 @@ export const NodesBoard: Component = () => {
     ),
   );
 
-  const selectedId = useState(service, { selector: s => s.context?.selected });
+  const selectedId = createState(service, { selector: s => s.context?.selected });
 
   /**
    * Determines whether the given element ID matches the currently selected entity.
@@ -83,7 +75,7 @@ export const NodesBoard: Component = () => {
    */
   const selected = (id: string | number) => selectedId() === id;
 
-  const nodes = useState(service, {
+  const nodes = createState(service, {
     selector: s => {
       const list = s.context.data?.nodes ?? [];
       return list.map(item => ({
@@ -242,22 +234,7 @@ export const NodesBoard: Component = () => {
               <DragBounds />
               <EdgesBoard />
 
-              {/* <For each={nodes()} children={NodeComponent} /> */}
-
-              <Index each={nodes()} fallback={<p>Empty</p>}>
-                {node => {
-                  return (
-                    <NodeComponent
-                      id={node().id}
-                      x={node().x}
-                      y={node().y}
-                      label={node().label}
-                      content={node().content}
-                      input={node().input}
-                    />
-                  );
-                }}
-              </Index>
+              <For each={nodes()} fallback={<p>Empty</p>} children={NodeComponent} />
             </div>
           </div>
         </div>

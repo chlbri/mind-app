@@ -7,7 +7,11 @@ export const point = type({ x: 'number', y: 'number' });
 /** 2D coordinate point type inferred from schema {@linkcode point}. */
 export type Point = inferT<typeof point>;
 
-/** Schema definition for node handle offsets (input and output). */
+/**
+ * Schema definition for node handle offsets (input and output).
+ *
+ * @see {@linkcode point}
+ */
 export const nodeOffset = type(({ optional, use }) => ({
   input: optional(use(point)),
   output: use(point),
@@ -16,17 +20,29 @@ export const nodeOffset = type(({ optional, use }) => ({
 /** Schema definition for edge extremities. */
 export const extremities = type({ from: 'string', to: 'string' });
 
-/** Schema definition for a serialized flowchart node entity. */
+/**
+ * Schema definition for a serialized flowchart node entity.
+ *
+ * @see {@linkcode point}
+ */
 export const nodeJSON = type(({ optional, use }) => ({
   position: use(point),
   data: { label: optional('string'), content: 'string' },
   input: 'boolean',
 }));
 
-/** Schema definition for a serialized flowchart edge entity. */
+/**
+ * Schema definition for a serialized flowchart edge entity.
+ *
+ * @see {@linkcode extremities}
+ */
 export const edgeJSON = extremities;
 
-/** Schema definition for layout dimensions and connection points of a node. */
+/**
+ * Schema definition for layout dimensions and connection points of a node.
+ *
+ * @see {@linkcode point}
+ */
 export const dimension = type(({ optional, use }) => ({
   width: 'number',
   height: 'number',
@@ -56,6 +72,8 @@ export type Vector = inferT<typeof vector>;
 /**
  * Schema definition for an ongoing new connection edge creation preview between
  * source node and cursor position.
+ *
+ * @see {@linkcode vector}
  */
 export const newEdge = type(({ intersection, use }) =>
   intersection({ from: 'string' }, use(vector)),

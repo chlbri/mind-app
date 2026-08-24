@@ -1,4 +1,4 @@
-import { useState } from '@bemedev/app-solidjs';
+import { createState } from '@bemedev/app-solidjs';
 import type { inferT } from '@bemedev/app/typings';
 import { Component, onCleanup, onMount } from 'solid-js';
 
@@ -68,7 +68,7 @@ export const FlowChart: Component<FlowProps> = props => {
 
   const { service } = useFlow();
 
-  const hasNewEdge = useState(service, { selector: s => !!s.context.newEdge });
+  const hasNewEdge = createState(service, { selector: s => !!s.context.newEdge });
 
   onMount(() => {
     service.send({
