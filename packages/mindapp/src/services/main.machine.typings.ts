@@ -81,3 +81,18 @@ export const newEdge = type(({ intersection, use }) =>
 
 /** Ongoing new connection edge preview type inferred from schema {@linkcode newEdge}. */
 export type Edge = inferT<typeof newEdge>;
+
+/** Schema definition for flowchart board geometry and container scroll dimensions. */
+export const board = type(({ optional }) => ({
+  self: { left: 'number', top: 'number', width: 'number', height: 'number' },
+
+  parent: optional({
+    scrollLeft: 'number',
+    scrollTop: 'number',
+    height: 'number',
+    width: 'number',
+  }),
+}));
+
+/** Flowchart board layout type inferred from schema {@linkcode board}. */
+export type Board = inferT<typeof board>;

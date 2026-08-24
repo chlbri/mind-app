@@ -66,7 +66,7 @@ export const FlowChart: Component<FlowProps> = props => {
   const primaryNodes = props.config?.nodes ?? DEFAULT_NODES;
   const primaryEdges = props.config?.edges;
 
-  const { service } = useFlow();
+  const service = useFlow();
 
   const hasNewEdge = createState(service, { selector: s => !!s.context.newEdge });
 

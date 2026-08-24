@@ -1,6 +1,10 @@
 import { createMachine } from '@bemedev/app';
 import { toArray, type } from '@bemedev/app/bemedev';
+import type { useDragDropContext } from '@thisbeyond/solid-dnd';
 import { nanoid } from 'nanoid';
+
+/** Type alias for drag-drop state extracted from {@linkcode useDragDropContext}. */
+export type DragDropState = Exclude<ReturnType<typeof useDragDropContext>, null>[0];
 
 import { DEFAULT_INPUT_OFFSET, getDefaultOutputOffset } from './main.machine.data';
 import {
@@ -16,6 +20,10 @@ import {
   nodeJSON,
   point,
   vector,
+  board,
+  type Dimension,
+  type Point,
+  type Board,
 } from './main.machine.typings';
 
 /**
@@ -27,6 +35,8 @@ import {
 export const machine = createMachine(
   {
     initial: 'idle',
+
+    on: { SET_BOARD: { actions: ['setBoard'] } },
     states: {
       idle: {
         on: {
@@ -82,6 +92,7 @@ export const machine = createMachine(
           DESELECT: { actions: ['deselect'] },
           ZOOM: { actions: ['zoom'] },
           TOGGLE_ZOOM: { actions: ['toggleZoom'] },
+          SET_BOARD: { actions: ['setBoard'] },
         },
       },
     },
@@ -93,6 +104,7 @@ export const machine = createMachine(
         edges: array(intersection(use(edgeJSON), { id: 'string' })),
       },
 
+      SET_BOARD: use(board),
       CONFIGURE_EMPTY: 'never',
       MOVE: { id: 'string', x: 'number', y: 'number' },
       MOVE_IMMEDIATE: { id: 'string', x: 'number', y: 'number' },
@@ -112,10 +124,42 @@ export const machine = createMachine(
     })),
 
     sync: true,
-    pContext: type(({ union, optional, record, use }) => ({
+    pContext: type(({ union, optional, record, use, custom }) => ({
       generatedId: union('string', 'null'),
       previousZoom: optional('number'),
       dimensions: record(use(dimension)),
+
+      getBoardPosition:
+        custom<(clientX: number, clientY: number, board: Board) => Point>(),
+
+      clampPosition:
+        custom<
+          (
+            board: Board,
+            x: number,
+            y: number,
+            nodeWidth?: number,
+            nodeHeight?: number,
+          ) => Point
+        >(),
+
+      calculateDimensions:
+        custom<
+          (
+            position: { x: number; y: number },
+            parentDimension?: Pick<
+              {
+                width: number;
+                height: number;
+                output: { x: number; y: number };
+                input?: { x: number; y: number } | undefined;
+                inputOffset?: { x: number; y: number } | undefined;
+                outputOffset?: { x: number; y: number } | undefined;
+              },
+              'width' | 'height' | 'inputOffset' | 'outputOffset'
+            >,
+          ) => Dimension
+        >(),
     })),
 
     context: type(({ optional, use, array, record }) => ({
@@ -123,12 +167,14 @@ export const machine = createMachine(
         nodes: array({ ...use(nodeJSON), id: 'string' }),
         edges: array({ ...use(edgeJSON), id: 'string' }),
       }),
+      board: optional(use(board)),
 
       edgesPositions: record(use(vector)),
       newEdge: optional(use(newEdge)),
       selected: optional('string'),
       updatingUI: optional('boolean'),
       zoom: 'number',
+      bounds: use(point),
     })),
   },
 ).provideOptions(({ assign, batch, erase, filter, action }) => ({
@@ -155,6 +201,8 @@ export const machine = createMachine(
         return { from, x0: x, y0: y, x1: x, y1: y };
       },
     }),
+
+    setBoard: assign('board', { SET_BOARD: ({ payload }) => payload }),
 
     buildUI: batch(
       assign('edgesPositions', {

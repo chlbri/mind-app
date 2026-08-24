@@ -48,7 +48,7 @@ const draw = ({ x0, y0, x1, y1 }: Vector) => {
  * @see {@linkcode draw}, {@linkcode useFlow}
  */
 export const EdgeComponent: Component<Props> = props => {
-  const { service } = useFlow();
+  const service = useFlow();
 
   const vector = createState(service, {
     selector: ({ context }) => {
@@ -66,6 +66,7 @@ export const EdgeComponent: Component<Props> = props => {
     selector: s => s.context.selected === props.id,
   });
 
+  /** Computes the 2D midpoint coordinate of the edge curve for handle placement. */
   const middlePoint = () => {
     const v = vector();
     if (!v) return { x: 0, y: 0 };

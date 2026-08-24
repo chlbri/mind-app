@@ -16,12 +16,11 @@ import { useFlow } from './FlowChart.context';
  * @see {@linkcode useFlow}, {@linkcode BOUNDS_CONSTRAINTS}
  */
 export const DragBounds: Component = () => {
-  const {
-    board: [ref],
-    service,
-  } = useFlow();
+  const service = useFlow();
 
   const zoom = createState(service, { selector: ({ context }) => context.zoom });
+
+  const board = createState(service, { selector: ({ context }) => context.board });
 
   const [state, { addTransformer, removeTransformer, onDragStart, onDragEnd }] =
     useDragDropContext()!;
@@ -30,7 +29,7 @@ export const DragBounds: Component = () => {
     id: 'clamp-to-container',
     order: 100,
     callback: transform => {
-      const container = ref();
+      const container = board()?.self;
       const activeDraggable = state.active.draggable;
       if (!container || !activeDraggable) return transform;
 
@@ -43,7 +42,7 @@ export const DragBounds: Component = () => {
       const minBoardX = BOUNDS_CONSTRAINTS.horizontal;
       const maxBoardX = Math.max(
         minBoardX,
-        container.clientWidth / currentZoom -
+        container.width / currentZoom -
           node.offsetWidth -
           BOUNDS_CONSTRAINTS.horizontal,
       );
@@ -51,7 +50,7 @@ export const DragBounds: Component = () => {
       const minBoardY = BOUNDS_CONSTRAINTS.vertical;
       const maxBoardY = Math.max(
         minBoardY,
-        container.clientHeight / currentZoom -
+        container.height / currentZoom -
           node.offsetHeight -
           BOUNDS_CONSTRAINTS.vertical,
       );

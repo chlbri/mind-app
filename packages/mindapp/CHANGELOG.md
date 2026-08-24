@@ -3,6 +3,32 @@
 <details>
 <summary>
 
+## **[0.3.0] - 24/08/2026** => _19:24_
+
+</summary>
+
+- Add board layout geometry tracking and container scroll synchronization in state
+  machine
+- Add board and parent dimension syncing with `SET_BOARD` action on mount and
+  viewport scroll
+- Add dynamic boundary clamping and unscaled coordinate transforms via state machine
+  private context
+- Refactor `useFlow` context hook to directly return the state machine service
+- Refactor node and edge selection to reactively track selection state directly from
+  the service
+- Refactor `DragBounds` to utilize board layout state from machine context
+- Refactor main machine actions and remove deprecated deletion logic
+- Enhance JSDoc documentation across UI components, machine services, and context
+  helpers
+- <u>Test coverage **_100%_**</u>
+
+</details>
+
+<br/>
+
+<details>
+<summary>
+
 ## **[0.2.0] - 22/08/2026** => _21:41_
 
 </summary>

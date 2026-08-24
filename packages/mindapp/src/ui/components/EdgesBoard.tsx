@@ -13,7 +13,7 @@ import { useFlow } from './FlowChart.context';
  * @see {@linkcode EdgeComponent}, {@linkcode useFlow}
  */
 export const EdgesBoard: Component = () => {
-  const { service } = useFlow();
+  const service = useFlow();
 
   const hasNewEdge = createState(service, { selector: s => !!s.context.newEdge });
 

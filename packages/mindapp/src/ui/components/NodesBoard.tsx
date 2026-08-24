@@ -6,7 +6,15 @@ import {
   DragOverlay,
 } from '@thisbeyond/solid-dnd';
 import { dequal } from 'dequal';
-import { Component, createEffect, createSignal, For, on, Show } from 'solid-js';
+import {
+  Component,
+  createEffect,
+  createSignal,
+  For,
+  on,
+  onMount,
+  Show,
+} from 'solid-js';
 
 import { CANVAS_FACTOR, SCROLL_MULTIPLIER } from '../../services/main.machine.data';
 import { DragBounds } from './Bounds';
@@ -27,13 +35,11 @@ export const NodesBoard: Component = () => {
   const [isPanning, setIsPanning] = createSignal(false);
   const [transform, setTransform] = createSignal({ x: 0, y: 0 });
   const [id, setId] = createSignal<string | number>('');
+  const [ref, setRef] = createSignal<HTMLDivElement | undefined>();
   let percentX = 0;
   let percentY = 0;
 
-  const {
-    board: [, setRef],
-    service,
-  } = useFlow();
+  const service = useFlow();
 
   const newEdge = createState(service, {
     selector: s => s.context.newEdge,
@@ -41,6 +47,36 @@ export const NodesBoard: Component = () => {
   });
 
   const zoom = createState(service, { selector: s => s.context.zoom ?? 1 });
+
+  /**
+   * Dispatches the current board geometry and parent container dimensions to the
+   * state machine service.
+   */
+  const sendBoard = () => {
+    const el = ref();
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    const parent = () => ref()?.parentElement;
+
+    const payload = {
+      self: {
+        left: rect.left,
+        top: rect.top,
+        width: el.clientWidth,
+        height: el.clientHeight,
+      },
+      parent: parent()
+        ? {
+            scrollLeft: parent()!.scrollLeft,
+            scrollTop: parent()!.scrollTop,
+            height: parent()!.clientHeight,
+            width: parent()!.clientWidth,
+          }
+        : undefined,
+    };
+
+    service.send({ type: 'SET_BOARD', payload });
+  };
 
   /**
    * Calculates and saves the normalized scroll percentages across X and Y axes for
@@ -51,6 +87,7 @@ export const NodesBoard: Component = () => {
     const maxScrollY = containerRef.scrollHeight - containerRef.clientHeight;
     percentX = maxScrollX > 0 ? containerRef.scrollLeft / maxScrollX : 0;
     percentY = maxScrollY > 0 ? containerRef.scrollTop / maxScrollY : 0;
+    sendBoard();
   };
 
   createEffect(
@@ -65,6 +102,8 @@ export const NodesBoard: Component = () => {
       { defer: true },
     ),
   );
+
+  onMount(sendBoard);
 
   const selectedId = createState(service, { selector: s => s.context?.selected });
 
@@ -188,6 +227,7 @@ export const NodesBoard: Component = () => {
             class='relative cursor-crosshair overflow-hidden'
             classList={{ 'cursor-grabbing': isPanning() }}
             style={{ height: cHeight(), width: cWidth() }}
+            onScroll={() => {}}
 
             onMouseDown={e => {
               if (newEdge() || e.button !== 0) return;
@@ -228,7 +268,6 @@ export const NodesBoard: Component = () => {
             >
               <DragBounds />
               <EdgesBoard />
-
               <For each={nodeIds()}>{id => <NodeComponent id={id} />}</For>
             </div>
           </div>

@@ -38,7 +38,7 @@ type Props = {
  * @see {@linkcode useFlow}, {@linkcode HANDLE_CONTAINER_OFFSET_X}, {@linkcode HANDLE_MARGIN_TOP}, {@linkcode HANDLE_SIZE}
  */
 export const NodeComponent: Component<Props> = props => {
-  const { service } = useFlow();
+  const service = useFlow();
 
   const node = createState(service, {
     selector: ({ context }) => {
@@ -88,7 +88,6 @@ export const NodeComponent: Component<Props> = props => {
 
       onMouseDown={e => {
         e.stopPropagation();
-        e.stopImmediatePropagation();
         service.send({ type: 'SELECT', payload: props.id });
       }}
     >
