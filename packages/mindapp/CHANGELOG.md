@@ -3,6 +3,23 @@
 <details>
 <summary>
 
+## **[0.3.1] - 24/08/2026** => _21:57_
+
+</summary>
+
+- Refactor `EdgeComponent` to simplify vector signal selection and remove redundant
+  conditional rendering wrapper
+- Refactor `NodeComponent` to streamline reactive signal property access and non-null
+  item lookup
+- <u>Test coverage **_100%_**</u>
+
+</details>
+
+<br/>
+
+<details>
+<summary>
+
 ## **[0.3.0] - 24/08/2026** => _19:24_
 
 </summary>

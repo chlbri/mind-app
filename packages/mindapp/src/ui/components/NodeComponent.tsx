@@ -43,8 +43,7 @@ export const NodeComponent: Component<Props> = props => {
   const node = createState(service, {
     selector: ({ context }) => {
       const list = toArray.typed(context.data?.nodes);
-      const item = list.find(n => n.id === props.id);
-      if (!item) return undefined;
+      const item = list.find(n => n.id === props.id)!;
       return {
         x: item.position.x,
         y: item.position.y,
@@ -81,7 +80,7 @@ export const NodeComponent: Component<Props> = props => {
         'border border-[#e6d4be] z-[1]': !selected(),
       }}
 
-      style={{ top: `${node()?.y ?? 0}px`, left: `${node()?.x ?? 0}px` }}
+      style={{ top: `${node().y}px`, left: `${node().x}px` }}
       class='min-w-48'
       use:draggable={{ skipTransform: true }}
       id={props.id}
@@ -162,7 +161,7 @@ export const NodeComponent: Component<Props> = props => {
         </svg>
       </div>
 
-      <Show when={node()?.label} keyed>
+      <Show when={node().label} keyed>
         {label => (
           <span class='min-w-max border-b border-[#f0f0f0] p-3 whitespace-nowrap text-red-600 select-none'>
             {label}
@@ -170,11 +169,11 @@ export const NodeComponent: Component<Props> = props => {
         )}
       </Show>
 
-      <Show when={node()?.content} keyed>
+      <Show when={node().content} keyed>
         {content => <div class='p-3 select-none'>{content}</div>}
       </Show>
 
-      <Show when={node()?.input || hasParent()}>
+      <Show when={node().input || hasParent()}>
         <div
           id='outputs'
           class='pointer-events-none absolute top-0 z-10 flex cursor-default flex-col'
