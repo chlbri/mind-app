@@ -39,6 +39,9 @@ type Props = {
  */
 export const NodeComponent: Component<Props> = props => {
   const service = useFlow();
+  const newEdge = createState(service, { selector: s => s.context.newEdge });
+  const draggable = createDraggable(props.id);
+  void draggable;
 
   const node = createState(service, {
     selector: ({ context }) => {
@@ -55,10 +58,8 @@ export const NodeComponent: Component<Props> = props => {
     equals: dequal,
   });
 
-  const newEdge = createState(service, { selector: s => s.context.newEdge });
-
   const selected = createState(service, {
-    selector: s => s.context.selected === props.id,
+    selector: ({ context }) => context.selected === props.id,
   });
 
   const hasParent = createState(service, {
@@ -68,9 +69,6 @@ export const NodeComponent: Component<Props> = props => {
       return edges.some(({ to }) => to === props.id);
     },
   });
-
-  const draggable = createDraggable(props.id);
-  void draggable;
 
   return (
     <div
@@ -121,6 +119,7 @@ export const NodeComponent: Component<Props> = props => {
         <Show when={hasParent()}>
           <svg
             class='cursor-pointer overflow-visible rounded-full bg-green-500 p-0.5 text-center font-bold hover:bg-green-600'
+
             style={{
               'pointer-events': 'all',
               'fill-rule': 'evenodd',
@@ -144,6 +143,7 @@ export const NodeComponent: Component<Props> = props => {
             </g>
           </svg>
         </Show>
+
         <svg
           class='flex cursor-pointer items-center justify-center rounded-lg bg-blue-500 p-0.5 text-center font-bold text-white hover:bg-blue-600'
           onClick={() => service.send({ type: 'ADD_CHILD', payload: props.id })}
@@ -175,7 +175,7 @@ export const NodeComponent: Component<Props> = props => {
 
       <Show when={node().input || hasParent()}>
         <div
-          id='outputs'
+          id='inputs'
           class='pointer-events-none absolute top-0 z-10 flex cursor-default flex-col'
           style={{ left: `-${HANDLE_CONTAINER_OFFSET_X}px` }}
         >
@@ -205,7 +205,7 @@ export const NodeComponent: Component<Props> = props => {
         </div>
       </Show>
       <div
-        id='inputs'
+        id='outputs'
         class='pointer-events-none absolute top-0 z-10 flex flex-col'
         style={{ right: `-${HANDLE_CONTAINER_OFFSET_X}px` }}
       >

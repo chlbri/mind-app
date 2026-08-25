@@ -34,7 +34,6 @@ export const NodesBoard: Component = () => {
   let containerRef: HTMLDivElement;
   const [isPanning, setIsPanning] = createSignal(false);
   const [transform, setTransform] = createSignal({ x: 0, y: 0 });
-  const [id, setId] = createSignal<string | number>('');
   const [ref, setRef] = createSignal<HTMLDivElement | undefined>();
   let percentX = 0;
   let percentY = 0;
@@ -107,15 +106,6 @@ export const NodesBoard: Component = () => {
 
   const selectedId = createState(service, { selector: s => s.context?.selected });
 
-  /**
-   * Determines whether the given element ID matches the currently selected entity.
-   *
-   * @param id - The node or edge identifier to check.
-   *
-   * @returns `true` if the item is currently selected, otherwise `false`.
-   */
-  const selected = (id: string | number) => selectedId() === id;
-
   const nodeIds = createState(service, {
     selector: ({ context }) => {
       const list = toArray.typed(context.data?.nodes);
@@ -149,44 +139,38 @@ export const NodesBoard: Component = () => {
     >
       <DragDropProvider
         onDragMove={({ draggable: { transform: _transform, node, id } }) => {
-          setId(id);
-          if (selected(id)) {
-            const grandParent = node.parentElement?.parentElement;
-            const currentZoom = zoom();
-            const minX = 0;
-            const maxX = grandParent
-              ? Math.max(0, grandParent.clientWidth / currentZoom - node.offsetWidth)
-              : Infinity;
-            const minY = 0;
-            const maxY = grandParent
-              ? Math.max(
-                  0,
-                  grandParent.clientHeight / currentZoom - node.offsetHeight,
-                )
-              : Infinity;
+          const grandParent = node.parentElement?.parentElement;
+          const currentZoom = zoom();
+          const minX = 0;
+          const maxX = grandParent
+            ? Math.max(0, grandParent.clientWidth / currentZoom - node.offsetWidth)
+            : Infinity;
+          const minY = 0;
+          const maxY = grandParent
+            ? Math.max(0, grandParent.clientHeight / currentZoom - node.offsetHeight)
+            : Infinity;
 
-            const targetX = node.offsetLeft + _transform.x / currentZoom;
-            const targetY = node.offsetTop + _transform.y / currentZoom;
+          const targetX = node.offsetLeft + _transform.x / currentZoom;
+          const targetY = node.offsetTop + _transform.y / currentZoom;
 
-            const x = Math.min(Math.max(targetX, minX), maxX);
-            const y = Math.min(Math.max(targetY, minY), maxY);
+          const x = Math.min(Math.max(targetX, minX), maxX);
+          const y = Math.min(Math.max(targetY, minY), maxY);
 
-            const deltaX = x - node.offsetLeft;
-            const deltaY = y - node.offsetTop;
+          const deltaX = x - node.offsetLeft;
+          const deltaY = y - node.offsetTop;
 
-            // Directly update the draggable node's CSS transform adjusted for zoom:
-            node.style.setProperty(
-              'transform',
-              `translate3d(${deltaX}px, ${deltaY}px, 0)`,
-            );
+          // Directly update the draggable node's CSS transform adjusted for zoom:
+          node.style.setProperty(
+            'transform',
+            `translate3d(${deltaX}px, ${deltaY}px, 0)`,
+          );
 
-            service.send({ type: 'MOVE_IMMEDIATE', payload: { id: `${id}`, x, y } });
-            setTransform({ x: deltaX * currentZoom, y: deltaY * currentZoom });
-          }
+          service.send({ type: 'MOVE_IMMEDIATE', payload: { id: `${id}`, x, y } });
+          setTransform({ x: deltaX * currentZoom, y: deltaY * currentZoom });
         }}
 
         onDragEnd={({ draggable: { node, id } }) => {
-          if (!selected(id)) return;
+          // if (!selected(id)) return;
 
           const grandParent = node.parentElement?.parentElement;
           const currentZoom = zoom();
@@ -227,11 +211,12 @@ export const NodesBoard: Component = () => {
             class='relative cursor-crosshair overflow-hidden'
             classList={{ 'cursor-grabbing': isPanning() }}
             style={{ height: cHeight(), width: cWidth() }}
-            onScroll={() => {}}
+            // onScroll={() => {}}
 
             onMouseDown={e => {
               if (newEdge() || e.button !== 0) return;
               service.send('DESELECT');
+              setIsPanning(true);
 
               // #region Props
               const startX = e.clientX;
@@ -239,8 +224,6 @@ export const NodesBoard: Component = () => {
               const startScrollLeft = containerRef.scrollLeft;
               const startScrollTop = containerRef.scrollTop;
               // #endregion
-
-              setIsPanning(true);
 
               const handleMouseMove = (moveEvent: MouseEvent) => {
                 const dx = moveEvent.clientX - startX;
@@ -325,7 +308,7 @@ export const NodesBoard: Component = () => {
             </svg>
           </button>
         </div>
-        <Show when={!id() || !selected(id())}>
+        <Show when={!selectedId()}>
           <DragOverlay children='' />
         </Show>
       </DragDropProvider>

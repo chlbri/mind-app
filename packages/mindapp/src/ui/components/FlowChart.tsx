@@ -65,35 +65,35 @@ export type FlowProps = {
 export const FlowChart: Component<FlowProps> = props => {
   const primaryNodes = props.config?.nodes ?? DEFAULT_NODES;
   const primaryEdges = props.config?.edges;
-
   const service = useFlow();
-
   const hasNewEdge = createState(service, { selector: s => !!s.context.newEdge });
+  onCleanup(service.pause);
 
   onMount(() => {
     service.resume();
+
     service.send({
       type: 'CONFIGURE',
       payload: { nodes: primaryNodes, edges: primaryEdges ?? [] },
     });
   });
 
-  onCleanup(service.pause);
-
   return (
     <div
       class='relative h-full w-full'
       onMouseUp={() => service.send('CLEAR_NEW_EDGE')}
-      onMouseMove={event => {
-        service.send({
-          type: 'MOVE_NEW_EDGE',
-          payload: { x: event.clientX, y: event.clientY },
-        });
+
+      onMouseMove={({ clientX, clientY }) => {
+        if (hasNewEdge())
+          service.send({
+            type: 'MOVE_NEW_EDGE',
+            payload: { x: clientX, y: clientY },
+          });
       }}
-      style={{}}
     >
       <div
         class='relative h-full w-full bg-white bg-size-[30px_30px]'
+
         style={{
           cursor: hasNewEdge() ? 'inherit' : 'crosshair',
           'background-image':

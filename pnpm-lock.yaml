@@ -225,6 +225,9 @@ importers:
 
   packages/mindapp:
     dependencies:
+      '@thisbeyond/solid-dnd':
+        specifier: ^0.7.5
+        version: 0.7.5(solid-js@1.9.15)
       dequal:
         specifier: ^2.0.3
         version: 2.0.3

@@ -3,6 +3,28 @@
 <details>
 <summary>
 
+## **[0.3.2] - 25/08/2026** => _18:36_
+
+</summary>
+
+- Fix input and output handle container element IDs in `NodeComponent`
+- Refactor state machine actions (`placeChild`, `placeParent`, `placeSibling`,
+  `moveNewEdge`) to be registered directly in machine definition via `provideOptions`
+- Refactor `FlowChart.context` to delegate action definitions directly to the state
+  machine
+- Refactor `NodesBoard` drag-and-drop movement and overlay display to simplify direct
+  node dragging
+- Refactor `FlowChart` cursor tracking to emit edge movement events conditionally
+  when drawing a new edge
+- <u>Test coverage **_100%_**</u>
+
+</details>
+
+<br/>
+
+<details>
+<summary>
+
 ## **[0.3.1] - 24/08/2026** => _21:57_
 
 </summary>
