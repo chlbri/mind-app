@@ -75,8 +75,6 @@ export const machine = createMachine(
             target: '/construction',
           },
 
-          ADD_DIMENSION: { actions: ['addDimension'] },
-
           ADD_SIBLING: {
             actions: [
               'generateID',
@@ -86,6 +84,7 @@ export const machine = createMachine(
             target: '/construction',
           },
 
+          RESIZE: { actions: ['resize'] },
           MOVE: { actions: ['moveNode', 'buildUI'], target: '/construction' },
           ADD_EDGE: { actions: ['addEdge'], target: '/construction' },
           START_NEW_EDGE: { actions: ['startNewEdge'] },
@@ -124,7 +123,7 @@ export const machine = createMachine(
       CLEAR_NEW_EDGE: 'never',
       ZOOM: 'number',
       TOGGLE_ZOOM: 'never',
-      ADD_DIMENSION: { id: 'string', dimension: use(dimension) },
+      RESIZE: { id: 'string', size: { width: 'number', height: 'number' } },
     })),
 
     sync: true,
@@ -221,11 +220,12 @@ export const machine = createMachine(
         }) => {
           const edges = data?.edges;
           const dimension = dimensions[payload.id];
+          if (!dimension) return;
 
           const outputOffset =
-            dimension?.outputOffset ?? getDefaultOutputOffset(dimension?.width);
+            dimension.outputOffset ?? getDefaultOutputOffset(dimension.width);
 
-          const inputOffset = dimension?.inputOffset ?? DEFAULT_INPUT_OFFSET;
+          const inputOffset = dimension.inputOffset ?? DEFAULT_INPUT_OFFSET;
 
           const output = {
             x: payload.x + outputOffset.x,
@@ -237,19 +237,20 @@ export const machine = createMachine(
             y: payload.y + inputOffset.y,
           };
 
-          if (dimension) {
-            dimension.output = output;
-            dimension.input = input;
-          }
+          dimension.output = output;
+          dimension.input = input;
 
           edges?.forEach(({ from, to, id }) => {
+            const edgePosition = edgesPositions[id];
+            if (!edgePosition) return;
+
             if (from === payload.id) {
-              edgesPositions[id].x0 = output.x;
-              edgesPositions[id].y0 = output.y;
+              edgePosition.x0 = output.x;
+              edgePosition.y0 = output.y;
             }
             if (to === payload.id) {
-              edgesPositions[id].x1 = input.x;
-              edgesPositions[id].y1 = input.y;
+              edgePosition.x1 = input.x;
+              edgePosition.y1 = input.y;
             }
           });
 
@@ -261,9 +262,7 @@ export const machine = createMachine(
           payload,
           pContext: { dimensions },
         }) => {
-          const edges = data?.edges;
-
-          edges?.forEach(({ from, to, id }) => {
+          data?.edges?.forEach(({ from, to, id }) => {
             const dimension = dimensions[payload.id];
             const edgePosition = edgesPositions[id];
             if (!edgePosition || !dimension) return;
@@ -293,10 +292,9 @@ export const machine = createMachine(
         },
 
         else: ({ context: { data, edgesPositions }, pContext: { dimensions } }) => {
-          const edges = toArray.typed(data?.edges);
           edgesPositions = {};
 
-          edges.forEach(({ from, id, to }) => {
+          data?.edges.forEach(({ from, id, to }) => {
             const output = dimensions[from]?.output;
             const input = dimensions[to]?.input;
 
@@ -307,8 +305,6 @@ export const machine = createMachine(
                 x1: input.x,
                 y1: input.y,
               };
-            } else {
-              delete edgesPositions[id];
             }
           });
 
@@ -319,17 +315,26 @@ export const machine = createMachine(
       assign('updatingUI', () => true),
     ),
 
-    addDimension: action({
-      ADD_DIMENSION: ({ payload: { id, dimension }, pContext: { dimensions } }) => {
-        dimensions[id] = dimension;
+    resize: action({
+      RESIZE: ({
+        payload: {
+          id,
+          size: { width, height },
+        },
+        pContext: { dimensions },
+      }) => {
+        const dimension = dimensions[id];
+        if (!dimension) return;
+
+        dimension.width = width;
+        dimension.height = height;
       },
     }),
 
     linkChild: batch(
       assign('data.edges', {
-        ADD_CHILD: ({ context: { data }, pContext, payload }) => {
+        ADD_CHILD: ({ context: { data }, pContext, payload: from }) => {
           const edges = toArray.typed(data?.edges);
-          const from = payload;
           const generatedId = pContext?.generatedId;
           const to = buildNodeID(generatedId);
           const id = buildEdgeId(from, to);
@@ -397,6 +402,7 @@ export const machine = createMachine(
           return out;
         },
       }),
+
       erase('newEdge'),
     ),
 
@@ -427,6 +433,7 @@ export const machine = createMachine(
     placeChild: assign('data.nodes', {
       ADD_CHILD: ({ payload, context: { data, board }, pContext }) => {
         if (!board) return data?.nodes;
+
         const nodes = data?.nodes;
         if (!payload) return nodes;
 
@@ -434,12 +441,12 @@ export const machine = createMachine(
         if (!parentNode) return nodes;
 
         const parentDimension = pContext.dimensions[payload];
-
         const id = `node-${pContext.generatedId}`;
         const width = parentDimension?.width ?? 192;
         const height = parentDimension?.height ?? 50;
         const initialX = parentNode.position.x + width + PARENT_CHILD_GAP_WIDTH;
         const initialY = parentNode.position.y;
+
         const position = pContext.clampPosition(
           board,
           initialX,
@@ -447,7 +454,6 @@ export const machine = createMachine(
           width,
           height,
         );
-        const dimension = pContext.calculateDimensions(position, parentDimension);
 
         nodes?.push({
           id,
@@ -455,7 +461,11 @@ export const machine = createMachine(
           input: true,
           position,
         });
-        pContext.dimensions[id] = dimension;
+
+        pContext.dimensions[id] = pContext.calculateDimensions(
+          position,
+          parentDimension,
+        );
 
         return nodes;
       },
@@ -464,6 +474,7 @@ export const machine = createMachine(
     placeParent: assign('data.nodes', {
       ADD_PARENT: ({ context: { data, zoom = 1, board }, pContext }) => {
         if (!board) return data?.nodes;
+
         const nodes = data?.nodes;
         const id = `node-${pContext.generatedId}`;
         const container = board.parent;
@@ -475,7 +486,6 @@ export const machine = createMachine(
         const x = (scrollLeft + width / 2) / currentZoom;
         const y = (scrollTop + height / 2) / currentZoom;
         const position = pContext.clampPosition(board, x, y);
-        const dimension = pContext.calculateDimensions(position);
 
         nodes?.push({
           id,
@@ -484,7 +494,7 @@ export const machine = createMachine(
           position,
         });
 
-        pContext.dimensions[id] = dimension;
+        pContext.dimensions[id] = pContext.calculateDimensions(position);
         return nodes;
       },
     }),
@@ -492,6 +502,7 @@ export const machine = createMachine(
     placeSibling: assign('data.nodes', {
       ADD_SIBLING: ({ payload, context: { data, board }, pContext }) => {
         if (!board) return data?.nodes;
+
         const edges = data?.edges;
         const nodes = data?.nodes;
         const parentID = edges?.find(edge => edge.to === payload)?.from;
@@ -506,6 +517,7 @@ export const machine = createMachine(
         const height = parentDimension?.height ?? 50;
         const initialX = parentNode.position.x + width + PARENT_CHILD_GAP_WIDTH;
         const initialY = parentNode.position.y + PARENT_CHILD_GAP_WIDTH;
+
         const position = pContext.clampPosition(
           board,
           initialX,
@@ -513,7 +525,6 @@ export const machine = createMachine(
           width,
           height,
         );
-        const dimension = pContext.calculateDimensions(position, parentDimension);
 
         nodes?.push({
           id,
@@ -522,7 +533,11 @@ export const machine = createMachine(
           position,
         });
 
-        pContext.dimensions[id] = dimension;
+        pContext.dimensions[id] = pContext.calculateDimensions(
+          position,
+          parentDimension,
+        );
+
         return nodes;
       },
     }),

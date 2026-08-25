@@ -12,6 +12,7 @@ import {
 } from '#services/main.machine.data';
 
 import { useFlow } from './FlowChart.context';
+import { observer } from './helpers';
 
 declare module 'solid-js' {
   namespace JSX {
@@ -161,17 +162,19 @@ export const NodeComponent: Component<Props> = props => {
         </svg>
       </div>
 
-      <Show when={node().label} keyed>
-        {label => (
-          <span class='min-w-max border-b border-[#f0f0f0] p-3 whitespace-nowrap text-red-600 select-none'>
-            {label}
-          </span>
-        )}
-      </Show>
+      <div ref={observer(props.id)}>
+        <Show when={node().label} keyed>
+          {label => (
+            <span class='min-w-max border-b border-[#f0f0f0] p-3 whitespace-nowrap text-red-600 select-none'>
+              {label}
+            </span>
+          )}
+        </Show>
 
-      <Show when={node().content} keyed>
-        {content => <div class='p-3 select-none'>{content}</div>}
-      </Show>
+        <Show when={node().content} keyed>
+          {content => <div class='p-3 select-none'>{content}</div>}
+        </Show>
+      </div>
 
       <Show when={node().input || hasParent()}>
         <div
