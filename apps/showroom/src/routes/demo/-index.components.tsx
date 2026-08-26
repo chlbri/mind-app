@@ -1,10 +1,18 @@
-import { createState } from '@bemedev/app-solidjs';
-import { toArray } from '@bemedev/app/bemedev';
-import { deepEqual } from '@bemedev/app/utils';
-import { useFlow } from '@bemedev/mind-flow';
-import { Show, type Component } from 'solid-js';
+import { EditPanel, mouseOut, type MouseOutParam } from '@bemedev/mind-flow';
+import { type Component } from 'solid-js';
 
 import type { ShowroomData } from './-index.types';
+
+declare module 'solid-js' {
+  // oxlint-disable-next-line typescript/no-namespace
+  namespace JSX {
+    interface Directives {
+      clickOutside: () => void;
+      mouseOut: MouseOutParam;
+      draggable: { skipTransform?: boolean };
+    }
+  }
+}
 
 /**
  * Custom node renderer for Showroom displaying title, priority badge, and content.
@@ -68,67 +76,27 @@ export const ShowroomNode: Component<ShowroomData> = props => {
 
 /**
  * Top-left edit panel component that allows modifying the node's data upon
- * double-click.
+ * double-click using {@linkcode EditPanel}.
  *
  * @returns The rendered Solid component.
  *
- * @see {@linkcode useFlow}
+ * @see type {@linkcode ShowroomData}
  */
 export const ShowroomEditPanel: Component = () => {
-  const service = useFlow();
-
-  const editingNode = createState(service, {
-    selector: ({ context }) => {
-      const editingId = context.editing;
-      if (!editingId) return null;
-      const list = toArray.typed(context.data?.nodes);
-      const item = list.find(n => n.id === editingId);
-      if (!item) return null;
-      return { id: item.id, data: item.data as unknown as ShowroomData };
-    },
-    equals: deepEqual<any>,
-  });
-
-  const updateField = (field: keyof ShowroomData, value: string | number) => {
-    const current = editingNode();
-    if (!current) return;
-    service.send({
-      type: 'SET_NODE_DATA',
-      payload: { id: current.id, data: { ...current.data, [field]: value } },
-    });
-  };
+  const toPriority = (value: string) => Number(value) as ShowroomData['priority'];
+  void mouseOut;
 
   return (
-    <Show when={editingNode()}>
-      {node => (
-        <div
-          class='w-80 rounded-2xl border border-gray-200 bg-white/95 p-4 shadow-xl backdrop-blur-md transition-all'
-          onMouseDown={e => e.stopPropagation()}
-        >
-          <div class='flex flex-col gap-3'>
-            <div class='flex items-center justify-between border-b border-gray-100 pb-2'>
-              <div class='flex items-center gap-2'>
-                <h3 class='text-sm font-bold text-gray-800'>Edit Node Data</h3>
-                <span class='font-mono text-[11px] text-gray-400'>{node().id}</span>
-              </div>
-              <button
-                type='button'
-                onClick={() => service.send('STOP_EDIT')}
-                class='cursor-pointer rounded-full p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-700'
-                title='Close editor'
-              >
-                <svg
-                  class='size-4'
-                  viewBox='0 0 24 24'
-                  fill='none'
-                  stroke='currentColor'
-                  stroke-width='2'
-                >
-                  <path d='M18 6L6 18M6 6l12 12' />
-                </svg>
-              </button>
-            </div>
-
+    <EditPanel<ShowroomData>
+      class='w-60 transition-all ease-linear'
+      classList={({ closing }) => ({
+        'pointer-events-none scale-95 opacity-0 duration-250': closing(),
+        'opacity-35 hover:opacity-100 duration-150': !closing(),
+      })}
+    >
+      {({ editing: node, updateField, close }) => {
+        return (
+          <div use:mouseOut={[close, 3_150]} class='flex flex-col gap-3'>
             <div class='flex flex-col gap-1'>
               <label class='text-xs font-semibold text-gray-600'>Title</label>
               <input
@@ -145,10 +113,12 @@ export const ShowroomEditPanel: Component = () => {
                 <label class='text-xs font-semibold text-gray-600'>
                   Priority (1-5)
                 </label>
+
                 <span class='text-xs font-bold text-blue-600'>
                   {node().data?.priority ?? 1}
                 </span>
               </div>
+
               <input
                 type='range'
                 min='1'
@@ -156,7 +126,9 @@ export const ShowroomEditPanel: Component = () => {
                 step='1'
                 class='w-full cursor-pointer accent-blue-600'
                 value={node().data?.priority ?? 1}
-                onInput={e => updateField('priority', Number(e.currentTarget.value))}
+                onInput={e =>
+                  updateField('priority', toPriority(e.currentTarget.value))
+                }
               />
             </div>
 
@@ -171,8 +143,8 @@ export const ShowroomEditPanel: Component = () => {
               />
             </div>
           </div>
-        </div>
-      )}
-    </Show>
+        );
+      }}
+    </EditPanel>
   );
 };

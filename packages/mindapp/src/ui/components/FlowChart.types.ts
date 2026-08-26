@@ -23,15 +23,15 @@ export type FlowPanels = {
  *   {@linkcode NodeData}.
  */
 export type FlowProps<D extends NodeData = NodeData> = {
+  delay?: number;
   /** Initial flowchart state configuration with nodes and edges. */
   config?: {
     nodes?: (NodeProps<D> & { id: string })[];
     edges?: (EdgeProps & { id: string })[];
   };
   /** Custom node component to render inside each flowchart node. */
-  nodeComponent?: Component<D>;
-  /** Alias for {@linkcode nodeComponent}. */
-  NodeComponent?: Component<D>;
+  component?: Component<D>;
+
   /** Default data for new nodes created in the flowchart. */
   defaultData?: D;
   /** Custom overlay panels positioned around the canvas. */

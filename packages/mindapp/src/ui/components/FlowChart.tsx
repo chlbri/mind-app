@@ -60,17 +60,10 @@ export const FlowChart = <D extends NodeData = NodeData>(
       }}
     >
       <div
-        class='relative h-full w-full bg-white bg-size-[30px_30px]'
-        style={{
-          cursor: hasNewEdge() ? 'inherit' : 'crosshair',
-          'background-image':
-            'radial-gradient(circle, #b8b8b8bf 1px, rgba(0, 0, 0, 0) 1px)',
-        }}
+        class='h-full w-full'
+        style={{ cursor: hasNewEdge() ? 'inherit' : 'crosshair' }}
       >
-        <NodesBoard
-          panels={props.panels}
-          nodeComponent={props.nodeComponent ?? props.NodeComponent}
-        />
+        <NodesBoard panels={props.panels} component={props.component} />
       </div>
     </div>
   );

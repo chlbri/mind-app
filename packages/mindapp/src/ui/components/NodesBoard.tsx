@@ -29,7 +29,7 @@ import { Panels } from './Panels';
 /** Properties for the {@linkcode NodesBoard} component. */
 type Props<D extends NodeData = NodeData> = {
   /** Optional custom node component. */
-  nodeComponent?: Component<D>;
+  component?: Component<D>;
   /** Optional custom overlay panels. */
   panels?: FlowPanels;
 };
@@ -56,7 +56,6 @@ export const NodesBoard = <D extends NodeData = NodeData>(
   const [ref, setRef] = createSignal<HTMLDivElement | undefined>();
   let percentX = 0;
   let percentY = 0;
-
   const service = useFlow();
 
   const newEdge = createState(service, {
@@ -154,7 +153,7 @@ export const NodesBoard = <D extends NodeData = NodeData>(
         }
       }}
 
-      class='relative mx-auto h-[calc(100vh-64px)] w-[calc(100vw-32px)] overflow-hidden'
+      class='relative mx-auto h-full w-full overflow-hidden'
     >
       <DragDropProvider
         onDragMove={({ draggable: { transform: _transform, node, id } }) => {
@@ -222,7 +221,7 @@ export const NodesBoard = <D extends NodeData = NodeData>(
             return (containerRef = el);
           }}
           onScroll={updateScrollPercentages}
-          class='relative h-full w-full overflow-auto rounded-lg border-2 border-gray-600'
+          class='relative h-full w-full overflow-auto'
         >
           <DragDropSensors />
           <div
@@ -271,7 +270,7 @@ export const NodesBoard = <D extends NodeData = NodeData>(
               <DragBounds />
               <EdgesBoard />
               <For each={nodeIds()}>
-                {id => <NodeComponent id={id} nodeComponent={props.nodeComponent} />}
+                {id => <NodeComponent id={id} children={props.component} />}
               </For>
             </div>
           </div>

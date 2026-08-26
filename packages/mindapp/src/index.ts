@@ -5,3 +5,6 @@ export * from './ui/components/FlowChart';
 export type * from './ui/components/FlowChart.types';
 export * from './ui/components/FlowChart.context';
 export * from './ui/Flow';
+export * from './ui/components/EditPanel';
+export * from './ui/components/Panels';
+export * from './ui/globals/directives';

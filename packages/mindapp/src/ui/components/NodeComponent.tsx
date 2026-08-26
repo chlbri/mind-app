@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-namespace */
 import { toArray } from '@bemedev/app';
 import { createState } from '@bemedev/app-solidjs';
 import { createDraggable } from '@thisbeyond/solid-dnd';
@@ -13,23 +12,15 @@ import {
 } from '#services/main.machine.data';
 import type { NodeData } from '#services/main.machine.typings';
 
+import { resize } from '../globals/directives';
 import { useFlow } from './FlowChart.context';
-import { observer } from './helpers';
-
-declare module 'solid-js' {
-  namespace JSX {
-    interface Directives {
-      draggable: any;
-    }
-  }
-}
 
 /** Properties for rendering an individual flowchart node component. */
-type Props<D extends NodeData = NodeData> = {
+export type NodeComponentProps<D extends NodeData = NodeData> = {
   /** Unique identifier of the node. */
   id: string;
   /** Custom node component to render inside the node container. */
-  nodeComponent?: Component<D>;
+  children?: Component<D>;
 };
 
 /**
@@ -39,14 +30,14 @@ type Props<D extends NodeData = NodeData> = {
  * @template | {@linkcode NodeData} `D` - Custom node data dictionary type extending
  *   {@linkcode NodeData}.
  *
- * @param props - Node rendering properties of type {@linkcode Props}.
+ * @param props - Node rendering properties of type {@linkcode NodeComponentProps}.
  *
  * @returns The rendered Solid component.
  *
  * @see {@linkcode useFlow}, {@linkcode HANDLE_CONTAINER_OFFSET_X}, {@linkcode HANDLE_MARGIN_TOP}, {@linkcode HANDLE_SIZE}
  */
 export const NodeComponent = <D extends NodeData = NodeData>(
-  props: Props<D>,
+  props: NodeComponentProps<D>,
 ): JSX.Element => {
   const service = useFlow();
   const newEdge = createState(service, { selector: s => s.context.newEdge });
@@ -174,9 +165,9 @@ export const NodeComponent = <D extends NodeData = NodeData>(
         </svg>
       </div>
 
-      <div ref={observer(props.id)}>
+      <div ref={resize(props.id)}>
         <Show
-          when={props.nodeComponent}
+          when={props.children}
           fallback={
             <div class='p-3 select-none'>
               <Show when={node().data.label} keyed>
@@ -204,7 +195,7 @@ export const NodeComponent = <D extends NodeData = NodeData>(
             </div>
           }
         >
-          <Dynamic component={props.nodeComponent} {...node().data} />
+          <Dynamic component={props.children} {...node().data} />
         </Show>
       </div>
 

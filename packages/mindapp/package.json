@@ -25,7 +25,6 @@
   "exports": {
     ".": {
       "types": "./lib/index.d.ts",
-      "solid": "./lib/index.es.js",
       "node": {
         "import": "./lib/server.es.js",
         "require": "./lib/server.cjs.js"
