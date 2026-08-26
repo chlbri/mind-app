@@ -19,11 +19,12 @@ import {
 
 import { CANVAS_FACTOR, SCROLL_MULTIPLIER } from '../../services/main.machine.data';
 import type { NodeData } from '../../services/main.machine.typings';
-import type { FlowPanels } from '../../types';
 import { DragBounds } from './Bounds';
 import { EdgesBoard } from './EdgesBoard';
 import { useFlow } from './FlowChart.context';
+import type { FlowPanels } from './FlowChart.types';
 import { NodeComponent } from './NodeComponent';
+import { Panels } from './Panels';
 
 /** Properties for the {@linkcode NodesBoard} component. */
 type Props<D extends NodeData = NodeData> = {
@@ -276,20 +277,7 @@ export const NodesBoard = <D extends NodeData = NodeData>(
           </div>
         </div>
 
-        {/* Top-Left Panel */}
-        <Show when={props.panels?.topLeft}>
-          <div class='absolute top-4 left-4 z-50'>{props.panels!.topLeft}</div>
-        </Show>
-
-        {/* Top-Right Panel */}
-        <Show when={props.panels?.topRight}>
-          <div class='absolute top-4 right-4 z-50'>{props.panels!.topRight}</div>
-        </Show>
-
-        {/* Bottom-Left Panel */}
-        <Show when={props.panels?.bottomLeft}>
-          <div class='absolute bottom-4 left-4 z-50'>{props.panels!.bottomLeft}</div>
-        </Show>
+        <Panels {...props.panels} />
 
         {/* Bottom-Right Panel (Main Zoom & Creation Controls) */}
         <div class='absolute right-4 bottom-4 z-50 flex items-center gap-2 rounded-xl border border-gray-200 bg-white/90 p-2 shadow-lg backdrop-blur-md'>

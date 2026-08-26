@@ -65,6 +65,9 @@ export type NodeProps<D extends NodeData = NodeData> = {
  */
 export const edgeJSON = extremities;
 
+/** Serialized edge properties type inferred from schema {@linkcode edgeJSON}. */
+export type EdgeProps = inferT<typeof edgeJSON>;
+
 /**
  * Schema definition for layout dimensions and connection points of a node.
  *

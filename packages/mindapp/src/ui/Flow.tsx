@@ -1,8 +1,9 @@
 import type { JSX } from 'solid-js';
 
 import type { NodeData } from '../services/main.machine.typings';
-import { FlowChart, type FlowProps } from './components/FlowChart';
+import { FlowChart } from './components/FlowChart';
 import { Provider } from './components/FlowChart.context';
+import type { FlowProps } from './components/FlowChart.types';
 
 /**
  * Root Flow component wrapping the {@linkcode FlowChart} inside the flow context
