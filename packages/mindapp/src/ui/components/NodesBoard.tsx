@@ -7,30 +7,48 @@ import {
 } from '@thisbeyond/solid-dnd';
 import { dequal } from 'dequal';
 import {
-  Component,
+  type Component,
   createEffect,
   createSignal,
   For,
+  type JSX,
   on,
   onMount,
   Show,
 } from 'solid-js';
 
 import { CANVAS_FACTOR, SCROLL_MULTIPLIER } from '../../services/main.machine.data';
+import type { NodeData } from '../../services/main.machine.typings';
+import type { FlowPanels } from '../../types';
 import { DragBounds } from './Bounds';
 import { EdgesBoard } from './EdgesBoard';
 import { useFlow } from './FlowChart.context';
 import { NodeComponent } from './NodeComponent';
 
+/** Properties for the {@linkcode NodesBoard} component. */
+type Props<D extends NodeData = NodeData> = {
+  /** Optional custom node component. */
+  nodeComponent?: Component<D>;
+  /** Optional custom overlay panels. */
+  panels?: FlowPanels;
+};
+
 /**
  * Interactive board component containing the drag-drop viewport, zoom controls,
  * panning gestures, and rendered nodes/edges.
+ *
+ * @template | {@linkcode NodeData} `D` - Custom node data dictionary type extending
+ *   {@linkcode NodeData}.
+ *
+ * @param props - Board component properties of type {@linkcode Props}.
  *
  * @returns The rendered Solid component.
  *
  * @see {@linkcode DragBounds}, {@linkcode EdgesBoard}, {@linkcode NodeComponent}, {@linkcode useFlow}, {@linkcode CANVAS_FACTOR}, {@linkcode SCROLL_MULTIPLIER}
  */
-export const NodesBoard: Component = () => {
+export const NodesBoard = <D extends NodeData = NodeData>(
+  props: Props<D>,
+): JSX.Element => {
   let containerRef: HTMLDivElement;
   const [isPanning, setIsPanning] = createSignal(false);
   const [transform, setTransform] = createSignal({ x: 0, y: 0 });
@@ -251,12 +269,29 @@ export const NodesBoard: Component = () => {
             >
               <DragBounds />
               <EdgesBoard />
-              <For each={nodeIds()}>{id => <NodeComponent id={id} />}</For>
+              <For each={nodeIds()}>
+                {id => <NodeComponent id={id} nodeComponent={props.nodeComponent} />}
+              </For>
             </div>
           </div>
         </div>
 
-        {/* Panel */}
+        {/* Top-Left Panel */}
+        <Show when={props.panels?.topLeft}>
+          <div class='absolute top-4 left-4 z-50'>{props.panels!.topLeft}</div>
+        </Show>
+
+        {/* Top-Right Panel */}
+        <Show when={props.panels?.topRight}>
+          <div class='absolute top-4 right-4 z-50'>{props.panels!.topRight}</div>
+        </Show>
+
+        {/* Bottom-Left Panel */}
+        <Show when={props.panels?.bottomLeft}>
+          <div class='absolute bottom-4 left-4 z-50'>{props.panels!.bottomLeft}</div>
+        </Show>
+
+        {/* Bottom-Right Panel (Main Zoom & Creation Controls) */}
         <div class='absolute right-4 bottom-4 z-50 flex items-center gap-2 rounded-xl border border-gray-200 bg-white/90 p-2 shadow-lg backdrop-blur-md'>
           <button
             type='button'

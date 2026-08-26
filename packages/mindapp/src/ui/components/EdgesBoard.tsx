@@ -18,7 +18,7 @@ export const EdgesBoard: Component = () => {
   const hasNewEdge = createState(service, { selector: s => !!s.context.newEdge });
 
   const edgeIds = createState(service, {
-    selector: ({ context }) => Object.keys(context.edgesPositions),
+    selector: ({ context }) => Object.keys(context.edgesPositions ?? {}),
     equals: (prev, next) => prev.length === next.length,
   });
 

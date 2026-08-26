@@ -3,13 +3,15 @@ import { toArray } from '@bemedev/app';
 import { createState } from '@bemedev/app-solidjs';
 import { createDraggable } from '@thisbeyond/solid-dnd';
 import { dequal } from 'dequal';
-import { Component, Show } from 'solid-js';
+import { type Component, For, type JSX, Show } from 'solid-js';
+import { Dynamic } from 'solid-js/web';
 
 import {
   HANDLE_CONTAINER_OFFSET_X,
   HANDLE_MARGIN_TOP,
   HANDLE_SIZE,
 } from '#services/main.machine.data';
+import type { NodeData } from '#services/main.machine.typings';
 
 import { useFlow } from './FlowChart.context';
 import { observer } from './helpers';
@@ -23,14 +25,19 @@ declare module 'solid-js' {
 }
 
 /** Properties for rendering an individual flowchart node component. */
-type Props = {
+type Props<D extends NodeData = NodeData> = {
   /** Unique identifier of the node. */
   id: string;
+  /** Custom node component to render inside the node container. */
+  nodeComponent?: Component<D>;
 };
 
 /**
  * Interactive flowchart node component supporting dragging, selection, handle
  * connections, and child/sibling creation.
+ *
+ * @template | {@linkcode NodeData} `D` - Custom node data dictionary type extending
+ *   {@linkcode NodeData}.
  *
  * @param props - Node rendering properties of type {@linkcode Props}.
  *
@@ -38,7 +45,9 @@ type Props = {
  *
  * @see {@linkcode useFlow}, {@linkcode HANDLE_CONTAINER_OFFSET_X}, {@linkcode HANDLE_MARGIN_TOP}, {@linkcode HANDLE_SIZE}
  */
-export const NodeComponent: Component<Props> = props => {
+export const NodeComponent = <D extends NodeData = NodeData>(
+  props: Props<D>,
+): JSX.Element => {
   const service = useFlow();
   const newEdge = createState(service, { selector: s => s.context.newEdge });
   const draggable = createDraggable(props.id);
@@ -47,13 +56,12 @@ export const NodeComponent: Component<Props> = props => {
   const node = createState(service, {
     selector: ({ context }) => {
       const list = toArray.typed(context.data?.nodes);
-      const item = list.find(n => n.id === props.id)!;
+      const item = list.find(n => n.id === props.id);
       return {
-        x: item.position.x,
-        y: item.position.y,
-        label: item.data.label,
-        content: item.data.content ?? '',
-        input: item.input,
+        x: item?.position.x ?? 0,
+        y: item?.position.y ?? 0,
+        data: (item?.data ?? {}) as D,
+        input: item?.input ?? false,
       };
     },
     equals: dequal,
@@ -87,6 +95,10 @@ export const NodeComponent: Component<Props> = props => {
       onMouseDown={e => {
         e.stopPropagation();
         service.send({ type: 'SELECT', payload: props.id });
+      }}
+      onDblClick={e => {
+        e.stopPropagation();
+        service.send({ type: 'EDIT', payload: props.id });
       }}
     >
       <div
@@ -163,16 +175,36 @@ export const NodeComponent: Component<Props> = props => {
       </div>
 
       <div ref={observer(props.id)}>
-        <Show when={node().label} keyed>
-          {label => (
-            <span class='min-w-max border-b border-[#f0f0f0] p-3 whitespace-nowrap text-red-600 select-none'>
-              {label}
-            </span>
-          )}
-        </Show>
+        <Show
+          when={props.nodeComponent}
+          fallback={
+            <div class='p-3 select-none'>
+              <Show when={node().data.label} keyed>
+                {label => (
+                  <span class='mb-2 block min-w-max border-b border-[#f0f0f0] pb-2 font-semibold whitespace-nowrap text-red-600 select-none'>
+                    {String(label)}
+                  </span>
+                )}
+              </Show>
 
-        <Show when={node().content} keyed>
-          {content => <div class='p-3 select-none'>{content}</div>}
+              <Show when={node().data.content} keyed>
+                {content => <div class='select-none'>{String(content)}</div>}
+              </Show>
+
+              <Show when={!node().data.label && !node().data.content}>
+                <For each={Object.entries(node().data)}>
+                  {([key, val]) => (
+                    <div>
+                      <span class='font-semibold'>{key}: </span>
+                      <span>{String(val)}</span>
+                    </div>
+                  )}
+                </For>
+              </Show>
+            </div>
+          }
+        >
+          <Dynamic component={props.nodeComponent} {...node().data} />
         </Show>
       </div>
 

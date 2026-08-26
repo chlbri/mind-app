@@ -1,9 +1,21 @@
-import type { NodeProps } from '../ui/components/FlowChart';
+import type { NodeProps } from './main.machine.typings';
 
 /** Horizontal gap in pixels between a parent node and newly created child node. */
 export const PARENT_CHILD_GAP_WIDTH = 100;
 
 // #region Node & Handle Layout Constants & Formulas
+/** Default width and height dimensions for newly created flowchart nodes. */
+export const DEFAULT_SIZE = { width: 192, height: 50 } as const;
+
+/** Default node width in pixels. */
+export const DEFAULT_NODE_WIDTH = DEFAULT_SIZE.width;
+
+/** Default node height in pixels. */
+export const DEFAULT_NODE_HEIGHT = DEFAULT_SIZE.height;
+
+/** Default node data payload applied when creating new nodes. */
+export const DEFAULT_DATA = { content: '<Nouveau nœud>' };
+
 /** Border width in pixels for a node container. */
 export const NODE_BORDER_WIDTH = 1.5;
 

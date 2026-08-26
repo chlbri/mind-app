@@ -1,4 +1,8 @@
-import { DEFAULT_INPUT_OFFSET, getDefaultOutputOffset } from './main.machine.data';
+import {
+  DEFAULT_INPUT_OFFSET,
+  DEFAULT_SIZE,
+  getDefaultOutputOffset,
+} from './main.machine.data';
 import type { Dimension, Point } from './main.machine.typings';
 
 /**
@@ -34,19 +38,23 @@ export const buildNodeID = (generated?: string | null) => {
  *
  * @returns Node layout dimension object of type {@linkcode Dimension}.
  *
- * @see {@linkcode getDefaultOutputOffset}, {@linkcode DEFAULT_INPUT_OFFSET}
+ * @see {@linkcode getDefaultOutputOffset}, {@linkcode DEFAULT_INPUT_OFFSET}, {@linkcode DEFAULT_SIZE}
  */
 export const calculateDimensions = (
   position: Point,
   parentDimension: Pick<
     Dimension,
     'width' | 'height' | 'outputOffset' | 'inputOffset'
-  > = { width: 192, height: 50, inputOffset: DEFAULT_INPUT_OFFSET },
+  > = {
+    width: DEFAULT_SIZE.width,
+    height: DEFAULT_SIZE.height,
+    inputOffset: DEFAULT_INPUT_OFFSET,
+  },
 ): Dimension => {
   const width = parentDimension.width;
   const height = parentDimension.height;
   const outputOffset = parentDimension.outputOffset ?? getDefaultOutputOffset(width);
-  const inputOffset = parentDimension.inputOffset!;
+  const inputOffset = parentDimension.inputOffset ?? DEFAULT_INPUT_OFFSET;
 
   const output = { x: position.x + outputOffset.x, y: position.y + outputOffset.y };
   const input = { x: position.x + inputOffset.x, y: position.y + inputOffset.y };

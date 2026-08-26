@@ -20,16 +20,43 @@ export const nodeOffset = type(({ optional, use }) => ({
 /** Schema definition for edge extremities. */
 export const extremities = type({ from: 'string', to: 'string' });
 
+/** Schema definition for primitive values allowed in node data. */
+export const nodeDataValue = type(({ union }) =>
+  union('string', 'boolean', 'number'),
+);
+
+/**
+ * Schema definition for serialized node data dictionary.
+ *
+ * @see {@linkcode nodeDataValue}
+ */
+export const data = type(({ record, use }) => record(use(nodeDataValue)));
+
+/** Serialized node data dictionary type inferred from schema {@linkcode data}. */
+export type NodeData = Record<string, string | boolean | number>;
+
 /**
  * Schema definition for a serialized flowchart node entity.
  *
- * @see {@linkcode point}
+ * @see {@linkcode point}, {@linkcode data}
  */
-export const nodeJSON = type(({ optional, use }) => ({
+export const nodeJSON = type(({ use }) => ({
   position: use(point),
-  data: { label: optional('string'), content: 'string' },
+  data: use(data),
   input: 'boolean',
 }));
+
+/**
+ * Serialized node properties type inferred from schema {@linkcode nodeJSON}.
+ *
+ * @template | {@linkcode NodeData} `D` - Custom data properties type extending
+ *   {@linkcode NodeData}.
+ */
+export type NodeProps<D extends NodeData = NodeData> = {
+  position: Point;
+  data: D;
+  input: boolean;
+};
 
 /**
  * Schema definition for a serialized flowchart edge entity.
