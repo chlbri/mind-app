@@ -3,6 +3,27 @@
 <details>
 <summary>
 
+## **[1.3.0] - 26/08/2026** => _18:53_
+
+</summary>
+
+- Add window-level pointer event tracking (`pointermove`, `pointerup`) during edge
+  creation for smooth drawing
+- Add interactive edge drop resolution directly onto target node input handles
+- Prevent self-referential edge connections from a node to itself
+- Prevent event propagation on input and output handle pointer events in
+  `NodeComponent`
+- Enhance JSDoc documentation across helper functions and components
+- Update `rolldown` to `^1.2.6`
+- <u>Test coverage **_100%_**</u>
+
+</details>
+
+<br/>
+
+<details>
+<summary>
+
 ## **[1.2.0] - 26/08/2026** => _15:35_
 
 </summary>

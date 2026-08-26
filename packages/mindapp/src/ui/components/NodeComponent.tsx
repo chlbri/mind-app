@@ -78,7 +78,7 @@ export const NodeComponent = <D extends NodeData = NodeData>(
       }}
 
       style={{ top: `${node().y}px`, left: `${node().x}px` }}
-      class='min-w-48'
+      class='group min-w-48'
       use:draggable={{ skipTransform: true }}
       id={props.id}
 
@@ -208,17 +208,18 @@ export const NodeComponent = <D extends NodeData = NodeData>(
         <div
           data-handle-type='input'
           data-node-id={props.id}
-          class='cursor-default rounded-full bg-[#e38b29] shadow-md transition-transform has-hover:scale-125'
+          onMouseDown={event => event.stopPropagation()}
+          onPointerDown={e => e.stopPropagation()}
+
+          class='cursor-default rounded-full bg-[#e38b29] shadow-md transition-transform'
+
           style={{
             width: `${HANDLE_SIZE}px`,
             height: `${HANDLE_SIZE}px`,
             'margin-top': `${HANDLE_MARGIN_TOP}px`,
             'pointer-events': 'all',
           }}
-          onMouseDown={event => {
-            event.stopPropagation();
-          }}
-          onPointerDown={e => e.stopPropagation()}
+
           onMouseUp={event => {
             event.stopPropagation();
             const from = newEdge()?.from;
@@ -234,13 +235,14 @@ export const NodeComponent = <D extends NodeData = NodeData>(
         id='outputs'
         data-handle-type='output'
         data-node-id={props.id}
-        class='pointer-events-none absolute top-0 z-10 flex flex-col'
         style={{ right: `-${HANDLE_CONTAINER_OFFSET_X}px` }}
+
+        class='pointer-events-none absolute top-0 z-10 flex flex-col'
       >
         <div
           data-handle-type='output'
           data-node-id={props.id}
-          class='cursor-crosshair rounded-full bg-[#e38b29] shadow-md transition-transform hover:scale-125'
+          class='cursor-crosshair rounded-full bg-[#e38b29] shadow-md transition-transform'
           style={{
             width: `${HANDLE_SIZE}px`,
             height: `${HANDLE_SIZE}px`,

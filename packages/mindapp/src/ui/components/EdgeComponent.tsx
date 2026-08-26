@@ -21,13 +21,6 @@ type Props = {
  *
  * @returns Offset distance in pixels for bezier curvature.
  */
-/**
- * Computes bezier curve control point offset based on horizontal distance.
- *
- * @param value - Absolute horizontal delta between start and end points.
- *
- * @returns Offset distance in pixels for bezier curvature.
- */
 const calculateOffset = (value: number) => (value * 100) / 200;
 
 /**
