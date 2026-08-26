@@ -200,55 +200,60 @@ export const NodeComponent = <D extends NodeData = NodeData>(
 
       <div
         id='inputs'
+        data-handle-type='input'
+        data-node-id={props.id}
         class='pointer-events-none absolute top-0 z-10 flex cursor-default flex-col'
         style={{ left: `-${HANDLE_CONTAINER_OFFSET_X}px` }}
       >
         <div
-          class='cursor-default rounded-full bg-[#e38b29] shadow-md'
-
+          data-handle-type='input'
+          data-node-id={props.id}
+          class='cursor-default rounded-full bg-[#e38b29] shadow-md transition-transform has-hover:scale-125'
           style={{
             width: `${HANDLE_SIZE}px`,
             height: `${HANDLE_SIZE}px`,
             'margin-top': `${HANDLE_MARGIN_TOP}px`,
             'pointer-events': 'all',
           }}
-
           onMouseDown={event => {
             event.stopPropagation();
           }}
-
           onPointerDown={e => e.stopPropagation()}
-
           onMouseUp={event => {
             event.stopPropagation();
             const from = newEdge()?.from;
 
-            if (from) {
+            if (from && from !== props.id) {
               service.send({ type: 'ADD_EDGE', payload: { from, to: props.id } });
-              // service.send('CLEAR_NEW_EDGE');
-            } else service.send('CLEAR_NEW_EDGE');
+            }
+            service.send('CLEAR_NEW_EDGE');
           }}
         ></div>
       </div>
       <div
         id='outputs'
+        data-handle-type='output'
+        data-node-id={props.id}
         class='pointer-events-none absolute top-0 z-10 flex flex-col'
         style={{ right: `-${HANDLE_CONTAINER_OFFSET_X}px` }}
       >
         <div
-          class='cursor-crosshair rounded-full bg-[#e38b29] shadow-md'
-
+          data-handle-type='output'
+          data-node-id={props.id}
+          class='cursor-crosshair rounded-full bg-[#e38b29] shadow-md transition-transform hover:scale-125'
           style={{
             width: `${HANDLE_SIZE}px`,
             height: `${HANDLE_SIZE}px`,
             'margin-top': `${HANDLE_MARGIN_TOP}px`,
             'pointer-events': 'all',
           }}
-
           onMouseDown={event => {
             event.stopPropagation();
             service.send('DESELECT');
             service.send({ type: 'START_NEW_EDGE', payload: props.id });
+          }}
+          onPointerDown={event => {
+            event.stopPropagation();
           }}
         ></div>
       </div>

@@ -1,5 +1,5 @@
 import { createState } from '@bemedev/app-solidjs';
-import { type JSX, onCleanup, onMount } from 'solid-js';
+import { createEffect, type JSX, onCleanup, onMount } from 'solid-js';
 
 import { DEFAULT_NODES } from '#services/main.machine.data';
 import type { NodeData, NodeProps } from '#services/main.machine.typings';
@@ -47,18 +47,40 @@ export const FlowChart = <D extends NodeData = NodeData>(
     });
   });
 
+  createEffect(() => {
+    if (!hasNewEdge()) return;
+
+    const handlePointerMove = (e: MouseEvent | PointerEvent) => {
+      service.send({
+        type: 'MOVE_NEW_EDGE',
+        payload: { x: e.clientX, y: e.clientY },
+      });
+    };
+
+    const handlePointerUp = (e: MouseEvent | PointerEvent) => {
+      const from = service.state.context.newEdge?.from;
+      if (from) {
+        const el = document.elementFromPoint(e.clientX, e.clientY);
+        const inputHandle = el?.closest('[data-handle-type="input"]');
+        const targetId = inputHandle?.getAttribute('data-node-id');
+        if (targetId && targetId !== from) {
+          service.send({ type: 'ADD_EDGE', payload: { from, to: targetId } });
+        }
+      }
+      service.send('CLEAR_NEW_EDGE');
+    };
+
+    window.addEventListener('pointermove', handlePointerMove);
+    window.addEventListener('pointerup', handlePointerUp);
+
+    onCleanup(() => {
+      window.removeEventListener('pointermove', handlePointerMove);
+      window.removeEventListener('pointerup', handlePointerUp);
+    });
+  });
+
   return (
-    <div
-      class='relative h-full w-full'
-      onMouseUp={() => service.send('CLEAR_NEW_EDGE')}
-      onMouseMove={({ clientX, clientY }) => {
-        if (hasNewEdge())
-          service.send({
-            type: 'MOVE_NEW_EDGE',
-            payload: { x: clientX, y: clientY },
-          });
-      }}
-    >
+    <div class='relative h-full w-full'>
       <div
         class='h-full w-full'
         style={{ cursor: hasNewEdge() ? 'inherit' : 'crosshair' }}
