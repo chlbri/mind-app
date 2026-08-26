@@ -18,7 +18,7 @@ export const Route = createFileRoute('/demo/')({
           priority: 1,
         }}
         component={ShowroomNode}
-        panels={{ topLeft: <ShowroomEditPanel /> }}
+        panels={{ topLeft: ShowroomEditPanel }}
       />
     </div>
   ),
