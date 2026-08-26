@@ -3,6 +3,25 @@
 <details>
 <summary>
 
+## **[1.1.0] - 26/08/2026** => _14:32_
+
+</summary>
+
+- Change `FlowPanels` overlay slots (`topLeft`, `topRight`, `bottomLeft`) type
+  definition to accept `Component` instead of `JSX.Element | Component`
+- Update `Panels` slot rendering to instantiate panel components inside the Flow
+  context provider
+- Update `README.md` custom configuration example to pass overlay panels as component
+  functions
+- <u>Test coverage **_100%_**</u>
+
+</details>
+
+<br/>
+
+<details>
+<summary>
+
 ## **[1.0.0] - 26/08/2026** => _14:04_
 
 </summary>

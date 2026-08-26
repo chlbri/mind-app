@@ -94,7 +94,7 @@ export const CustomFlow = () => {
         config={config}
         component={CustomNode}
         panels={{
-          topRight: (
+          topRight: () => (
             <EditPanel<CustomData>
               children={hooks => (
                 <div>

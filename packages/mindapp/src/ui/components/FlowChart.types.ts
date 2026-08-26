@@ -1,5 +1,5 @@
 import type { NotUndefined } from '@bemedev/app/bemedev';
-import type { Component, JSX } from 'solid-js';
+import type { Component } from 'solid-js';
 
 import type { EdgeProps } from '#services/main.machine.typings';
 
@@ -7,12 +7,12 @@ import type { NodeData, NodeProps } from './FlowChart';
 
 /** Overlay panel slots positioned around the flowchart canvas. */
 export type FlowPanels = {
-  /** Top-left corner overlay panel slot. */
-  topLeft?: JSX.Element | Component;
-  /** Top-right corner overlay panel slot. */
-  topRight?: JSX.Element | Component;
-  /** Bottom-left corner overlay panel slot. */
-  bottomLeft?: JSX.Element | Component;
+  /** Top-left corner overlay panel slot component of type {@linkcode Component}. */
+  topLeft?: Component;
+  /** Top-right corner overlay panel slot component of type {@linkcode Component}. */
+  topRight?: Component;
+  /** Bottom-left corner overlay panel slot component of type {@linkcode Component}. */
+  bottomLeft?: Component;
 };
 
 /**
