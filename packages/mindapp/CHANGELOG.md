@@ -3,6 +3,35 @@
 <details>
 <summary>
 
+## **[1.0.0] - 26/08/2026** => _14:04_
+
+</summary>
+
+- Add generic node data parameterization (`NodeProps<D>`, `FlowProps<D>`,
+  `EditPanelProps<D>`)
+- Add `EditPanel` component and `useHook` helper for editing active node data
+- Add customizable `Panels` overlay slots (`topLeft`, `topRight`, `bottomLeft`)
+  around the canvas
+- Add automatic node dimensions observer via `resize` directive
+- Add typewriter text (`TypingText`), animated indicator (`FadingDots`), and
+  full-screen loading fallback (`LoadingFallback`)
+- Add `mouseOut` directive with debounce delay options
+- Add `clamp` boundary utility helper
+- Fix real-time edge rendering during active drag moves with `MOVE_IMMEDIATE`
+- Refactor state machine actions and private context to modularize boundary
+  calculations
+- Enhance JSDoc documentation across all components, hooks, services, directives, and
+  types
+- Update `README.md` with generic data typing and overlay panel examples
+- <u>Test coverage **_100%_**</u>
+
+</details>
+
+<br/>
+
+<details>
+<summary>
+
 ## **[0.3.2] - 25/08/2026** => _18:36_
 
 </summary>

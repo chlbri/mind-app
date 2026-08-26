@@ -6,6 +6,21 @@ import { createSignal, type Accessor } from 'solid-js';
 import type { NodeData } from './FlowChart';
 import { useFlow } from './FlowChart.context';
 
+/**
+ * Hook providing reactive state and mutation helpers for editing flowchart node
+ * data.
+ *
+ * @template | {@linkcode NodeData} `D` - Custom node data dictionary type extending
+ *   {@linkcode NodeData}.
+ *
+ * @param timeout - Transition delay in milliseconds before closing the panel.
+ *   Defaults to `270`.
+ *
+ * @returns An object containing reactive accessors and mutation callbacks for the
+ *   active node.
+ *
+ * @see {@linkcode useFlow}
+ */
 export const useHook = <D extends NodeData = NodeData>(timeout = 270) => {
   const service = useFlow();
   const directClose = () => service.send('STOP_EDIT');

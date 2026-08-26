@@ -20,16 +20,20 @@ interface LoadingFallbackProps {
    * @default 'lg'
    */
   size?: 'sm' | 'md' | 'lg' | 'xl';
+  /** Keystroke typing interval in milliseconds. Defaults to 80. */
   interval?: number;
+  /** Whether the typing text animation rewinds upon completion. Defaults to true. */
   rewind?: boolean;
+  /**
+   * Delay in milliseconds before rewinding or restarting typing animation. Defaults
+   * to 2000.
+   */
   rewindDelay?: number;
 }
 
 /**
- * LoadingFallback - Composant de fallback avec spinner et texte animé
- *
- * Affiche un spinner animé accompagné d'un texte avec effet de typing pour améliorer
- * l'expérience utilisateur pendant les chargements.
+ * Fallback loading screen component displaying an animated spinner and typewriter
+ * text.
  *
  * @example
  *   ```tsx
@@ -37,6 +41,11 @@ interface LoadingFallbackProps {
  *     <DataComponent data={data()!} />
  *   </Show>;
  *   ```;
+ *
+ * @param props - Loading fallback properties of type
+ *   {@linkcode LoadingFallbackProps}.
+ *
+ * @returns Rendered full-screen loading fallback JSX element.
  */
 export const LoadingFallback: Component<LoadingFallbackProps> = props => {
   const message = props.message ?? 'Chargement en cours...';

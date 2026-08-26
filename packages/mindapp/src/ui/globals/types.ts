@@ -79,4 +79,5 @@ export type Ref<T extends HTMLElement> =
   | ((el: T | undefined) => void)
   | undefined;
 
+/** Class map dictionary for conditional styling in Solid.js components. */
 export type ClassList = Record<string, boolean | undefined>;

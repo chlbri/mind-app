@@ -41,5 +41,9 @@ export type EditPanelProps<D extends NodeData = NodeData> = {
    */
   children: Component<EditPanelChildProps<D>>;
 
+  /**
+   * Optional delay in milliseconds before closing the editor panel to allow exit
+   * transitions.
+   */
   timeout?: number;
 };

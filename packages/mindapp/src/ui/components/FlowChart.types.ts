@@ -23,6 +23,7 @@ export type FlowPanels = {
  *   {@linkcode NodeData}.
  */
 export type FlowProps<D extends NodeData = NodeData> = {
+  /** Optional delay in milliseconds before mounting the flowchart canvas. */
   delay?: number;
   /** Initial flowchart state configuration with nodes and edges. */
   config?: {
@@ -62,9 +63,30 @@ export type FlowProps<D extends NodeData = NodeData> = {
   onEdgeDeleted?: (edgeId: string) => void;
 };
 
+/**
+ * Type alias extracting the non-undefined flowchart configuration object.
+ *
+ * @template | {@linkcode NodeData} `D` - Custom node data dictionary type extending
+ *   {@linkcode NodeData}.
+ */
 export type ConfigFrom<D extends NodeData = NodeData> = NotUndefined<
   FlowProps<D>['config']
 >;
 
+/**
+ * Type alias extracting the non-undefined list of nodes from flowchart
+ * configuration.
+ *
+ * @template | {@linkcode NodeData} `D` - Custom node data dictionary type extending
+ *   {@linkcode NodeData}.
+ */
 export type NodesFrom<D extends NodeData> = NotUndefined<ConfigFrom<D>['nodes']>;
+
+/**
+ * Type alias extracting the non-undefined list of edges from flowchart
+ * configuration.
+ *
+ * @template | {@linkcode NodeData} `D` - Custom node data dictionary type extending
+ *   {@linkcode NodeData}.
+ */
 export type EdgesFrom<D extends NodeData> = NotUndefined<ConfigFrom<D>['edges']>;

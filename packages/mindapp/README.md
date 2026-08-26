@@ -41,27 +41,46 @@ export const FlowDemo = () => {
 
 ## Custom Configuration
 
-You can provide initial node and edge configurations, as well as callback handlers:
+You can provide initial node and edge configurations, generic custom node data,
+custom node components, overlay panels, and callback handlers:
 
 ```tsx
-import { Flow, type NodeProps, type EdgeProps } from '@bemedev/mind-flow';
-import type { ComponentProps } from 'solid-js';
+import { Flow, EditPanel, type NodeProps, type EdgeProps } from '@bemedev/mind-flow';
+import type { Component, ComponentProps } from 'solid-js';
 import '@bemedev/mind-flow/style.css';
 
-type FlowProps = ComponentProps<typeof Flow>;
+type CustomData = { label?: string; content?: string; category?: string };
 
-const config: FlowProps['config'] = {
+const CustomNode: Component<CustomData> = props => {
+  return (
+    <div class='p-3'>
+      <div class='font-bold text-blue-600'>{props.label}</div>
+      <div class='text-sm text-gray-600'>{props.content}</div>
+      {props.category && (
+        <span class='mt-1 inline-block rounded bg-gray-100 px-1 text-xs'>
+          {props.category}
+        </span>
+      )}
+    </div>
+  );
+};
+
+type CustomFlowProps = ComponentProps<typeof Flow<CustomData>>;
+
+const config: CustomFlowProps['config'] = {
   nodes: [
     {
       id: 'node-1',
-      data: { label: 'Start', content: 'Starting point of workflow' },
-      input: false,
+      data: {
+        label: 'Start',
+        content: 'Starting point of workflow',
+        category: 'Trigger',
+      },
       position: { x: 100, y: 100 },
     },
     {
       id: 'node-2',
-      data: { label: 'Process', content: 'Step 1 processing' },
-      input: true,
+      data: { label: 'Process', content: 'Step 1 processing', category: 'Action' },
       position: { x: 400, y: 100 },
     },
   ],
@@ -71,8 +90,23 @@ const config: FlowProps['config'] = {
 export const CustomFlow = () => {
   return (
     <div style={{ width: '100vw', height: '100vh' }}>
-      <Flow
+      <Flow<CustomData>
         config={config}
+        component={CustomNode}
+        panels={{
+          topRight: (
+            <EditPanel<CustomData>
+              children={hooks => (
+                <div>
+                  <input
+                    value={hooks.editing()?.data.label ?? ''}
+                    onInput={e => hooks.updateField('label', e.currentTarget.value)}
+                  />
+                </div>
+              )}
+            />
+          ),
+        }}
         onNodeAdded={node => console.log('Node added:', node)}
         onNodeDeleted={nodeId => console.log('Node deleted:', nodeId)}
         onEdgeAdded={edge => console.log('Edge added:', edge)}
@@ -86,8 +120,17 @@ export const CustomFlow = () => {
 ## Exports
 
 - **`Flow`**: Root Solid.js flowchart component wrapping context provider and canvas.
-- **`NodeProps`**: Inferred type definition for node elements.
-- **`EdgeProps`**: Inferred type definition for edge connections.
+- **`FlowChart`**: Flowchart canvas component for custom embedding inside existing
+  context.
+- **`Provider`**, **`useFlow`**: Solid context provider and hook for accessing the
+  state machine service.
+- **`EditPanel`**: Configurable overlay panel component for editing active node data.
+- **`Panels`**: Overlay container component rendering custom canvas panels.
+- **`NodeProps`**: Generic type definition for node elements (`NodeProps<D>`).
+- **`EdgeProps`**: Type definition for edge connections.
+- **`FlowProps`**: Generic props configuration type for `Flow` and `FlowChart`.
+- **`EditPanelProps`**, **`EditPanelChildProps`**: Types for `EditPanel` and its
+  children accessor helpers.
 - **`CLASSES`**: Array of Tailwind CSS safelist class names used in the UI.
 
 ## License
