@@ -140,6 +140,7 @@ export const machine = createMachine(
     })),
 
     sync: true,
+
     pContext: type(({ union, optional, record, use, custom }) => ({
       generatedId: union('string', 'null'),
       previousZoom: optional('number'),
@@ -554,6 +555,7 @@ export const machine = createMachine(
           position,
           DEFAULT_SIZE,
         );
+
         return nodes;
       },
     }),

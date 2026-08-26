@@ -217,12 +217,15 @@ export const NodeComponent = <D extends NodeData = NodeData>(
             event.stopPropagation();
           }}
 
+          onPointerDown={e => e.stopPropagation()}
+
           onMouseUp={event => {
             event.stopPropagation();
             const from = newEdge()?.from;
 
             if (from) {
               service.send({ type: 'ADD_EDGE', payload: { from, to: props.id } });
+              // service.send('CLEAR_NEW_EDGE');
             } else service.send('CLEAR_NEW_EDGE');
           }}
         ></div>
