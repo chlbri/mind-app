@@ -6,8 +6,11 @@ import { nanoid } from 'nanoid';
 /** Type alias for drag-drop state extracted from {@linkcode useDragDropContext}. */
 export type DragDropState = Exclude<ReturnType<typeof useDragDropContext>, null>[0];
 
+import { clamp } from '..';
 import {
+  DEFAULT_DATA,
   DEFAULT_INPUT_OFFSET,
+  DEFAULT_SIZE,
   getDefaultOutputOffset,
   PARENT_CHILD_GAP_WIDTH,
 } from './main.machine.data';
@@ -21,6 +24,7 @@ import {
   edgeJSON,
   extremities,
   newEdge,
+  data,
   nodeJSON,
   point,
   vector,
@@ -28,13 +32,14 @@ import {
   type Dimension,
   type Point,
   type Board,
+  type Vector,
 } from './main.machine.typings';
 
 /**
  * State machine managing flowchart state transitions, nodes, edges, selection, and
  * layout actions.
  *
- * @see {@linkcode calculateDimensions}, {@linkcode buildEdgeId}, {@linkcode buildNodeID}, {@linkcode getDefaultOutputOffset}, {@linkcode DEFAULT_INPUT_OFFSET}
+ * @see {@linkcode calculateDimensions}, {@linkcode buildEdgeId}, {@linkcode buildNodeID}, {@linkcode getDefaultOutputOffset}, {@linkcode DEFAULT_INPUT_OFFSET}, {@linkcode DEFAULT_SIZE}, {@linkcode DEFAULT_DATA}
  */
 export const machine = createMachine(
   {
@@ -44,7 +49,7 @@ export const machine = createMachine(
     states: {
       idle: {
         on: {
-          CONFIGURE: { actions: ['configure'], target: '/working' },
+          CONFIGURE: { actions: ['configure'], target: '/construction' },
           CONFIGURE_EMPTY: '/working',
         },
       },
@@ -53,6 +58,7 @@ export const machine = createMachine(
 
       working: {
         on: {
+          CONFIGURE: { actions: ['configure'], target: '/construction' },
           MOVE_IMMEDIATE: {
             actions: [{ name: 'buildUI', description: 'Must be in the ui' }],
           },
@@ -75,8 +81,6 @@ export const machine = createMachine(
             target: '/construction',
           },
 
-          ADD_DIMENSION: { actions: ['addDimension'] },
-
           ADD_SIBLING: {
             actions: [
               'generateID',
@@ -86,6 +90,7 @@ export const machine = createMachine(
             target: '/construction',
           },
 
+          RESIZE: { actions: ['resize', 'buildUI'] },
           MOVE: { actions: ['moveNode', 'buildUI'], target: '/construction' },
           ADD_EDGE: { actions: ['addEdge'], target: '/construction' },
           START_NEW_EDGE: { actions: ['startNewEdge'] },
@@ -97,15 +102,19 @@ export const machine = createMachine(
           ZOOM: { actions: ['zoom'] },
           TOGGLE_ZOOM: { actions: ['toggleZoom'] },
           SET_BOARD: { actions: ['setBoard'] },
+          SET_NODE_DATA: { actions: ['setNodeData'] },
+          EDIT: { actions: ['edit'] },
+          STOP_EDIT: { actions: ['stopEdit'] },
         },
       },
     },
   },
   {
-    eventsMap: type(({ intersection, use, array }) => ({
+    eventsMap: type(({ intersection, use, array, optional }) => ({
       CONFIGURE: {
         nodes: array(intersection(use(nodeJSON), { id: 'string' })),
         edges: array(intersection(use(edgeJSON), { id: 'string' })),
+        defaultData: optional(use(data)),
       },
 
       SET_BOARD: use(board),
@@ -118,13 +127,16 @@ export const machine = createMachine(
       DELETE: 'string',
       SELECT: 'string',
       DESELECT: 'never',
+      EDIT: 'string',
+      STOP_EDIT: 'never',
       ADD_EDGE: use(extremities),
       START_NEW_EDGE: 'string',
       MOVE_NEW_EDGE: use(point),
       CLEAR_NEW_EDGE: 'never',
       ZOOM: 'number',
       TOGGLE_ZOOM: 'never',
-      ADD_DIMENSION: { id: 'string', dimension: use(dimension) },
+      RESIZE: { id: 'string', size: { width: 'number', height: 'number' } },
+      SET_NODE_DATA: { id: 'string', data: use(data) },
     })),
 
     sync: true,
@@ -132,6 +144,7 @@ export const machine = createMachine(
       generatedId: union('string', 'null'),
       previousZoom: optional('number'),
       dimensions: record(use(dimension)),
+      defaultData: optional(use(data)),
 
       getBoardPosition:
         custom<(clientX: number, clientY: number, board: Board) => Point>(),
@@ -176,6 +189,7 @@ export const machine = createMachine(
       edgesPositions: record(use(vector)),
       newEdge: optional(use(newEdge)),
       selected: optional('string'),
+      editing: optional('string'),
       updatingUI: optional('boolean'),
       zoom: 'number',
       bounds: use(point),
@@ -184,26 +198,45 @@ export const machine = createMachine(
 ).provideOptions(({ assign, batch, erase, filter, action }) => ({
   actions: {
     configure: batch(
-      assign('data', { CONFIGURE: ({ payload }) => payload }),
+      assign('data', {
+        CONFIGURE: ({ payload: { nodes, edges } }) => ({ nodes, edges }),
+      }),
       assign('newEdge', () => undefined),
       assign('updatingUI', () => false),
       action(({ pContext }) => {
         pContext.generatedId = null;
       }),
       action({
-        CONFIGURE: ({ payload: { nodes }, pContext: { dimensions } }) => {
+        CONFIGURE: ({ payload: { nodes, defaultData }, pContext }) => {
+          pContext.defaultData = defaultData;
           nodes.forEach(({ id, position }) => {
-            dimensions[id] = calculateDimensions(position);
+            pContext.dimensions[id] = calculateDimensions(position);
           });
         },
       }),
     ),
 
+    setNodeData: assign('data.nodes', {
+      SET_NODE_DATA: ({ context: { data }, payload: { id, data: newData } }) => {
+        return data?.nodes?.map(node => {
+          if (node.id === id) {
+            return { ...node, data: { ...node.data, ...newData } };
+          }
+          return node;
+        });
+      },
+    }),
+
     setBoard: assign('board', { SET_BOARD: ({ payload }) => payload }),
     generateID: action(({ pContext }) => (pContext.generatedId = nanoid())),
     select: assign('selected', { SELECT: ({ payload }) => payload }),
     clearNewEdge: erase('newEdge'),
-    deselect: erase('selected'),
+    deselect: batch(erase('selected'), erase('editing')),
+    edit: batch(
+      assign('editing', { EDIT: ({ payload }) => payload }),
+      assign('selected', { EDIT: ({ payload }) => payload }),
+    ),
+    stopEdit: erase('editing'),
 
     startNewEdge: assign('newEdge', {
       START_NEW_EDGE: ({ payload: from, pContext: { dimensions } }) => {
@@ -221,11 +254,12 @@ export const machine = createMachine(
         }) => {
           const edges = data?.edges;
           const dimension = dimensions[payload.id];
+          if (!dimension) return;
 
           const outputOffset =
-            dimension?.outputOffset ?? getDefaultOutputOffset(dimension?.width);
+            dimension.outputOffset ?? getDefaultOutputOffset(dimension.width);
 
-          const inputOffset = dimension?.inputOffset ?? DEFAULT_INPUT_OFFSET;
+          const inputOffset = dimension.inputOffset ?? DEFAULT_INPUT_OFFSET;
 
           const output = {
             x: payload.x + outputOffset.x,
@@ -237,19 +271,20 @@ export const machine = createMachine(
             y: payload.y + inputOffset.y,
           };
 
-          if (dimension) {
-            dimension.output = output;
-            dimension.input = input;
-          }
+          dimension.output = output;
+          dimension.input = input;
 
           edges?.forEach(({ from, to, id }) => {
+            const edgePosition = edgesPositions[id];
+            if (!edgePosition) return;
+
             if (from === payload.id) {
-              edgesPositions[id].x0 = output.x;
-              edgesPositions[id].y0 = output.y;
+              edgePosition.x0 = output.x;
+              edgePosition.y0 = output.y;
             }
             if (to === payload.id) {
-              edgesPositions[id].x1 = input.x;
-              edgesPositions[id].y1 = input.y;
+              edgePosition.x1 = input.x;
+              edgePosition.y1 = input.y;
             }
           });
 
@@ -261,9 +296,7 @@ export const machine = createMachine(
           payload,
           pContext: { dimensions },
         }) => {
-          const edges = data?.edges;
-
-          edges?.forEach(({ from, to, id }) => {
+          data?.edges?.forEach(({ from, to, id }) => {
             const dimension = dimensions[payload.id];
             const edgePosition = edgesPositions[id];
             if (!edgePosition || !dimension) return;
@@ -292,44 +325,71 @@ export const machine = createMachine(
           return edgesPositions;
         },
 
-        else: ({ context: { data, edgesPositions }, pContext: { dimensions } }) => {
-          const edges = toArray.typed(data?.edges);
-          edgesPositions = {};
+        else: ({ context: { data }, pContext: { dimensions } }) => {
+          const nextEdgesPositions: Record<string, Vector> = {};
 
-          edges.forEach(({ from, id, to }) => {
+          data?.edges?.forEach(({ from, id, to }) => {
             const output = dimensions[from]?.output;
             const input = dimensions[to]?.input;
 
             if (output && input) {
-              edgesPositions[id] = {
+              nextEdgesPositions[id] = {
                 x0: output.x,
                 y0: output.y,
                 x1: input.x,
                 y1: input.y,
               };
-            } else {
-              delete edgesPositions[id];
             }
           });
 
-          return edgesPositions;
+          return nextEdgesPositions;
         },
       }),
 
       assign('updatingUI', () => true),
     ),
 
-    addDimension: action({
-      ADD_DIMENSION: ({ payload: { id, dimension }, pContext: { dimensions } }) => {
-        dimensions[id] = dimension;
+    resize: action({
+      RESIZE: ({
+        payload: {
+          id,
+          size: { width, height },
+        },
+        context: { data },
+        pContext: { dimensions },
+      }) => {
+        const dimension = dimensions[id];
+        if (!dimension) return;
+
+        dimension.width = width;
+        dimension.height = height;
+
+        const node = data?.nodes?.find(n => n.id === id);
+        const outputOffset = getDefaultOutputOffset(width);
+        const inputOffset = dimension.inputOffset ?? DEFAULT_INPUT_OFFSET;
+
+        dimension.outputOffset = outputOffset;
+        dimension.inputOffset = inputOffset;
+
+        if (node) {
+          dimension.output = {
+            x: node.position.x + outputOffset.x,
+            y: node.position.y + outputOffset.y,
+          };
+          dimension.input = {
+            x: node.position.x + inputOffset.x,
+            y: node.position.y + inputOffset.y,
+          };
+        } else {
+          dimension.output = { x: dimension.output.x, y: dimension.output.y };
+        }
       },
     }),
 
     linkChild: batch(
       assign('data.edges', {
-        ADD_CHILD: ({ context: { data }, pContext, payload }) => {
+        ADD_CHILD: ({ context: { data }, pContext, payload: from }) => {
           const edges = toArray.typed(data?.edges);
-          const from = payload;
           const generatedId = pContext?.generatedId;
           const to = buildNodeID(generatedId);
           const id = buildEdgeId(from, to);
@@ -384,6 +444,7 @@ export const machine = createMachine(
       }),
 
       filter('data.nodes', { DELETE: ({ id }, _, { payload }) => id !== payload }),
+      erase('editing'),
     ),
 
     addEdge: batch(
@@ -397,13 +458,14 @@ export const machine = createMachine(
           return out;
         },
       }),
+
       erase('newEdge'),
     ),
 
     zoom: assign('zoom', {
       ZOOM: ({ context: { zoom }, payload, pContext }) => {
         const next = zoom + payload;
-        const clamped = Math.min(Math.max(Number(next.toFixed(2)), 0.2), 3);
+        const clamped = clamp(next, 0.1, 3);
         pContext.previousZoom = undefined;
         return clamped;
       },
@@ -427,6 +489,7 @@ export const machine = createMachine(
     placeChild: assign('data.nodes', {
       ADD_CHILD: ({ payload, context: { data, board }, pContext }) => {
         if (!board) return data?.nodes;
+
         const nodes = data?.nodes;
         if (!payload) return nodes;
 
@@ -434,12 +497,12 @@ export const machine = createMachine(
         if (!parentNode) return nodes;
 
         const parentDimension = pContext.dimensions[payload];
-
         const id = `node-${pContext.generatedId}`;
-        const width = parentDimension?.width ?? 192;
-        const height = parentDimension?.height ?? 50;
+        const width = parentDimension?.width ?? DEFAULT_SIZE.width;
+        const height = parentDimension?.height ?? DEFAULT_SIZE.height;
         const initialX = parentNode.position.x + width + PARENT_CHILD_GAP_WIDTH;
         const initialY = parentNode.position.y;
+
         const position = pContext.clampPosition(
           board,
           initialX,
@@ -447,15 +510,15 @@ export const machine = createMachine(
           width,
           height,
         );
-        const dimension = pContext.calculateDimensions(position, parentDimension);
 
-        nodes?.push({
-          id,
-          data: { content: '<Nouveau nœud>' },
-          input: true,
+        const defaultData = pContext.defaultData ?? DEFAULT_DATA;
+
+        nodes?.push({ id, data: { ...defaultData }, position });
+
+        pContext.dimensions[id] = pContext.calculateDimensions(
           position,
-        });
-        pContext.dimensions[id] = dimension;
+          parentDimension ?? DEFAULT_SIZE,
+        );
 
         return nodes;
       },
@@ -464,6 +527,7 @@ export const machine = createMachine(
     placeParent: assign('data.nodes', {
       ADD_PARENT: ({ context: { data, zoom = 1, board }, pContext }) => {
         if (!board) return data?.nodes;
+
         const nodes = data?.nodes;
         const id = `node-${pContext.generatedId}`;
         const container = board.parent;
@@ -474,17 +538,22 @@ export const machine = createMachine(
         const currentZoom = zoom;
         const x = (scrollLeft + width / 2) / currentZoom;
         const y = (scrollTop + height / 2) / currentZoom;
-        const position = pContext.clampPosition(board, x, y);
-        const dimension = pContext.calculateDimensions(position);
+        const position = pContext.clampPosition(
+          board,
+          x,
+          y,
+          DEFAULT_SIZE.width,
+          DEFAULT_SIZE.height,
+        );
 
-        nodes?.push({
-          id,
-          data: { content: '<Nouveau nœud>' },
-          input: false,
+        const defaultData = pContext.defaultData ?? DEFAULT_DATA;
+
+        nodes?.push({ id, data: { ...defaultData }, position });
+
+        pContext.dimensions[id] = pContext.calculateDimensions(
           position,
-        });
-
-        pContext.dimensions[id] = dimension;
+          DEFAULT_SIZE,
+        );
         return nodes;
       },
     }),
@@ -492,6 +561,7 @@ export const machine = createMachine(
     placeSibling: assign('data.nodes', {
       ADD_SIBLING: ({ payload, context: { data, board }, pContext }) => {
         if (!board) return data?.nodes;
+
         const edges = data?.edges;
         const nodes = data?.nodes;
         const parentID = edges?.find(edge => edge.to === payload)?.from;
@@ -502,10 +572,11 @@ export const machine = createMachine(
 
         const parentDimension = pContext.dimensions[parentID];
         const id = `node-${pContext.generatedId}`;
-        const width = parentDimension?.width ?? 192;
-        const height = parentDimension?.height ?? 50;
+        const width = parentDimension?.width ?? DEFAULT_SIZE.width;
+        const height = parentDimension?.height ?? DEFAULT_SIZE.height;
         const initialX = parentNode.position.x + width + PARENT_CHILD_GAP_WIDTH;
         const initialY = parentNode.position.y + PARENT_CHILD_GAP_WIDTH;
+
         const position = pContext.clampPosition(
           board,
           initialX,
@@ -513,16 +584,16 @@ export const machine = createMachine(
           width,
           height,
         );
-        const dimension = pContext.calculateDimensions(position, parentDimension);
 
-        nodes?.push({
-          id,
-          data: { content: '<Nouveau nœud>' },
-          input: true,
+        const defaultData = pContext.defaultData ?? DEFAULT_DATA;
+
+        nodes?.push({ id, data: { ...defaultData }, position });
+
+        pContext.dimensions[id] = pContext.calculateDimensions(
           position,
-        });
+          parentDimension ?? DEFAULT_SIZE,
+        );
 
-        pContext.dimensions[id] = dimension;
         return nodes;
       },
     }),

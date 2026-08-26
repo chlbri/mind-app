@@ -31,7 +31,7 @@ export const Route = createRootRoute({
         <body class='max-h-screen w-screen font-sans antialiased selection:bg-indigo-500 selection:text-white'>
           <HeadContent />
           <HeadLinks />
-          <main class='min-h-full w-full p-2 text-center'>{children}</main>
+          <main class='w-full p-2 text-center'>{children}</main>
           <Scripts />
         </body>
       </html>

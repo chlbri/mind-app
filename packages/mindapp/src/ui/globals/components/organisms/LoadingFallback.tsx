@@ -1,0 +1,116 @@
+import type { Component } from 'solid-js';
+
+import { cn } from '../../../utils';
+import { TypingText } from '../atoms/TypingText';
+import { FadingDots } from '../molecules/FadingDots';
+
+/** Properties for the {@linkcode LoadingFallback} component. */
+interface LoadingFallbackProps {
+  /**
+   * Text message to display alongside the loading animation.
+   *
+   * @default 'Chargement en cours...'
+   */
+  message?: string;
+  /** Additional CSS class names. */
+  class?: string;
+  /**
+   * Spinner dimension sizing.
+   *
+   * @default 'lg'
+   */
+  size?: 'sm' | 'md' | 'lg' | 'xl';
+  /** Keystroke typing interval in milliseconds. Defaults to 80. */
+  interval?: number;
+  /** Whether the typing text animation rewinds upon completion. Defaults to true. */
+  rewind?: boolean;
+  /**
+   * Delay in milliseconds before rewinding or restarting typing animation. Defaults
+   * to 2000.
+   */
+  rewindDelay?: number;
+}
+
+/**
+ * Fallback loading screen component displaying an animated spinner and typewriter
+ * text.
+ *
+ * @example
+ *   ```tsx
+ *   <Show when={data()} fallback={<LoadingFallback />}>
+ *     <DataComponent data={data()!} />
+ *   </Show>;
+ *   ```;
+ *
+ * @param props - Loading fallback properties of type
+ *   {@linkcode LoadingFallbackProps}.
+ *
+ * @returns Rendered full-screen loading fallback JSX element.
+ */
+export const LoadingFallback: Component<LoadingFallbackProps> = props => {
+  const message = props.message ?? 'Chargement en cours...';
+
+  const spinnerSizes = {
+    sm: 'w-8 h-8',
+    md: 'w-12 h-12',
+    lg: 'w-16 h-16',
+    xl: 'w-24 h-24',
+  };
+
+  const size = props.size ?? 'lg';
+
+  return (
+    <div
+      class={cn(
+        'flex flex-col items-center justify-center gap-6',
+        'h-screen w-screen overflow-hidden p-4',
+        props.class,
+      )}
+      role='status'
+      aria-live='polite'
+      aria-label='Chargement en cours'
+    >
+      {/* Spinner animé */}
+      <div class='relative'>
+        {/* Cercle extérieur avec rotation */}
+        <div
+          class={cn(
+            spinnerSizes[size],
+            'rounded-full border-4 border-[#4B9CAD]/20',
+            'animate-spin',
+            'border-t-[#4B9CAD]',
+          )}
+          aria-hidden='true'
+        />
+
+        {/* Cercle intérieur pour effet de profondeur */}
+        <div
+          class={cn(
+            'absolute inset-2',
+            'rounded-full border-4 border-transparent',
+            'border-b-[#4B9CAD]/40',
+            'animate-spin',
+            'animation-duration-[1.5s]',
+            'direction-[reverse]',
+          )}
+          aria-hidden='true'
+        />
+      </div>
+
+      {/* Texte avec effet typing */}
+      <div class='text-center' aria-label={message}>
+        <TypingText
+          class='text-lg font-medium text-gray-700 md:text-xl dark:text-gray-300'
+          interval={props.interval ?? 80}
+          rewind={props.rewind ?? true}
+          rewindDelay={props.rewindDelay ?? 2000}
+        >
+          {message}
+        </TypingText>
+
+        {/* Points d'animation pour indiquer le chargement */}
+        <FadingDots count={5} innerProps={{ class: 'bg-[#3d8091]' }} />
+      </div>
+    </div>
+  );
+};

@@ -1,4 +1,5 @@
 import {
+  createComponent,
   createContext as createSolidContext,
   useContext,
   type ParentComponent,
@@ -28,12 +29,27 @@ export const createContext = <const T>(
   context: () => NonNullable<T>,
   options?: Options,
 ) => {
-  const _context = createSolidContext(context(), options);
+  const _context = createSolidContext<NonNullable<T> | undefined>(
+    undefined,
+    options,
+  );
 
-  const Provider: ParentComponent = ({ children }) =>
-    _context.Provider({ value: _context.defaultValue, children });
+  const Provider: ParentComponent = props => {
+    return createComponent(_context.Provider, {
+      value: context(),
+      get children() {
+        return props.children;
+      },
+    });
+  };
 
-  const _useContext = () => useContext(_context);
+  const _useContext = () => {
+    const __context = useContext(_context);
+    if (!__context) {
+      throw new Error('useContext must be used within a Provider');
+    }
+    return __context as NonNullable<T>;
+  };
 
   return [Provider, _useContext, _context] as const;
 };

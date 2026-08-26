@@ -1,10 +1,12 @@
 import { interpret } from '@bemedev/app';
 
+import { clamp } from '#helpers/clamp';
 import { createContext } from '#helpers/createContext';
 import { machine } from '#main-machine';
 import {
   BOUNDS_CONSTRAINTS,
   DEFAULT_INPUT_OFFSET,
+  DEFAULT_SIZE,
   getDefaultOutputOffset,
 } from '#services/main.machine.data';
 import type { Dimension, Point } from '#services/main.machine.typings';
@@ -48,14 +50,21 @@ export const [Provider, useFlow] = createContext(
          *   {@linkcode Board}.
          * @param x - Desired X position in pixels.
          * @param y - Desired Y position in pixels.
-         * @param nodeWidth - Node width in pixels, defaults to `192`.
-         * @param nodeHeight - Node height in pixels, defaults to `50`.
+         * @param nodeWidth - Node width in pixels, defaults to `DEFAULT_SIZE.width`.
+         * @param nodeHeight - Node height in pixels, defaults to
+         *   `DEFAULT_SIZE.height`.
          *
          * @returns Clamped coordinate of type {@linkcode Point}.
          *
-         * @see {@linkcode BOUNDS_CONSTRAINTS}
+         * @see {@linkcode BOUNDS_CONSTRAINTS}, {@linkcode DEFAULT_SIZE}
          */
-        clampPosition: (board, x, y, nodeWidth = 192, nodeHeight = 50): Point => {
+        clampPosition: (
+          board,
+          x,
+          y,
+          nodeWidth = DEFAULT_SIZE.width,
+          nodeHeight = DEFAULT_SIZE.height,
+        ): Point => {
           const container = board?.parent;
           if (!container) return { x, y };
 
@@ -81,10 +90,7 @@ export const [Provider, useFlow] = createContext(
               nodeHeight,
           );
 
-          return {
-            x: Math.min(Math.max(x, minX), maxX),
-            y: Math.min(Math.max(y, minY), maxY),
-          };
+          return { x: clamp(x, minX, maxX), y: clamp(y, minY, maxY) };
         },
 
         /**
@@ -95,20 +101,24 @@ export const [Provider, useFlow] = createContext(
          *
          * @returns Calculated dimension object of type {@linkcode Dimension}.
          *
-         * @see {@linkcode DEFAULT_INPUT_OFFSET}, {@linkcode getDefaultOutputOffset}
+         * @see {@linkcode DEFAULT_INPUT_OFFSET}, {@linkcode getDefaultOutputOffset}, {@linkcode DEFAULT_SIZE}
          */
         calculateDimensions: (
           position: Point,
           parentDimension: Pick<
             Dimension,
             'width' | 'height' | 'outputOffset' | 'inputOffset'
-          > = { width: 192, height: 50, inputOffset: DEFAULT_INPUT_OFFSET },
+          > = {
+            width: DEFAULT_SIZE.width,
+            height: DEFAULT_SIZE.height,
+            inputOffset: DEFAULT_INPUT_OFFSET,
+          },
         ): Dimension => {
           const width = parentDimension.width;
           const height = parentDimension.height;
           const outputOffset =
             parentDimension.outputOffset ?? getDefaultOutputOffset(width);
-          const inputOffset = parentDimension.inputOffset!;
+          const inputOffset = parentDimension.inputOffset ?? DEFAULT_INPUT_OFFSET;
 
           const output = {
             x: position.x + outputOffset.x,

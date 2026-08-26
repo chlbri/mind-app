@@ -1,43 +1,44 @@
-/* eslint-disable @typescript-eslint/no-namespace */
 import { toArray } from '@bemedev/app';
 import { createState } from '@bemedev/app-solidjs';
 import { createDraggable } from '@thisbeyond/solid-dnd';
 import { dequal } from 'dequal';
-import { Component, Show } from 'solid-js';
+import { type Component, For, type JSX, Show } from 'solid-js';
+import { Dynamic } from 'solid-js/web';
 
 import {
   HANDLE_CONTAINER_OFFSET_X,
   HANDLE_MARGIN_TOP,
   HANDLE_SIZE,
 } from '#services/main.machine.data';
+import type { NodeData } from '#services/main.machine.typings';
 
+import { resize } from '../globals/directives';
 import { useFlow } from './FlowChart.context';
 
-declare module 'solid-js' {
-  namespace JSX {
-    interface Directives {
-      draggable: any;
-    }
-  }
-}
-
 /** Properties for rendering an individual flowchart node component. */
-type Props = {
+export type NodeComponentProps<D extends NodeData = NodeData> = {
   /** Unique identifier of the node. */
   id: string;
+  /** Custom node component to render inside the node container. */
+  children?: Component<D>;
 };
 
 /**
  * Interactive flowchart node component supporting dragging, selection, handle
  * connections, and child/sibling creation.
  *
- * @param props - Node rendering properties of type {@linkcode Props}.
+ * @template | {@linkcode NodeData} `D` - Custom node data dictionary type extending
+ *   {@linkcode NodeData}.
+ *
+ * @param props - Node rendering properties of type {@linkcode NodeComponentProps}.
  *
  * @returns The rendered Solid component.
  *
  * @see {@linkcode useFlow}, {@linkcode HANDLE_CONTAINER_OFFSET_X}, {@linkcode HANDLE_MARGIN_TOP}, {@linkcode HANDLE_SIZE}
  */
-export const NodeComponent: Component<Props> = props => {
+export const NodeComponent = <D extends NodeData = NodeData>(
+  props: NodeComponentProps<D>,
+): JSX.Element => {
   const service = useFlow();
   const newEdge = createState(service, { selector: s => s.context.newEdge });
   const draggable = createDraggable(props.id);
@@ -46,13 +47,11 @@ export const NodeComponent: Component<Props> = props => {
   const node = createState(service, {
     selector: ({ context }) => {
       const list = toArray.typed(context.data?.nodes);
-      const item = list.find(n => n.id === props.id)!;
+      const item = list.find(n => n.id === props.id);
       return {
-        x: item.position.x,
-        y: item.position.y,
-        label: item.data.label,
-        content: item.data.content ?? '',
-        input: item.input,
+        x: item?.position.x ?? 0,
+        y: item?.position.y ?? 0,
+        data: (item?.data ?? {}) as D,
       };
     },
     equals: dequal,
@@ -74,8 +73,8 @@ export const NodeComponent: Component<Props> = props => {
     <div
       classList={{
         'flex flex-col absolute cursor-grab bg-white rounded-md shadow-md select-none transition-[border,box-shadow] duration-200 ease-in-out hover:shadow-lg draggable': true,
-        'border border-[#e38c29] z-[100]': selected(),
-        'border border-[#e6d4be] z-[1]': !selected(),
+        'border border-[#e38c29] z-100': selected(),
+        'border border-[#e6d4be] z-1': !selected(),
       }}
 
       style={{ top: `${node().y}px`, left: `${node().x}px` }}
@@ -86,6 +85,10 @@ export const NodeComponent: Component<Props> = props => {
       onMouseDown={e => {
         e.stopPropagation();
         service.send({ type: 'SELECT', payload: props.id });
+      }}
+      onDblClick={e => {
+        e.stopPropagation();
+        service.send({ type: 'EDIT', payload: props.id });
       }}
     >
       <div
@@ -161,49 +164,69 @@ export const NodeComponent: Component<Props> = props => {
         </svg>
       </div>
 
-      <Show when={node().label} keyed>
-        {label => (
-          <span class='min-w-max border-b border-[#f0f0f0] p-3 whitespace-nowrap text-red-600 select-none'>
-            {label}
-          </span>
-        )}
-      </Show>
+      <div ref={resize(props.id)}>
+        <Show
+          when={props.children}
+          fallback={
+            <div class='p-3 select-none'>
+              <Show when={node().data.label} keyed>
+                {label => (
+                  <span class='mb-2 block min-w-max border-b border-[#f0f0f0] pb-2 font-semibold whitespace-nowrap text-red-600 select-none'>
+                    {String(label)}
+                  </span>
+                )}
+              </Show>
 
-      <Show when={node().content} keyed>
-        {content => <div class='p-3 select-none'>{content}</div>}
-      </Show>
+              <Show when={node().data.content} keyed>
+                {content => <div class='select-none'>{String(content)}</div>}
+              </Show>
 
-      <Show when={node().input || hasParent()}>
-        <div
-          id='inputs'
-          class='pointer-events-none absolute top-0 z-10 flex cursor-default flex-col'
-          style={{ left: `-${HANDLE_CONTAINER_OFFSET_X}px` }}
+              <Show when={!node().data.label && !node().data.content}>
+                <For each={Object.entries(node().data)}>
+                  {([key, val]) => (
+                    <div>
+                      <span class='font-semibold'>{key}: </span>
+                      <span>{String(val)}</span>
+                    </div>
+                  )}
+                </For>
+              </Show>
+            </div>
+          }
         >
-          <div
-            class='cursor-default rounded-full bg-[#e38b29] shadow-md'
+          <Dynamic component={props.children} {...node().data} />
+        </Show>
+      </div>
 
-            style={{
-              width: `${HANDLE_SIZE}px`,
-              height: `${HANDLE_SIZE}px`,
-              'margin-top': `${HANDLE_MARGIN_TOP}px`,
-              'pointer-events': 'all',
-            }}
+      <div
+        id='inputs'
+        class='pointer-events-none absolute top-0 z-10 flex cursor-default flex-col'
+        style={{ left: `-${HANDLE_CONTAINER_OFFSET_X}px` }}
+      >
+        <div
+          class='cursor-default rounded-full bg-[#e38b29] shadow-md'
 
-            onMouseDown={event => {
-              event.stopPropagation();
-            }}
+          style={{
+            width: `${HANDLE_SIZE}px`,
+            height: `${HANDLE_SIZE}px`,
+            'margin-top': `${HANDLE_MARGIN_TOP}px`,
+            'pointer-events': 'all',
+          }}
 
-            onMouseUp={event => {
-              event.stopPropagation();
-              const from = newEdge()?.from;
+          onMouseDown={event => {
+            event.stopPropagation();
+          }}
 
-              if (from) {
-                service.send({ type: 'ADD_EDGE', payload: { from, to: props.id } });
-              } else service.send('CLEAR_NEW_EDGE');
-            }}
-          ></div>
-        </div>
-      </Show>
+          onMouseUp={event => {
+            event.stopPropagation();
+            const from = newEdge()?.from;
+
+            if (from) {
+              service.send({ type: 'ADD_EDGE', payload: { from, to: props.id } });
+            } else service.send('CLEAR_NEW_EDGE');
+          }}
+        ></div>
+      </div>
       <div
         id='outputs'
         class='pointer-events-none absolute top-0 z-10 flex flex-col'

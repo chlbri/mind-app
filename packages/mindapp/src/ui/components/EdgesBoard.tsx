@@ -14,11 +14,10 @@ import { useFlow } from './FlowChart.context';
  */
 export const EdgesBoard: Component = () => {
   const service = useFlow();
-
   const hasNewEdge = createState(service, { selector: s => !!s.context.newEdge });
 
   const edgeIds = createState(service, {
-    selector: ({ context }) => Object.keys(context.edgesPositions),
+    selector: ({ context }) => Object.keys(context.edgesPositions ?? {}),
     equals: (prev, next) => prev.length === next.length,
   });
 

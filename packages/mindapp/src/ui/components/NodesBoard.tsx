@@ -7,37 +7,55 @@ import {
 } from '@thisbeyond/solid-dnd';
 import { dequal } from 'dequal';
 import {
-  Component,
+  type Component,
   createEffect,
   createSignal,
   For,
+  type JSX,
   on,
   onMount,
   Show,
 } from 'solid-js';
 
 import { CANVAS_FACTOR, SCROLL_MULTIPLIER } from '../../services/main.machine.data';
+import type { NodeData } from '../../services/main.machine.typings';
 import { DragBounds } from './Bounds';
 import { EdgesBoard } from './EdgesBoard';
 import { useFlow } from './FlowChart.context';
+import type { FlowPanels } from './FlowChart.types';
 import { NodeComponent } from './NodeComponent';
+import { Panels } from './Panels';
+
+/** Properties for the {@linkcode NodesBoard} component. */
+type Props<D extends NodeData = NodeData> = {
+  /** Optional custom node component. */
+  component?: Component<D>;
+  /** Optional custom overlay panels. */
+  panels?: FlowPanels;
+};
 
 /**
  * Interactive board component containing the drag-drop viewport, zoom controls,
  * panning gestures, and rendered nodes/edges.
  *
+ * @template | {@linkcode NodeData} `D` - Custom node data dictionary type extending
+ *   {@linkcode NodeData}.
+ *
+ * @param props - Board component properties of type {@linkcode Props}.
+ *
  * @returns The rendered Solid component.
  *
  * @see {@linkcode DragBounds}, {@linkcode EdgesBoard}, {@linkcode NodeComponent}, {@linkcode useFlow}, {@linkcode CANVAS_FACTOR}, {@linkcode SCROLL_MULTIPLIER}
  */
-export const NodesBoard: Component = () => {
+export const NodesBoard = <D extends NodeData = NodeData>(
+  props: Props<D>,
+): JSX.Element => {
   let containerRef: HTMLDivElement;
   const [isPanning, setIsPanning] = createSignal(false);
   const [transform, setTransform] = createSignal({ x: 0, y: 0 });
   const [ref, setRef] = createSignal<HTMLDivElement | undefined>();
   let percentX = 0;
   let percentY = 0;
-
   const service = useFlow();
 
   const newEdge = createState(service, {
@@ -135,7 +153,7 @@ export const NodesBoard: Component = () => {
         }
       }}
 
-      class='relative mx-auto h-[calc(100vh-64px)] w-[calc(100vw-32px)] overflow-hidden'
+      class='relative mx-auto h-full w-full overflow-hidden'
     >
       <DragDropProvider
         onDragMove={({ draggable: { transform: _transform, node, id } }) => {
@@ -203,7 +221,7 @@ export const NodesBoard: Component = () => {
             return (containerRef = el);
           }}
           onScroll={updateScrollPercentages}
-          class='relative h-full w-full overflow-auto rounded-lg border-2 border-gray-600'
+          class='relative h-full w-full overflow-auto'
         >
           <DragDropSensors />
           <div
@@ -251,12 +269,16 @@ export const NodesBoard: Component = () => {
             >
               <DragBounds />
               <EdgesBoard />
-              <For each={nodeIds()}>{id => <NodeComponent id={id} />}</For>
+              <For each={nodeIds()}>
+                {id => <NodeComponent id={id} children={props.component} />}
+              </For>
             </div>
           </div>
         </div>
 
-        {/* Panel */}
+        <Panels {...props.panels} />
+
+        {/* Bottom-Right Panel (Main Zoom & Creation Controls) */}
         <div class='absolute right-4 bottom-4 z-50 flex items-center gap-2 rounded-xl border border-gray-200 bg-white/90 p-2 shadow-lg backdrop-blur-md'>
           <button
             type='button'
