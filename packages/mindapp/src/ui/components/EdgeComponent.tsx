@@ -88,8 +88,7 @@ export const EdgeComponent: Component<Props> = props => {
               'stroke-[rgba(168,168,168,0.4)] stroke-3 z-200': !!props.isNew,
               'stroke-[rgba(168,168,168,1)] stroke-4 z-100':
                 selected() && !props.isNew,
-              'stroke-[rgba(168,168,168,0.8)] stroke-3':
-                !selected() && !props.isNew,
+              'stroke-[rgba(168,168,168,0.8)] stroke-3': !selected() && !props.isNew,
             }}
             style={{ 'pointer-events': props.isNew ? 'none' : 'all' }}
             d={draw(v())}

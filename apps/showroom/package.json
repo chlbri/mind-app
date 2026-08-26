@@ -68,7 +68,7 @@
     "@solidjs/testing-library": "^0.8.10",
     "@tanstack/devtools-vite": "^0.8.5",
     "@tanstack/solid-router-devtools": "1.167.1",
-    "@types/node": "^26.2.0",
+    "@types/node": "^26.3.0",
     "@vitest/browser-playwright": "4.1.11",
     "@vitest/coverage-v8": "4.1.11",
     "glob": "^13.0.6",

@@ -380,10 +380,7 @@ export const machine = createMachine(
             y: node.position.y + inputOffset.y,
           };
         } else {
-          dimension.output = {
-            x: dimension.output.x,
-            y: dimension.output.y,
-          };
+          dimension.output = { x: dimension.output.x, y: dimension.output.y };
         }
       },
     }),
