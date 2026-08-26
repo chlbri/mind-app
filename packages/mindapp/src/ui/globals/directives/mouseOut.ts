@@ -1,23 +1,31 @@
 import { onCleanup } from 'solid-js';
 
 /**
- * Callback function type invoked when the mouse leaves the bound element.
+ * Callback function type invoked when the mouse leaves or focus is lost from the
+ * bound element.
  *
- * @param event - Optional mouse event that triggered the leave.
+ * @param event - Optional mouse or focus event that triggered the leave.
  */
-export type MouseOutCallback = (event?: MouseEvent) => void;
+export type MouseOutCallback = (event?: MouseEvent | FocusEvent) => void;
 
 /** Configuration options for the {@linkcode mouseOut} directive. */
 export type MouseOutOptions = {
-  /** Callback function to trigger after the timer elapses. */
+  /**
+   * Callback function to trigger after the timer elapses of type
+   * {@linkcode MouseOutCallback}.
+   */
   callback?: MouseOutCallback;
 
-  /** Alternative callback property name for triggering after the timer elapses. */
+  /**
+   * Alternative callback property name for triggering after the timer elapses of
+   * type {@linkcode MouseOutCallback}.
+   */
   onMouseOut?: MouseOutCallback;
 
   /**
-   * Delay in milliseconds before triggering the callback after the mouse leaves. If
-   * the cursor re-enters the element before this duration, the timer is reset.
+   * Delay in milliseconds before triggering the callback after the mouse leaves or
+   * focus is lost. If the cursor re-enters the element or focus is regained before
+   * this duration, the timer is reset.
    *
    * @defaultValue 0
    */
@@ -32,8 +40,9 @@ export type MouseOutParam =
 
 /**
  * Solid custom directive that triggers a callback when the mouse leaves the bound
- * element after a specified timer duration. If the user re-enters the component
- * before the timer expires, the timer is reset/cancelled.
+ * element and focus is not inside it, after a specified timer duration. If the user
+ * re-enters the component or gains focus before the timer expires, the timer is
+ * reset/cancelled.
  *
  * @param el - The bound DOM element.
  * @param accessor - Accessor returning a callback, tuple `[callback, delay]`, or
@@ -44,6 +53,7 @@ export const mouseOut = (
   accessor: () => MouseOutParam,
 ) => {
   let timer: ReturnType<typeof setTimeout> | undefined;
+  let isHovered = false;
 
   const clear = () => {
     if (timer !== undefined) {
@@ -52,11 +62,12 @@ export const mouseOut = (
     }
   };
 
-  const onMouseEnter = () => {
-    clear();
+  const isFocused = () => {
+    const active = el.ownerDocument?.activeElement ?? document.activeElement;
+    return !!active && el.contains(active);
   };
 
-  const onMouseLeave = (event: MouseEvent) => {
+  const triggerLeave = (event?: MouseEvent | FocusEvent) => {
     clear();
 
     const param = accessor();
@@ -87,12 +98,40 @@ export const mouseOut = (
     }
   };
 
+  const onMouseEnter = () => {
+    isHovered = true;
+    clear();
+  };
+
+  const onMouseLeave = (event: MouseEvent) => {
+    isHovered = false;
+    if (isFocused()) return;
+    triggerLeave(event);
+  };
+
+  const onFocusIn = () => {
+    clear();
+  };
+
+  const onFocusOut = (event: FocusEvent) => {
+    const nextTarget = event.relatedTarget as Node | null;
+    const stillHasFocus = !!nextTarget && el.contains(nextTarget);
+
+    if (!stillHasFocus && !isHovered) {
+      triggerLeave(event);
+    }
+  };
+
   el.addEventListener('mouseleave', onMouseLeave as EventListener);
   el.addEventListener('mouseenter', onMouseEnter as EventListener);
+  el.addEventListener('focusin', onFocusIn as EventListener);
+  el.addEventListener('focusout', onFocusOut as EventListener);
 
   onCleanup(() => {
     clear();
     el.removeEventListener('mouseleave', onMouseLeave as EventListener);
     el.removeEventListener('mouseenter', onMouseEnter as EventListener);
+    el.removeEventListener('focusin', onFocusIn as EventListener);
+    el.removeEventListener('focusout', onFocusOut as EventListener);
   });
 };

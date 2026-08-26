@@ -132,6 +132,9 @@ export const CustomFlow = () => {
 - **`EditPanelProps`**, **`EditPanelChildProps`**: Types for `EditPanel` and its
   children accessor helpers.
 - **`CLASSES`**: Array of Tailwind CSS safelist class names used in the UI.
+- **`mouseOut`**, **`clickOutside`**, **`resize`**: Custom Solid.js directives for
+  focus/hover handling, outside click detection, and node dimension observation.
+- **`clamp`**: Number boundary constraint helper.
 
 ## License
 

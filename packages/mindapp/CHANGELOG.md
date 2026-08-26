@@ -3,6 +3,23 @@
 <details>
 <summary>
 
+## **[1.2.0] - 26/08/2026** => _15:35_
+
+</summary>
+
+- Enhance `mouseOut` directive to handle focus events (`focusin`, `focusout`),
+  preventing premature callback triggers while inner inputs or elements retain focus
+- Update `MouseOutCallback` signature to accept optional `MouseEvent | FocusEvent`
+  parameter
+- <u>Test coverage **_100%_**</u>
+
+</details>
+
+<br/>
+
+<details>
+<summary>
+
 ## **[1.1.0] - 26/08/2026** => _14:32_
 
 </summary>

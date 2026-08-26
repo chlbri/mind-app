@@ -112,4 +112,131 @@ describe('Directive => mouseOut', () => {
     el.dispatchEvent(new MouseEvent('mouseleave'));
     expect(callback).not.toHaveBeenCalled();
   });
+
+  it('#06 => should not trigger callback on mouseleave if an input inside element has focus', () => {
+    const callback = vi.fn();
+    const input = document.createElement('input');
+    el.appendChild(input);
+    input.focus();
+
+    createRoot(dispose => {
+      mouseOut(el, () => callback);
+
+      el.dispatchEvent(new MouseEvent('mouseleave'));
+      expect(callback).not.toHaveBeenCalled();
+
+      dispose();
+    });
+  });
+
+  it('#07 => should trigger callback when focused child loses focus and mouse is outside', () => {
+    const callback = vi.fn();
+    const input = document.createElement('input');
+    el.appendChild(input);
+    input.focus();
+
+    createRoot(dispose => {
+      mouseOut(el, () => [callback, 200]);
+
+      // Mouse leaves while input is focused
+      el.dispatchEvent(new MouseEvent('mouseleave'));
+      expect(callback).not.toHaveBeenCalled();
+
+      // Input loses focus (blurred)
+      input.dispatchEvent(
+        new FocusEvent('focusout', { bubbles: true, relatedTarget: null }),
+      );
+
+      vi.advanceTimersByTime(100);
+      expect(callback).not.toHaveBeenCalled();
+
+      vi.advanceTimersByTime(100);
+      expect(callback).toHaveBeenCalledTimes(1);
+
+      dispose();
+    });
+  });
+
+  it('#08 => should not trigger callback when child loses focus but mouse is still inside', () => {
+    const callback = vi.fn();
+    const input = document.createElement('input');
+    el.appendChild(input);
+    input.focus();
+
+    createRoot(dispose => {
+      mouseOut(el, () => callback);
+
+      // Mouse enters element
+      el.dispatchEvent(new MouseEvent('mouseenter'));
+
+      // Child loses focus while mouse is still inside
+      input.dispatchEvent(
+        new FocusEvent('focusout', { bubbles: true, relatedTarget: null }),
+      );
+      expect(callback).not.toHaveBeenCalled();
+
+      dispose();
+    });
+  });
+
+  it('#09 => should not trigger callback when focus moves from one child to another within the element', () => {
+    const callback = vi.fn();
+    const input1 = document.createElement('input');
+    const input2 = document.createElement('input');
+    el.appendChild(input1);
+    el.appendChild(input2);
+    input1.focus();
+
+    createRoot(dispose => {
+      mouseOut(el, () => callback);
+
+      // Mouse leaves while input1 is focused
+      el.dispatchEvent(new MouseEvent('mouseleave'));
+
+      // Focus switches to input2 within the same element
+      input1.dispatchEvent(
+        new FocusEvent('focusout', { bubbles: true, relatedTarget: input2 }),
+      );
+      expect(callback).not.toHaveBeenCalled();
+
+      dispose();
+    });
+  });
+
+  it('#10 => should cancel pending mouseleave timer if an element inside gains focus before delay finishes', () => {
+    const callback = vi.fn();
+    const input = document.createElement('input');
+    el.appendChild(input);
+
+    createRoot(dispose => {
+      mouseOut(el, () => [callback, 400]);
+
+      el.dispatchEvent(new MouseEvent('mouseleave'));
+      vi.advanceTimersByTime(200);
+      expect(callback).not.toHaveBeenCalled();
+
+      // Focus gained inside element
+      input.dispatchEvent(new FocusEvent('focusin', { bubbles: true }));
+
+      vi.advanceTimersByTime(300);
+      expect(callback).not.toHaveBeenCalled();
+
+      dispose();
+    });
+  });
+
+  it('#11 => should not trigger callback on mouseleave if the element itself has focus', () => {
+    const callback = vi.fn();
+    el.tabIndex = 0;
+    el.focus();
+
+    createRoot(dispose => {
+      mouseOut(el, () => callback);
+
+      el.dispatchEvent(new MouseEvent('mouseleave'));
+      expect(callback).not.toHaveBeenCalled();
+
+      dispose();
+    });
+  });
 });

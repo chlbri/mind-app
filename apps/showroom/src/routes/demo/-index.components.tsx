@@ -63,7 +63,8 @@ export const ShowroomEditPanel: Component = () => {
       class='w-60 transition-all ease-linear'
       classList={({ closing }) => ({
         'pointer-events-none scale-95 opacity-0 duration-250': closing(),
-        'opacity-35 hover:opacity-100 duration-150': !closing(),
+        'opacity-35 has-focus-within:opacity-100 hover:opacity-100 duration-150':
+          !closing(),
       })}
     >
       {({ editing: node, updateField, close }) => {
