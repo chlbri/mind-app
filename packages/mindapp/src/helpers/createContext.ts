@@ -30,8 +30,9 @@ export const createContext = <const T>(
 ) => {
   const _context = createSolidContext(context(), options);
 
-  const Provider: ParentComponent = ({ children }) =>
-    _context.Provider({ value: _context.defaultValue, children });
+  const Provider: ParentComponent = ({ children }) => {
+    return _context.Provider({ value: _context.defaultValue, children });
+  };
 
   const _useContext = () => useContext(_context);
 
