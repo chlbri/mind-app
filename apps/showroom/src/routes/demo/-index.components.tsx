@@ -1,6 +1,8 @@
 import { EditPanel, mouseOut, type MouseOutParam } from '@bemedev/mind-flow';
+import { clamp } from '@bemedev/mind-flow';
 import { type Component } from 'solid-js';
 
+import { BADGES } from './-index.data';
 import type { ShowroomData } from './-index.types';
 
 declare module 'solid-js' {
@@ -22,37 +24,7 @@ declare module 'solid-js' {
  * @returns The rendered Solid component.
  */
 export const ShowroomNode: Component<ShowroomData> = props => {
-  const getBadge = (p = 1) => {
-    switch (p) {
-      case 5:
-        return {
-          label: 'P5 Critical',
-          class: 'bg-red-100 text-red-700 border-red-300',
-        };
-      case 4:
-        return {
-          label: 'P4 High',
-          class: 'bg-orange-100 text-orange-700 border-orange-300',
-        };
-      case 3:
-        return {
-          label: 'P3 Medium',
-          class: 'bg-amber-100 text-amber-700 border-amber-300',
-        };
-      case 2:
-        return {
-          label: 'P2 Normal',
-          class: 'bg-emerald-100 text-emerald-700 border-emerald-300',
-        };
-      case 1:
-      default:
-        return {
-          label: 'P1 Low',
-          class: 'bg-blue-100 text-blue-700 border-blue-300',
-        };
-    }
-  };
-
+  const getBadge = (p = 1) => BADGES[clamp(p - 1, 0, 4)];
   const badge = () => getBadge(props.priority);
 
   return (

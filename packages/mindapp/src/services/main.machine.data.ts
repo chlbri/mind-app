@@ -94,7 +94,6 @@ export const DEFAULT_NODES: (NodeProps & { id: string })[] = [
   {
     id: 'node-0',
     data: { content: 'Some text', label: 'Root node' },
-    input: false,
     position: { x: 350, y: 100 },
   },
 ];

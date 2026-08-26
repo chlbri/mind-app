@@ -52,7 +52,6 @@ export const NodeComponent = <D extends NodeData = NodeData>(
         x: item?.position.x ?? 0,
         y: item?.position.y ?? 0,
         data: (item?.data ?? {}) as D,
-        input: item?.input ?? false,
       };
     },
     equals: dequal,
@@ -74,8 +73,8 @@ export const NodeComponent = <D extends NodeData = NodeData>(
     <div
       classList={{
         'flex flex-col absolute cursor-grab bg-white rounded-md shadow-md select-none transition-[border,box-shadow] duration-200 ease-in-out hover:shadow-lg draggable': true,
-        'border border-[#e38c29] z-[100]': selected(),
-        'border border-[#e6d4be] z-[1]': !selected(),
+        'border border-[#e38c29] z-100': selected(),
+        'border border-[#e6d4be] z-1': !selected(),
       }}
 
       style={{ top: `${node().y}px`, left: `${node().x}px` }}
@@ -199,37 +198,35 @@ export const NodeComponent = <D extends NodeData = NodeData>(
         </Show>
       </div>
 
-      <Show when={node().input || hasParent()}>
+      <div
+        id='inputs'
+        class='pointer-events-none absolute top-0 z-10 flex cursor-default flex-col'
+        style={{ left: `-${HANDLE_CONTAINER_OFFSET_X}px` }}
+      >
         <div
-          id='inputs'
-          class='pointer-events-none absolute top-0 z-10 flex cursor-default flex-col'
-          style={{ left: `-${HANDLE_CONTAINER_OFFSET_X}px` }}
-        >
-          <div
-            class='cursor-default rounded-full bg-[#e38b29] shadow-md'
+          class='cursor-default rounded-full bg-[#e38b29] shadow-md'
 
-            style={{
-              width: `${HANDLE_SIZE}px`,
-              height: `${HANDLE_SIZE}px`,
-              'margin-top': `${HANDLE_MARGIN_TOP}px`,
-              'pointer-events': 'all',
-            }}
+          style={{
+            width: `${HANDLE_SIZE}px`,
+            height: `${HANDLE_SIZE}px`,
+            'margin-top': `${HANDLE_MARGIN_TOP}px`,
+            'pointer-events': 'all',
+          }}
 
-            onMouseDown={event => {
-              event.stopPropagation();
-            }}
+          onMouseDown={event => {
+            event.stopPropagation();
+          }}
 
-            onMouseUp={event => {
-              event.stopPropagation();
-              const from = newEdge()?.from;
+          onMouseUp={event => {
+            event.stopPropagation();
+            const from = newEdge()?.from;
 
-              if (from) {
-                service.send({ type: 'ADD_EDGE', payload: { from, to: props.id } });
-              } else service.send('CLEAR_NEW_EDGE');
-            }}
-          ></div>
-        </div>
-      </Show>
+            if (from) {
+              service.send({ type: 'ADD_EDGE', payload: { from, to: props.id } });
+            } else service.send('CLEAR_NEW_EDGE');
+          }}
+        ></div>
+      </div>
       <div
         id='outputs'
         class='pointer-events-none absolute top-0 z-10 flex flex-col'

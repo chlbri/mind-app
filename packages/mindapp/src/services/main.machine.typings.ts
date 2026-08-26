@@ -12,8 +12,8 @@ export type Point = inferT<typeof point>;
  *
  * @see {@linkcode point}
  */
-export const nodeOffset = type(({ optional, use }) => ({
-  input: optional(use(point)),
+export const nodeOffset = type(({ use }) => ({
+  input: use(point),
   output: use(point),
 }));
 
@@ -43,7 +43,6 @@ export type NodeData = Record<string, string | boolean | number>;
 export const nodeJSON = type(({ use }) => ({
   position: use(point),
   data: use(data),
-  input: 'boolean',
 }));
 
 /**
@@ -52,11 +51,7 @@ export const nodeJSON = type(({ use }) => ({
  * @template | {@linkcode NodeData} `D` - Custom data properties type extending
  *   {@linkcode NodeData}.
  */
-export type NodeProps<D extends NodeData = NodeData> = {
-  position: Point;
-  data: D;
-  input: boolean;
-};
+export type NodeProps<D extends NodeData = NodeData> = { position: Point; data: D };
 
 /**
  * Schema definition for a serialized flowchart edge entity.

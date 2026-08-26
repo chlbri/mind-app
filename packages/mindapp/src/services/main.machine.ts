@@ -6,6 +6,7 @@ import { nanoid } from 'nanoid';
 /** Type alias for drag-drop state extracted from {@linkcode useDragDropContext}. */
 export type DragDropState = Exclude<ReturnType<typeof useDragDropContext>, null>[0];
 
+import { clamp } from '..';
 import {
   DEFAULT_DATA,
   DEFAULT_INPUT_OFFSET,
@@ -464,7 +465,7 @@ export const machine = createMachine(
     zoom: assign('zoom', {
       ZOOM: ({ context: { zoom }, payload, pContext }) => {
         const next = zoom + payload;
-        const clamped = Math.min(Math.max(Number(next.toFixed(2)), 0.2), 3);
+        const clamped = clamp(next, 0.1, 3);
         pContext.previousZoom = undefined;
         return clamped;
       },
@@ -512,7 +513,7 @@ export const machine = createMachine(
 
         const defaultData = pContext.defaultData ?? DEFAULT_DATA;
 
-        nodes?.push({ id, data: { ...defaultData }, input: true, position });
+        nodes?.push({ id, data: { ...defaultData }, position });
 
         pContext.dimensions[id] = pContext.calculateDimensions(
           position,
@@ -547,7 +548,7 @@ export const machine = createMachine(
 
         const defaultData = pContext.defaultData ?? DEFAULT_DATA;
 
-        nodes?.push({ id, data: { ...defaultData }, input: false, position });
+        nodes?.push({ id, data: { ...defaultData }, position });
 
         pContext.dimensions[id] = pContext.calculateDimensions(
           position,
@@ -586,7 +587,7 @@ export const machine = createMachine(
 
         const defaultData = pContext.defaultData ?? DEFAULT_DATA;
 
-        nodes?.push({ id, data: { ...defaultData }, input: true, position });
+        nodes?.push({ id, data: { ...defaultData }, position });
 
         pContext.dimensions[id] = pContext.calculateDimensions(
           position,

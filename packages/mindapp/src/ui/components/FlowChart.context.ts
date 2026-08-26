@@ -1,5 +1,6 @@
 import { interpret } from '@bemedev/app';
 
+import { clamp } from '#helpers/clamp';
 import { createContext } from '#helpers/createContext';
 import { machine } from '#main-machine';
 import {
@@ -89,10 +90,7 @@ export const [Provider, useFlow] = createContext(
               nodeHeight,
           );
 
-          return {
-            x: Math.min(Math.max(x, minX), maxX),
-            y: Math.min(Math.max(y, minY), maxY),
-          };
+          return { x: clamp(x, minX, maxX), y: clamp(y, minY, maxY) };
         },
 
         /**
