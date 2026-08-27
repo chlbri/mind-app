@@ -4,7 +4,25 @@ import { Show, type Component } from 'solid-js';
 import { cn } from '../utils';
 import type { FlowPanels } from './FlowChart.types';
 
-const Panel: Component<{ children?: Component; class: string }> = props => {
+/** Properties for the internal {@linkcode Panel} wrapper component. */
+type PanelProps = {
+  /** Optional component to render inside the panel container. */
+  children?: Component;
+  /** CSS class names for positioning and layout. */
+  class: string;
+};
+
+/**
+ * Overlay slot component rendering an optional panel component with z-index
+ * positioning.
+ *
+ * @param props - Panel properties of type {@linkcode PanelProps}.
+ *
+ * @returns The rendered panel container element or fallback.
+ *
+ * @see {@linkcode cn}
+ */
+const Panel: Component<PanelProps> = props => {
   const exists = isDefined(props.children);
   return (
     <Show when={props.children} keyed>

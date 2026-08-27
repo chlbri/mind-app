@@ -44,10 +44,6 @@ export const hmr = (props?: HmrPluginProps): PluginOption => {
       paths.push(...resolvedPaths);
     },
 
-    configEnvironment(name) {
-      isDev = name === 'dev';
-    },
-
     configureServer(server) {
       if (!isDev) return;
 
@@ -70,12 +66,12 @@ export const hmr = (props?: HmrPluginProps): PluginOption => {
           isBuilding = true;
           const scripts = toArray.typed(props?.scripts);
 
+          // Invalidate module graph so Vite reads fresh built files from disk
           ctx.server.moduleGraph.invalidateAll();
           scripts.forEach(script => {
             execSync(script, { stdio: 'inherit' });
           });
 
-          // Invalidate module graph so Vite reads fresh built files from disk
           ctx.server.ws.send({ type: 'full-reload' });
         } catch (error) {
           console.error('❌ Command execution failed during HMR:', error);

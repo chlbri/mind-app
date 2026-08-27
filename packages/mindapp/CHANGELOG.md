@@ -3,6 +3,25 @@
 <details>
 <summary>
 
+## **[1.4.0] - 27/08/2026** => _14:08_
+
+</summary>
+
+- Enhance interactive edge connection UX with dynamic hover scaling on target handles
+- Add active handle lifecycle tracking and cleanup on edge creation release
+- Enhance JSDoc documentation across internal components and handlers
+- Refactor `Panels` slot container with full-inset layout and dedicated `Panel`
+  wrapper component
+- Update `@bemedev/dev-utils` to `^1.3.1` and `@types/node` to `^26.4.0`
+- <u>Test coverage **_100%_**</u>
+
+</details>
+
+<br/>
+
+<details>
+<summary>
+
 ## **[1.3.0] - 26/08/2026** => _18:53_
 
 </summary>

@@ -51,58 +51,71 @@ export const FlowChart = <D extends NodeData = NodeData>(
 
   let added = false;
 
+  // Track the currently enlarged handle during edge drag
+  let activeHandle: HTMLElement | null = null;
+
+  const clearActiveHandle = () => {
+    if (activeHandle) {
+      activeHandle.classList.remove('scale-150');
+      activeHandle = null;
+      added = false;
+    }
+  };
+
+  const handlePointerMove = (e: MouseEvent | PointerEvent) => {
+    service.send({ type: 'MOVE_NEW_EDGE', payload: { x: e.clientX, y: e.clientY } });
+
+    const elements = document.elementsFromPoint(e.clientX, e.clientY);
+    const inputHandle = elements
+      .map(el => el.closest<HTMLElement>('.rounded-full[data-handle-type="input"]'))
+      .find((handle): handle is HTMLElement =>
+        Boolean(handle && handle.id !== 'inputs'),
+      );
+
+    // If cursor moved away from previous handle, reset its scale
+    if (activeHandle && activeHandle !== inputHandle) {
+      clearActiveHandle();
+    }
+
+    // If cursor entered a valid target handle, enlarge it
+    if (inputHandle) {
+      if (activeHandle !== inputHandle) {
+        inputHandle.classList.add('scale-150');
+        activeHandle = inputHandle;
+        added = true;
+      }
+    }
+  };
+
+  const createHandlePointerUp = (from: string) => (e: MouseEvent | PointerEvent) => {
+    const elements = document.elementsFromPoint(e.clientX, e.clientY);
+    const inputHandle = elements
+      .map(el => el.closest<HTMLElement>('.rounded-full[data-handle-type="input"]'))
+      .find((handle): handle is HTMLElement =>
+        Boolean(handle && handle.id !== 'inputs'),
+      );
+    const to = inputHandle?.getAttribute('data-node-id');
+
+    if (inputHandle && to) {
+      service.send({ type: 'ADD_EDGE', payload: { from, to } });
+    }
+
+    // Cleanup on release
+    clearActiveHandle();
+    service.send('CLEAR_NEW_EDGE');
+  };
+
   createEffect(() => {
     const from = fromSignal();
     if (!from || added) return;
 
-    const handlePointerMove = (e: MouseEvent | PointerEvent) => {
-      service.send({
-        type: 'MOVE_NEW_EDGE',
-        payload: { x: e.clientX, y: e.clientY },
-      });
-
-      const elements = document.elementsFromPoint(e.clientX, e.clientY);
-      const inputHandle = elements
-        .map(el =>
-          el.closest<HTMLElement>('.rounded-full[data-handle-type="input"]'),
-        )
-        .find((handle): handle is HTMLElement =>
-          Boolean(handle && handle.id !== 'inputs'),
-        );
-      const targetId = inputHandle?.getAttribute('data-node-id');
-
-      if (inputHandle && targetId) {
-        console.log('REACH CAN !!!');
-        inputHandle.classList.add('scale-150');
-        added = true;
-        inputHandle.addEventListener(
-          'mouseleave',
-          () => {
-            inputHandle.classList.remove('scale-150');
-            added = false;
-          },
-          { once: true },
-        );
-      }
-    };
-
-    const handlePointerUp = (e: MouseEvent | PointerEvent) => {
-      const el = document.elementFromPoint(e.clientX, e.clientY);
-      const inputHandle = el?.closest('[data-handle-type="input"]');
-      const to = inputHandle?.getAttribute('data-node-id');
-      if (inputHandle && to) {
-        service.send({ type: 'ADD_EDGE', payload: { from, to } });
-        inputHandle.classList.remove('scale-150');
-        added = false;
-      }
-
-      service.send('CLEAR_NEW_EDGE');
-    };
-
+    const handlePointerUp = createHandlePointerUp(from);
     window.addEventListener('pointermove', handlePointerMove);
     window.addEventListener('pointerup', handlePointerUp);
 
     onCleanup(() => {
+      // Cleanup on effect disposal
+      clearActiveHandle();
       window.removeEventListener('pointermove', handlePointerMove);
       window.removeEventListener('pointerup', handlePointerUp);
     });
