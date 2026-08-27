@@ -5,11 +5,11 @@ import { toArray, type SoA } from '@bemedev/app/bemedev';
 import { type PluginOption } from 'vite';
 
 export type HmrPluginProps = {
-  /** Array of file paths to watch for changes. */
-  paths?: SoA<string>;
-
-  /** Array of shell commands to execute when a change is detected. */
-  scripts?: SoA<string>;
+  /**
+   * Map of watched file/directory paths to one or many shell commands to execute
+   * when changes are detected.
+   */
+  paths?: Record<string, SoA<string>>;
 
   /** Optional interval in milliseconds to wait before allowing another build. */
   debounce?: number;
@@ -25,7 +25,7 @@ export const hmr = (props?: HmrPluginProps): PluginOption => {
   // Lock variable to prevent infinite build loops
   let isBuilding = false;
   const debounce = clamp(props?.debounce ?? 500, 500, 10_000);
-  const paths: string[] = [];
+  const pathMap = new Map<string, string[]>();
   let isDev = false;
 
   return {
@@ -35,19 +35,23 @@ export const hmr = (props?: HmrPluginProps): PluginOption => {
       isDev = !config.isProduction;
       if (!isDev) return;
 
-      // Resolve relative paths based on Vite project root
-      const resolvedPaths = toArray
-        .typed(props?.paths)
-        .map(p => (isAbsolute(p) ? p : resolve(config.root, p)))
-        .map(normalizePath);
+      pathMap.clear();
+      const rawPaths = props?.paths ?? {};
 
-      paths.push(...resolvedPaths);
+      Object.entries(rawPaths).forEach(([pathKey, rawScripts]) => {
+        const resolved = isAbsolute(pathKey)
+          ? pathKey
+          : resolve(config.root, pathKey);
+        const normalized = normalizePath(resolved);
+        const scripts = toArray.typed(rawScripts);
+        pathMap.set(normalized, scripts);
+      });
     },
 
     configureServer(server) {
       if (!isDev) return;
 
-      server.watcher.add(paths);
+      server.watcher.add(Array.from(pathMap.keys()));
     },
 
     handleHotUpdate(ctx) {
@@ -56,22 +60,25 @@ export const hmr = (props?: HmrPluginProps): PluginOption => {
       // 1. If a build is already in progress, ignore ALL changes (prevents loops)
       if (isBuilding) return ctx.modules;
       const normalizedFile = normalizePath(ctx.file);
-      const checks = paths.some(p => normalizedFile.includes(p));
 
-      if (checks) {
+      // Find all matching path entries for the changed file
+      const matchingScripts = new Set<string>();
+      for (const [watchedPath, scripts] of pathMap.entries()) {
+        if (normalizedFile.includes(watchedPath)) {
+          scripts.forEach(d => matchingScripts.add(d));
+        }
+      }
+
+      if (matchingScripts.size > 0) {
         console.log(`\n⚡ External file modified: ${ctx.file}. Starting build...`);
 
         try {
           // 2. Acquire lock before starting the build
           isBuilding = true;
-          const scripts = toArray.typed(props?.scripts);
 
           // Invalidate module graph so Vite reads fresh built files from disk
           ctx.server.moduleGraph.invalidateAll();
-          scripts.forEach(script => {
-            execSync(script, { stdio: 'inherit' });
-          });
-
+          matchingScripts.forEach(script => execSync(script, { stdio: 'inherit' }));
           ctx.server.ws.send({ type: 'full-reload' });
         } catch (error) {
           console.error('❌ Command execution failed during HMR:', error);

@@ -10,10 +10,12 @@ export default defineConfig({
   resolve: { tsconfigPaths: true },
   plugins: [
     hmr({
-      paths: ['../../packages/mindapp/src'],
-      scripts: ['pnpm run --filter @bemedev/mind-flow build'],
+      paths: {
+        '../../packages/mindapp/src': 'pnpm run --filter @bemedev/mind-flow build',
+      },
       debounce: 1000,
     }),
+
     suppressWarnings('Cannot remove nonexistent sensor with id'),
     tailwindcss({}),
     tanstackStart({}),

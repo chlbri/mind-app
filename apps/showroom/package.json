@@ -64,7 +64,7 @@
   },
   "devDependencies": {
     "@bemedev/app-cli": "^2.5.0",
-    "@bemedev/dev-utils": "^1.3.1",
+    "@bemedev/dev-utils": "^1.5.0",
     "@solidjs/testing-library": "^0.8.10",
     "@tanstack/devtools-vite": "^0.8.5",
     "@tanstack/solid-router-devtools": "1.167.1",

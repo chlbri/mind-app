@@ -1,6 +1,11 @@
 /// <reference types="vite/client" />
 
-import { createRootRoute, HeadContent, Scripts } from '@tanstack/solid-router';
+import {
+  createRootRoute,
+  HeadContent,
+  Outlet,
+  Scripts,
+} from '@tanstack/solid-router';
 import { HydrationScript } from 'solid-js/web';
 import HeadLinks from '~ui/organisms/HeadLinks';
 
@@ -30,11 +35,21 @@ export const Route = createRootRoute({
         </head>
         <body class='max-h-screen w-screen font-sans antialiased selection:bg-indigo-500 selection:text-white'>
           <HeadContent />
-          <HeadLinks />
-          <main class='w-full p-2 text-center'>{children}</main>
+          {children}
           <Scripts />
         </body>
       </html>
+    );
+  },
+  // component runs inside the RouterProvider context
+  component: () => {
+    return (
+      <>
+        <HeadLinks />
+        <main class='w-full p-2 text-center'>
+          <Outlet />
+        </main>
+      </>
     );
   },
 });

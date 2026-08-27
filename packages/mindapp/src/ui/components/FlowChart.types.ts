@@ -19,8 +19,8 @@ export type FlowPanels = {
  * Configuration options and callback handlers for the {@linkcode FlowChart}
  * component.
  *
- * @template | {@linkcode NodeData} `D` - Custom node data dictionary type extending
- *   {@linkcode NodeData}.
+ * @template | Type {@linkcode NodeData} `D` - Custom node data dictionary type
+ *   extending type {@linkcode NodeData}.
  */
 export type FlowProps<D extends NodeData = NodeData> = {
   /** Optional delay in milliseconds before mounting the flowchart canvas. */
@@ -66,8 +66,8 @@ export type FlowProps<D extends NodeData = NodeData> = {
 /**
  * Type alias extracting the non-undefined flowchart configuration object.
  *
- * @template | {@linkcode NodeData} `D` - Custom node data dictionary type extending
- *   {@linkcode NodeData}.
+ * @template | Type {@linkcode NodeData} `D` - Custom node data dictionary type
+ *   extending type {@linkcode NodeData}.
  */
 export type ConfigFrom<D extends NodeData = NodeData> = NotUndefined<
   FlowProps<D>['config']
@@ -77,8 +77,8 @@ export type ConfigFrom<D extends NodeData = NodeData> = NotUndefined<
  * Type alias extracting the non-undefined list of nodes from flowchart
  * configuration.
  *
- * @template | {@linkcode NodeData} `D` - Custom node data dictionary type extending
- *   {@linkcode NodeData}.
+ * @template | Type {@linkcode NodeData} `D` - Custom node data dictionary type
+ *   extending type {@linkcode NodeData}.
  */
 export type NodesFrom<D extends NodeData> = NotUndefined<ConfigFrom<D>['nodes']>;
 
@@ -86,7 +86,7 @@ export type NodesFrom<D extends NodeData> = NotUndefined<ConfigFrom<D>['nodes']>
  * Type alias extracting the non-undefined list of edges from flowchart
  * configuration.
  *
- * @template | {@linkcode NodeData} `D` - Custom node data dictionary type extending
- *   {@linkcode NodeData}.
+ * @template | Type {@linkcode NodeData} `D` - Custom node data dictionary type
+ *   extending type {@linkcode NodeData}.
  */
 export type EdgesFrom<D extends NodeData> = NotUndefined<ConfigFrom<D>['edges']>;

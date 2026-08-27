@@ -3,6 +3,23 @@
 <details>
 <summary>
 
+## **[1.4.1] - 27/08/2026** => _19:01_
+
+</summary>
+
+- Enhance JSDoc documentation across `Flow` and `FlowChart.types.ts`
+- Refactor `Flow` component to mount `FlowChart` directly without initial delay and
+  loading fallback
+- Update `@bemedev/dev-utils` to `^1.5.0`
+- <u>Test coverage **_100%_**</u>
+
+</details>
+
+<br/>
+
+<details>
+<summary>
+
 ## **[1.4.0] - 27/08/2026** => _14:08_
 
 </summary>
