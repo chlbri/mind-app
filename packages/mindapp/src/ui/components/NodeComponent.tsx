@@ -200,8 +200,6 @@ export const NodeComponent = <D extends NodeData = NodeData>(
 
       <div
         id='inputs'
-        data-handle-type='input'
-        data-node-id={props.id}
         class='pointer-events-none absolute top-0 z-10 flex cursor-default flex-col'
         style={{ left: `-${HANDLE_CONTAINER_OFFSET_X}px` }}
       >
@@ -211,7 +209,7 @@ export const NodeComponent = <D extends NodeData = NodeData>(
           onMouseDown={event => event.stopPropagation()}
           onPointerDown={e => e.stopPropagation()}
 
-          class='cursor-default rounded-full bg-[#e38b29] shadow-md transition-transform'
+          class='cursor-default rounded-full bg-[#e38b29] shadow-md transition-transform duration-150 ease-in-out hover:scale-150'
 
           style={{
             width: `${HANDLE_SIZE}px`,
@@ -233,8 +231,7 @@ export const NodeComponent = <D extends NodeData = NodeData>(
       </div>
       <div
         id='outputs'
-        data-handle-type='output'
-        data-node-id={props.id}
+
         style={{ right: `-${HANDLE_CONTAINER_OFFSET_X}px` }}
 
         class='pointer-events-none absolute top-0 z-10 flex flex-col'
@@ -242,7 +239,7 @@ export const NodeComponent = <D extends NodeData = NodeData>(
         <div
           data-handle-type='output'
           data-node-id={props.id}
-          class='cursor-crosshair rounded-full bg-[#e38b29] shadow-md transition-transform'
+          class='cursor-crosshair rounded-full bg-[#e38b29] shadow-md transition-transform duration-150 ease-in-out hover:scale-150'
           style={{
             width: `${HANDLE_SIZE}px`,
             height: `${HANDLE_SIZE}px`,

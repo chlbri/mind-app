@@ -32,7 +32,9 @@ export const FlowChart = <D extends NodeData = NodeData>(
   const primaryNodes = props.config?.nodes ?? DEFAULT_NODES;
   const primaryEdges = props.config?.edges;
   const service = useFlow();
-  const hasNewEdge = createState(service, { selector: s => !!s.context.newEdge });
+  const fromSignal = createState(service, {
+    selector: s => s.context.newEdge?.from,
+  });
   onCleanup(service.pause);
 
   onMount(() => {
@@ -47,26 +49,53 @@ export const FlowChart = <D extends NodeData = NodeData>(
     });
   });
 
+  let added = false;
+
   createEffect(() => {
-    if (!hasNewEdge()) return;
+    const from = fromSignal();
+    if (!from || added) return;
 
     const handlePointerMove = (e: MouseEvent | PointerEvent) => {
       service.send({
         type: 'MOVE_NEW_EDGE',
         payload: { x: e.clientX, y: e.clientY },
       });
+
+      const elements = document.elementsFromPoint(e.clientX, e.clientY);
+      const inputHandle = elements
+        .map(el =>
+          el.closest<HTMLElement>('.rounded-full[data-handle-type="input"]'),
+        )
+        .find((handle): handle is HTMLElement =>
+          Boolean(handle && handle.id !== 'inputs'),
+        );
+      const targetId = inputHandle?.getAttribute('data-node-id');
+
+      if (inputHandle && targetId) {
+        console.log('REACH CAN !!!');
+        inputHandle.classList.add('scale-150');
+        added = true;
+        inputHandle.addEventListener(
+          'mouseleave',
+          () => {
+            inputHandle.classList.remove('scale-150');
+            added = false;
+          },
+          { once: true },
+        );
+      }
     };
 
     const handlePointerUp = (e: MouseEvent | PointerEvent) => {
-      const from = service.state.context.newEdge?.from;
-      if (from) {
-        const el = document.elementFromPoint(e.clientX, e.clientY);
-        const inputHandle = el?.closest('[data-handle-type="input"]');
-        const targetId = inputHandle?.getAttribute('data-node-id');
-        if (targetId && targetId !== from) {
-          service.send({ type: 'ADD_EDGE', payload: { from, to: targetId } });
-        }
+      const el = document.elementFromPoint(e.clientX, e.clientY);
+      const inputHandle = el?.closest('[data-handle-type="input"]');
+      const to = inputHandle?.getAttribute('data-node-id');
+      if (inputHandle && to) {
+        service.send({ type: 'ADD_EDGE', payload: { from, to } });
+        inputHandle.classList.remove('scale-150');
+        added = false;
       }
+
       service.send('CLEAR_NEW_EDGE');
     };
 
@@ -83,7 +112,7 @@ export const FlowChart = <D extends NodeData = NodeData>(
     <div class='relative h-full w-full'>
       <div
         class='h-full w-full'
-        style={{ cursor: hasNewEdge() ? 'inherit' : 'crosshair' }}
+        style={{ cursor: fromSignal() ? 'inherit' : 'crosshair' }}
       >
         <NodesBoard panels={props.panels} component={props.component} />
       </div>

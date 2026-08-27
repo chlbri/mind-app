@@ -5,10 +5,17 @@ import { nitro } from 'nitro/vite';
 import { defineConfig } from 'vite';
 import viteSolid from 'vite-plugin-solid';
 
+import { hmr } from './vite.plugin.ts';
+
 export default defineConfig({
   server: { port: 3000 },
   resolve: { tsconfigPaths: true },
   plugins: [
+    hmr({
+      paths: ['../../packages/mindapp/src'],
+      scripts: ['pnpm run --filter @bemedev/mind-flow build:dev'],
+      debounce: 1000,
+    }),
     suppressWarnings('Cannot remove nonexistent sensor with id'),
     tailwindcss({}),
     tanstackStart({}),

@@ -1,6 +1,21 @@
+import { isDefined } from '@bemedev/app/bemedev';
 import { Show, type Component } from 'solid-js';
 
+import { cn } from '../utils';
 import type { FlowPanels } from './FlowChart.types';
+
+const Panel: Component<{ children?: Component; class: string }> = props => {
+  const exists = isDefined(props.children);
+  return (
+    <Show when={props.children} keyed>
+      {Children => (
+        <div class={cn(props.class)} classList={{ 'z-50': exists }}>
+          <Children />
+        </div>
+      )}
+    </Show>
+  );
+};
 
 /**
  * Overlay container rendering custom panel slots positioned around the flowchart
@@ -12,20 +27,10 @@ import type { FlowPanels } from './FlowChart.types';
  */
 export const Panels: Component<FlowPanels> = props => {
   return (
-    <>
-      <Show when={props.topLeft} keyed>
-        {Panel => <div class='absolute top-4 left-4 z-50'>{<Panel />}</div>}
-      </Show>
-
-      {/* Top-Right Panel */}
-      <Show when={props.topRight} keyed>
-        {Panel => <div class='absolute top-4 right-4 z-50'>{<Panel />}</div>}
-      </Show>
-
-      {/* Bottom-Left Panel */}
-      <Show when={props.bottomLeft} keyed>
-        {Panel => <div class='absolute bottom-4 left-4 z-50'>{<Panel />}</div>}
-      </Show>
-    </>
+    <div class='pointer-events-none absolute inset-0'>
+      <Panel children={props.topLeft} class='absolute top-4 left-4' />
+      <Panel children={props.topRight} class='absolute top-4 right-4' />
+      <Panel children={props.bottomLeft} class='absolute bottom-4 left-4' />
+    </div>
   );
 };

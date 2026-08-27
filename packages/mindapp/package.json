@@ -58,7 +58,8 @@
   "module": "lib/index.es.js",
   "types": "lib/index.d.ts",
   "scripts": {
-    "build": "pnpm rm:lib && pnpm run build:server && pnpm run build:client && pnpm run build:css",
+    "build": "pnpm rm:lib && pnpm run build:dev",
+    "build:dev": "pnpm run build:server && pnpm run build:client && pnpm run build:css",
     "build:client": "vite build",
     "build:server": "vite build --mode server",
     "build:css": "pnpx @tailwindcss/cli -i ./input.css -o ../lib/output.css --minify --cwd ./src",

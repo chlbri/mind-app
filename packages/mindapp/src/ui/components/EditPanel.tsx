@@ -25,6 +25,7 @@ export const EditPanel = <D extends NodeData = NodeData>(
   props: EditPanelProps<D>,
 ): JSX.Element => {
   void clickOutside;
+  // const editing
   const hooks = useHook<D>(props.timeout);
   const classList = () =>
     props.classList instanceof Function ? props.classList(hooks) : props.classList;
@@ -36,7 +37,11 @@ export const EditPanel = <D extends NodeData = NodeData>(
           class={cn(
             `w-80 cursor-default rounded-2xl border border-gray-200 bg-white/95 p-4 shadow-xl backdrop-blur-md transition-all ${props.class ?? ''}`,
           )}
-          classList={classList()}
+          classList={{
+            ...classList(),
+            'pointer-events-none! -z-10': !hooks.editing(),
+            'pointer-events-all! z-50': !!hooks.editing(),
+          }}
           style={props.style}
           onMouseDown={e => e.stopPropagation()}
           use:clickOutside={hooks.close}
