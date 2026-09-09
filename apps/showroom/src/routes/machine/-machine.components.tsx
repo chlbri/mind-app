@@ -77,7 +77,7 @@ export const StateMachineNode: Component<StateMachineNodeData> = props => {
         <button
           type='button'
           title={`${actorCount()} actor(s) attached — Click to inspect details`}
-          class='absolute -top-3.5 -right-3.5 z-30 flex h-7 w-7 cursor-pointer items-center justify-center rounded-full bg-gradient-to-tr from-purple-600 via-indigo-600 to-pink-500 text-white shadow-md ring-2 ring-white transition-transform duration-200 hover:scale-115 active:scale-95'
+          class='absolute -top-3.5 -right-3.5 z-30 flex h-7 w-7 cursor-pointer items-center justify-center rounded-full bg-linear-to-tr from-purple-600 via-indigo-600 to-pink-500 text-white shadow-md ring-2 ring-white transition-transform duration-200 hover:scale-115 active:scale-95'
           onMouseDown={e => e.stopPropagation()}
           onClick={e => {
             e.stopPropagation();
@@ -860,7 +860,7 @@ export const AddTransitionModal: Component = () => {
             onClick={e => e.stopPropagation()}
           >
             {/* Header */}
-            <div class='flex items-center justify-between border-b border-gray-100 bg-gradient-to-r from-indigo-50 via-purple-50 to-white px-5 py-3.5'>
+            <div class='flex items-center justify-between border-b border-gray-100 bg-linear-to-r from-indigo-50 via-purple-50 to-white px-5 py-3.5'>
               <div class='flex items-center gap-2.5'>
                 <span class='flex h-7 w-7 items-center justify-center rounded-lg bg-indigo-600 text-sm font-bold text-white shadow-xs'>
                   +

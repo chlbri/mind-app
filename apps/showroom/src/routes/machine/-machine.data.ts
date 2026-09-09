@@ -4,10 +4,11 @@ import type { ConfigFrom, EdgesFrom, NodesFrom } from '@bemedev/mind-flow';
 import { parseMachineToGraph } from './-machine.parser';
 import type { StateMachineEdgeData, StateMachineNodeData } from './-machine.types';
 
-// ============================================================================
-// Machine 1: E-Commerce Order Fulfillment & Payment
-// ============================================================================
-
+/**
+ * A state machine representing the lifecycle of an e-commerce order, from cart
+ * selection to payment processing, validation, fulfillment, and potential
+ * cancellation or refund.
+ */
 export const orderMachine = createMachine({
   initial: 'cart',
   states: {

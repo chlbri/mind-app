@@ -24,7 +24,7 @@ import type { EdgeProps } from './edges/types';
 import { EdgesBoard } from './EdgesBoard';
 import { useFlow } from './FlowChart.context';
 import type { FlowPanels } from './FlowChart.types';
-import { NodeComponent } from './NodeComponent';
+import { NodeComponent } from './Node';
 import { Panels } from './Panels';
 
 /** Properties for the {@linkcode NodesBoard} component. */
