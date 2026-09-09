@@ -2,26 +2,26 @@ import type { Component, JSX } from 'solid-js';
 
 import type { ClassList } from '../globals/types';
 import { useHook } from './EditPanel.hooks';
-import type { NodeData } from './FlowChart';
+import type { Data } from './FlowChart';
 
 /**
  * Render properties and mutation callbacks provided to {@linkcode EditPanel} children
  * or custom component.
  *
- * @template | {@linkcode NodeData} `D` - Custom node data dictionary type extending
- *   {@linkcode NodeData}.
+ * @template | {@linkcode Data} `D` - Custom node data dictionary type extending
+ *   {@linkcode Data}.
  */
-export type EditPanelChildProps<D extends NodeData = NodeData> = ReturnType<
+export type EditPanelChildProps<D extends Data = Data> = ReturnType<
   typeof useHook<D>
 >;
 
 /**
  * Configuration properties for the generic {@linkcode EditPanel} component.
  *
- * @template | {@linkcode NodeData} `D` - Custom node data dictionary type extending
- *   {@linkcode NodeData}.
+ * @template | {@linkcode Data} `D` - Custom node data dictionary type extending
+ *   {@linkcode Data}.
  */
-export type EditPanelProps<D extends NodeData = NodeData> = {
+export type EditPanelProps<D extends Data = Data> = {
   /** Optional additional CSS classes for the outer container card. */
   class?: string;
   /** Optional class map for conditional styling. */

@@ -6,8 +6,7 @@ type Status = 'idle' | 'paused' | 'started' | 'stopped';
 /**
  * Solid hook to manage a sleep timer with pause, resume, restart, and skip controls.
  *
- * @param delay - Delay in milliseconds before triggering completion. Defaults to
- *   1000.
+ * @param delay - Delay in milliseconds before triggering completion. Defaults to 1000.
  * @param autoStart - Whether the timer starts immediately on initialization.
  *   Defaults to `true`.
  *

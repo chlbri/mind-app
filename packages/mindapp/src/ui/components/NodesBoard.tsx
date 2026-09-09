@@ -18,8 +18,9 @@ import {
 } from 'solid-js';
 
 import { CANVAS_FACTOR, SCROLL_MULTIPLIER } from '../../services/main.machine.data';
-import type { NodeData } from '../../services/main.machine.typings';
+import type { Data } from '../../services/main.machine.typings';
 import { DragBounds } from './Bounds';
+import type { EdgeProps } from './edges/types';
 import { EdgesBoard } from './EdgesBoard';
 import { useFlow } from './FlowChart.context';
 import type { FlowPanels } from './FlowChart.types';
@@ -27,9 +28,11 @@ import { NodeComponent } from './NodeComponent';
 import { Panels } from './Panels';
 
 /** Properties for the {@linkcode NodesBoard} component. */
-type Props<D extends NodeData = NodeData> = {
+type Props<N extends Data = Data, E extends Data = Data> = {
   /** Optional custom node component. */
-  component?: Component<D>;
+  Node?: Component<N>;
+  /** Optional custom edge component. */
+  Edge: Component<EdgeProps<E>>;
   /** Optional custom overlay panels. */
   panels?: FlowPanels;
 };
@@ -38,8 +41,8 @@ type Props<D extends NodeData = NodeData> = {
  * Interactive board component containing the drag-drop viewport, zoom controls,
  * panning gestures, and rendered nodes/edges.
  *
- * @template | {@linkcode NodeData} `D` - Custom node data dictionary type extending
- *   {@linkcode NodeData}.
+ * @template | {@linkcode Data} `N` - Custom node data dictionary type extending
+ *   {@linkcode Data}.
  *
  * @param props - Board component properties of type {@linkcode Props}.
  *
@@ -47,8 +50,8 @@ type Props<D extends NodeData = NodeData> = {
  *
  * @see {@linkcode DragBounds}, {@linkcode EdgesBoard}, {@linkcode NodeComponent}, {@linkcode useFlow}, {@linkcode CANVAS_FACTOR}, {@linkcode SCROLL_MULTIPLIER}
  */
-export const NodesBoard = <D extends NodeData = NodeData>(
-  props: Props<D>,
+export const NodesBoard = <N extends Data = Data, E extends Data = Data>(
+  props: Props<N, E>,
 ): JSX.Element => {
   let containerRef: HTMLDivElement;
   const [isPanning, setIsPanning] = createSignal(false);
@@ -268,9 +271,9 @@ export const NodesBoard = <D extends NodeData = NodeData>(
               style={{ scale: zoom(), 'transform-origin': 'top left' }}
             >
               <DragBounds />
-              <EdgesBoard />
+              <EdgesBoard Edge={props.Edge} />
               <For each={nodeIds()}>
-                {id => <NodeComponent id={id} children={props.component} />}
+                {id => <NodeComponent id={id} children={props.Node} />}
               </For>
             </div>
           </div>

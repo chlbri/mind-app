@@ -2,13 +2,14 @@ import { createState } from '@bemedev/app-solidjs';
 import { createEffect, type JSX, onCleanup, onMount } from 'solid-js';
 
 import { DEFAULT_NODES } from '#services/main.machine.data';
-import type { NodeData, NodeProps } from '#services/main.machine.typings';
+import type { Data, NodeProps } from '#services/main.machine.typings';
 
+import { EdgeCursive } from './edges/EdgeCursive';
 import { useFlow } from './FlowChart.context';
 import type { FlowProps } from './FlowChart.types';
 import { NodesBoard } from './NodesBoard';
 
-export type { NodeData, NodeProps };
+export type { Data, NodeProps };
 
 // const PARENT_CHILD_GAP_WIDTH = 75;
 
@@ -16,8 +17,8 @@ export type { NodeData, NodeProps };
  * Flowchart board canvas component that renders interactive nodes, edges, pan/zoom,
  * and toolbar controls.
  *
- * @template | {@linkcode NodeData} `D` - Custom node data dictionary type extending
- *   {@linkcode NodeData}.
+ * @template | {@linkcode Data} `D` - Custom node data dictionary type extending
+ *   {@linkcode Data}.
  *
  * @param props - Flowchart configuration and event handlers of type
  *   {@linkcode FlowProps}.
@@ -26,33 +27,29 @@ export type { NodeData, NodeProps };
  *
  * @see {@linkcode NodesBoard}, {@linkcode useFlow}, {@linkcode DEFAULT_NODES}
  */
-export const FlowChart = <D extends NodeData = NodeData>(
-  props: FlowProps<D>,
+export const FlowChart = <N extends Data = Data, E extends Data = Data>(
+  props: FlowProps<N, E>,
 ): JSX.Element => {
-  const primaryNodes = props.config?.nodes ?? DEFAULT_NODES;
-  const primaryEdges = props.config?.edges;
+  const Edge = props.Edge ?? EdgeCursive<E>;
   const service = useFlow();
-  const fromSignal = createState(service, {
-    selector: s => s.context.newEdge?.from,
-  });
   onCleanup(service.pause);
+  let added = false;
+  const fromNew = createState(service, { selector: s => s.context.newEdge?.from });
+  // Track the currently enlarged handle during edge drag
+  let activeHandle: HTMLElement | null = null;
 
   onMount(() => {
     service.resume();
+
     service.send({
       type: 'CONFIGURE',
       payload: {
-        nodes: primaryNodes,
-        edges: primaryEdges ?? [],
+        nodes: props.config?.nodes ?? DEFAULT_NODES,
+        edges: props.config?.edges ?? [],
         defaultData: props.defaultData,
       },
     });
   });
-
-  let added = false;
-
-  // Track the currently enlarged handle during edge drag
-  let activeHandle: HTMLElement | null = null;
 
   const clearActiveHandle = () => {
     if (activeHandle) {
@@ -106,7 +103,7 @@ export const FlowChart = <D extends NodeData = NodeData>(
   };
 
   createEffect(() => {
-    const from = fromSignal();
+    const from = fromNew();
     if (!from || added) return;
 
     const handlePointerUp = createHandlePointerUp(from);
@@ -125,9 +122,9 @@ export const FlowChart = <D extends NodeData = NodeData>(
     <div class='relative h-full w-full'>
       <div
         class='h-full w-full'
-        style={{ cursor: fromSignal() ? 'inherit' : 'crosshair' }}
+        style={{ cursor: fromNew() ? 'inherit' : 'crosshair' }}
       >
-        <NodesBoard panels={props.panels} component={props.component} />
+        <NodesBoard panels={props.panels} Node={props.Node} Edge={Edge} />
       </div>
     </div>
   );

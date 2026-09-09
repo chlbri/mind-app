@@ -1,6 +1,6 @@
 import { type JSX, Show } from 'solid-js';
 
-import type { NodeData } from '#services/main.machine.typings';
+import type { Data } from '#services/main.machine.typings';
 
 import { clickOutside } from '../globals/directives';
 import { cn } from '../utils';
@@ -11,8 +11,8 @@ import type { EditPanelProps } from './EditPanel.types';
  * Generic overlay edit panel component for modifying the data of the currently
  * active/double-clicked flowchart node.
  *
- * @template | {@linkcode NodeData} `D` - Custom node data dictionary type extending
- *   {@linkcode NodeData}.
+ * @template | {@linkcode Data} `D` - Custom node data dictionary type extending
+ *   {@linkcode Data}.
  *
  * @param props - Edit panel configuration properties of type
  *   {@linkcode EditPanelProps}.
@@ -21,7 +21,7 @@ import type { EditPanelProps } from './EditPanel.types';
  *
  * @see {@linkcode useHook}, {@linkcode clickOutside}
  */
-export const EditPanel = <D extends NodeData = NodeData>(
+export const EditPanel = <D extends Data = Data>(
   props: EditPanelProps<D>,
 ): JSX.Element => {
   void clickOutside;

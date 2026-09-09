@@ -33,7 +33,7 @@ export const nodeDataValue = type(({ union }) =>
 export const data = type(({ record, use }) => record(use(nodeDataValue)));
 
 /** Serialized node data dictionary type inferred from schema {@linkcode data}. */
-export type NodeData = Record<string, string | boolean | number>;
+export type Data = inferT<typeof data>;
 
 /**
  * Schema definition for a serialized flowchart node entity.
@@ -48,20 +48,22 @@ export const nodeJSON = type(({ use }) => ({
 /**
  * Serialized node properties type inferred from schema {@linkcode nodeJSON}.
  *
- * @template | {@linkcode NodeData} `D` - Custom data properties type extending
- *   {@linkcode NodeData}.
+ * @template | {@linkcode Data} `D` - Custom data properties type extending
+ *   {@linkcode Data}.
  */
-export type NodeProps<D extends NodeData = NodeData> = { position: Point; data: D };
+export type NodeProps<D extends Data = Data> = { position: Point; data: D };
 
 /**
  * Schema definition for a serialized flowchart edge entity.
  *
  * @see {@linkcode extremities}
  */
-export const edgeJSON = extremities;
+export const edgeJSON = type(({ use, intersection, optional }) =>
+  intersection({ data: optional(use(data)) }, use(extremities)),
+);
 
 /** Serialized edge properties type inferred from schema {@linkcode edgeJSON}. */
-export type EdgeProps = inferT<typeof edgeJSON>;
+export type Edge<E extends Data = Data> = inferT<typeof edgeJSON> & { data?: E };
 
 /**
  * Schema definition for layout dimensions and connection points of a node.
@@ -105,7 +107,7 @@ export const newEdge = type(({ intersection, use }) =>
 );
 
 /** Ongoing new connection edge preview type inferred from schema {@linkcode newEdge}. */
-export type Edge = inferT<typeof newEdge>;
+export type NewEdge = inferT<typeof newEdge>;
 
 /** Schema definition for flowchart board geometry and container scroll dimensions. */
 export const board = type(({ optional }) => ({

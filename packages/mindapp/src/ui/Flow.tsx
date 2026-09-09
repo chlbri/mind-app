@@ -1,6 +1,6 @@
 import { type JSX } from 'solid-js';
 
-import type { NodeData } from '../services/main.machine.typings';
+import type { Data } from '../services/main.machine.typings';
 import { FlowChart } from './components/FlowChart';
 import { Provider } from './components/FlowChart.context';
 import type { FlowProps } from './components/FlowChart.types';
@@ -9,8 +9,8 @@ import type { FlowProps } from './components/FlowChart.types';
  * Root Flow component wrapping the {@linkcode FlowChart} inside the flow context
  * provider.
  *
- * @template | Type {@linkcode NodeData} `D` - Custom node data dictionary type
- *   extending type {@linkcode NodeData}.
+ * @template | Type {@linkcode Data} `D` - Custom node data dictionary type extending
+ *   type {@linkcode Data}.
  *
  * @param props - Flow chart configuration and callbacks of type
  *   {@linkcode FlowProps}.
@@ -19,9 +19,7 @@ import type { FlowProps } from './components/FlowChart.types';
  *
  * @see {@linkcode Provider}
  */
-export const Flow = <D extends NodeData = NodeData>(
-  props: FlowProps<D>,
-): JSX.Element => {
+export const Flow = <D extends Data = Data>(props: FlowProps<D>): JSX.Element => {
   return (
     <div
       style={{

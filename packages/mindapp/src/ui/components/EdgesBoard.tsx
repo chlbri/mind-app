@@ -1,7 +1,9 @@
 import { createState } from '@bemedev/app-solidjs';
-import { Component, For, Show } from 'solid-js';
+import { Component, For, Show, type JSX } from 'solid-js';
 
-import { EdgeComponent } from './EdgeComponent';
+import type { Data } from '#services/main.machine.typings';
+
+import type { EdgeProps } from './edges/types';
 import { useFlow } from './FlowChart.context';
 
 /**
@@ -10,9 +12,11 @@ import { useFlow } from './FlowChart.context';
  *
  * @returns The rendered SVG JSX element.
  *
- * @see {@linkcode EdgeComponent}, {@linkcode useFlow}
+ * @see {@linkcode useFlow}
  */
-export const EdgesBoard: Component = () => {
+export const EdgesBoard: <E extends Data = Data>(props: {
+  Edge: Component<EdgeProps<E>>;
+}) => JSX.Element = props => {
   const service = useFlow();
   const hasNewEdge = createState(service, { selector: s => !!s.context.newEdge });
 
@@ -24,10 +28,10 @@ export const EdgesBoard: Component = () => {
   return (
     <svg class='pointer-events-none h-full w-full overflow-visible'>
       <Show when={hasNewEdge()}>
-        <EdgeComponent id='__#new-edge#__TEMP' isNew />
+        <props.Edge id='__#new-edge#__TEMP' isNew />
       </Show>
 
-      <For each={edgeIds()}>{id => <EdgeComponent id={id} />}</For>
+      <For each={edgeIds()}>{id => <props.Edge id={id} />}</For>
     </svg>
   );
 };

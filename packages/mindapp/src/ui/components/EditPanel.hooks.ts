@@ -3,15 +3,15 @@ import { createState } from '@bemedev/app-solidjs';
 import { isDefined } from '@bemedev/app/bemedev';
 import { createSignal, type Accessor } from 'solid-js';
 
-import type { NodeData } from './FlowChart';
+import type { Data } from './FlowChart';
 import { useFlow } from './FlowChart.context';
 
 /**
  * Hook providing reactive state and mutation helpers for editing flowchart node
  * data.
  *
- * @template | {@linkcode NodeData} `D` - Custom node data dictionary type extending
- *   {@linkcode NodeData}.
+ * @template | {@linkcode Data} `D` - Custom node data dictionary type extending
+ *   {@linkcode Data}.
  *
  * @param timeout - Transition delay in milliseconds before closing the panel.
  *   Defaults to `270`.
@@ -21,7 +21,7 @@ import { useFlow } from './FlowChart.context';
  *
  * @see {@linkcode useFlow}
  */
-export const useHook = <D extends NodeData = NodeData>(timeout = 270) => {
+export const useHook = <D extends Data = Data>(timeout = 270) => {
   const service = useFlow();
   const directClose = () => service.send('STOP_EDIT');
   const [closing, setClosing] = createSignal(false);

@@ -10,13 +10,13 @@ import {
   HANDLE_MARGIN_TOP,
   HANDLE_SIZE,
 } from '#services/main.machine.data';
-import type { NodeData } from '#services/main.machine.typings';
+import type { Data } from '#services/main.machine.typings';
 
 import { resize } from '../globals/directives';
 import { useFlow } from './FlowChart.context';
 
 /** Properties for rendering an individual flowchart node component. */
-export type NodeComponentProps<D extends NodeData = NodeData> = {
+export type NodeComponentProps<D extends Data = Data> = {
   /** Unique identifier of the node. */
   id: string;
   /** Custom node component to render inside the node container. */
@@ -27,8 +27,8 @@ export type NodeComponentProps<D extends NodeData = NodeData> = {
  * Interactive flowchart node component supporting dragging, selection, handle
  * connections, and child/sibling creation.
  *
- * @template | {@linkcode NodeData} `D` - Custom node data dictionary type extending
- *   {@linkcode NodeData}.
+ * @template | {@linkcode Data} `D` - Custom node data dictionary type extending
+ *   {@linkcode Data}.
  *
  * @param props - Node rendering properties of type {@linkcode NodeComponentProps}.
  *
@@ -36,7 +36,7 @@ export type NodeComponentProps<D extends NodeData = NodeData> = {
  *
  * @see {@linkcode useFlow}, {@linkcode HANDLE_CONTAINER_OFFSET_X}, {@linkcode HANDLE_MARGIN_TOP}, {@linkcode HANDLE_SIZE}
  */
-export const NodeComponent = <D extends NodeData = NodeData>(
+export const NodeComponent = <D extends Data = Data>(
   props: NodeComponentProps<D>,
 ): JSX.Element => {
   const service = useFlow();

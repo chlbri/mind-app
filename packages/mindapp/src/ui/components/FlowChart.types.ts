@@ -1,9 +1,10 @@
 import type { NotUndefined } from '@bemedev/app/bemedev';
 import type { Component } from 'solid-js';
 
-import type { EdgeProps } from '#services/main.machine.typings';
+import type { Edge } from '#services/main.machine.typings';
 
-import type { NodeData, NodeProps } from './FlowChart';
+import type { EdgeProps } from './edges/types';
+import type { Data, NodeProps } from './FlowChart';
 
 /** Overlay panel slots positioned around the flowchart canvas. */
 export type FlowPanels = {
@@ -19,22 +20,25 @@ export type FlowPanels = {
  * Configuration options and callback handlers for the {@linkcode FlowChart}
  * component.
  *
- * @template | Type {@linkcode NodeData} `D` - Custom node data dictionary type
- *   extending type {@linkcode NodeData}.
+ * @template | Type {@linkcode Data} `D` - Custom node data dictionary type extending
+ *   type {@linkcode Data}.
  */
-export type FlowProps<D extends NodeData = NodeData> = {
+export type FlowProps<N extends Data = Data, E extends Data = Data> = {
   /** Optional delay in milliseconds before mounting the flowchart canvas. */
   delay?: number;
   /** Initial flowchart state configuration with nodes and edges. */
   config?: {
-    nodes?: (NodeProps<D> & { id: string })[];
-    edges?: (EdgeProps & { id: string })[];
+    nodes?: (NodeProps<N> & { id: string })[];
+    edges?: (Edge<E> & { id: string })[];
   };
   /** Custom node component to render inside each flowchart node. */
-  component?: Component<D>;
+  Node?: Component<N>;
+
+  /** Custom edge component to render inside each flowchart edge. */
+  Edge?: Component<EdgeProps<E>>;
 
   /** Default data for new nodes created in the flowchart. */
-  defaultData?: D;
+  defaultData?: N;
   /** Custom overlay panels positioned around the canvas. */
   panels?: FlowPanels;
   /**
@@ -42,7 +46,7 @@ export type FlowProps<D extends NodeData = NodeData> = {
    *
    * @param node - The created node object of type {@linkcode NodeProps}.
    */
-  onNodeAdded?: (node: NodeProps<D>) => void;
+  onNodeAdded?: (node: NodeProps<N>) => void;
   /**
    * Callback triggered when a node is deleted.
    *
@@ -52,9 +56,9 @@ export type FlowProps<D extends NodeData = NodeData> = {
   /**
    * Callback triggered when an edge is created.
    *
-   * @param edge - The created edge object of type {@linkcode EdgeProps}.
+   * @param edge - The created edge object of type {@linkcode Edge}.
    */
-  onEdgeAdded?: (edge: EdgeProps) => void;
+  onEdgeAdded?: (edge: Edge) => void;
   /**
    * Callback triggered when an edge is deleted.
    *
@@ -66,27 +70,25 @@ export type FlowProps<D extends NodeData = NodeData> = {
 /**
  * Type alias extracting the non-undefined flowchart configuration object.
  *
- * @template | Type {@linkcode NodeData} `D` - Custom node data dictionary type
- *   extending type {@linkcode NodeData}.
+ * @template | Type {@linkcode Data} `D` - Custom node data dictionary type extending
+ *   type {@linkcode Data}.
  */
-export type ConfigFrom<D extends NodeData = NodeData> = NotUndefined<
-  FlowProps<D>['config']
->;
+export type ConfigFrom<D extends Data = Data> = NotUndefined<FlowProps<D>['config']>;
 
 /**
  * Type alias extracting the non-undefined list of nodes from flowchart
  * configuration.
  *
- * @template | Type {@linkcode NodeData} `D` - Custom node data dictionary type
- *   extending type {@linkcode NodeData}.
+ * @template | Type {@linkcode Data} `D` - Custom node data dictionary type extending
+ *   type {@linkcode Data}.
  */
-export type NodesFrom<D extends NodeData> = NotUndefined<ConfigFrom<D>['nodes']>;
+export type NodesFrom<D extends Data> = NotUndefined<ConfigFrom<D>['nodes']>;
 
 /**
  * Type alias extracting the non-undefined list of edges from flowchart
  * configuration.
  *
- * @template | Type {@linkcode NodeData} `D` - Custom node data dictionary type
- *   extending type {@linkcode NodeData}.
+ * @template | Type {@linkcode Data} `D` - Custom node data dictionary type extending
+ *   type {@linkcode Data}.
  */
-export type EdgesFrom<D extends NodeData> = NotUndefined<ConfigFrom<D>['edges']>;
+export type EdgesFrom<D extends Data> = NotUndefined<ConfigFrom<D>['edges']>;
