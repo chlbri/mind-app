@@ -39,7 +39,7 @@ export type NodeComponentProps<D extends Data = Data> = {
 export const NodeComponent = <D extends Data = Data>(
   props: NodeComponentProps<D>,
 ): JSX.Element => {
-  const service = useFlow();
+  const { service } = useFlow();
   const newEdge = createState(service, { selector: s => s.context.newEdge });
   const draggable = createDraggable(props.id);
   void draggable;

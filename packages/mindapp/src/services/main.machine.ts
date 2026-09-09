@@ -233,11 +233,12 @@ export const machine = createMachine(
     select: assign('selected', { SELECT: ({ payload }) => payload }),
     clearNewEdge: erase('newEdge'),
     deselect: batch(erase('selected'), erase('editing')),
+    stopEdit: erase('editing'),
+
     edit: batch(
       assign('editing', { EDIT: ({ payload }) => payload }),
       assign('selected', { EDIT: ({ payload }) => payload }),
     ),
-    stopEdit: erase('editing'),
 
     startNewEdge: assign('newEdge', {
       START_NEW_EDGE: ({ payload: from, pContext: { dimensions } }) => {
@@ -283,6 +284,7 @@ export const machine = createMachine(
               edgePosition.x0 = output.x;
               edgePosition.y0 = output.y;
             }
+
             if (to === payload.id) {
               edgePosition.x1 = input.x;
               edgePosition.y1 = input.y;
@@ -364,11 +366,9 @@ export const machine = createMachine(
 
         dimension.width = width;
         dimension.height = height;
-
         const node = data?.nodes?.find(n => n.id === id);
         const outputOffset = getDefaultOutputOffset(width);
         const inputOffset = dimension.inputOffset ?? DEFAULT_INPUT_OFFSET;
-
         dimension.outputOffset = outputOffset;
         dimension.inputOffset = inputOffset;
 
@@ -377,6 +377,7 @@ export const machine = createMachine(
             x: node.position.x + outputOffset.x,
             y: node.position.y + outputOffset.y,
           };
+
           dimension.input = {
             x: node.position.x + inputOffset.x,
             y: node.position.y + inputOffset.y,
@@ -512,15 +513,13 @@ export const machine = createMachine(
           height,
         );
 
-        const defaultData = pContext.defaultData ?? DEFAULT_DATA;
-
-        nodes?.push({ id, data: { ...defaultData }, position });
-
         pContext.dimensions[id] = pContext.calculateDimensions(
           position,
           parentDimension ?? DEFAULT_SIZE,
         );
 
+        const defaultData = pContext.defaultData ?? DEFAULT_DATA;
+        nodes?.push({ id, data: { ...defaultData }, position });
         return nodes;
       },
     }),
@@ -547,15 +546,13 @@ export const machine = createMachine(
           DEFAULT_SIZE.height,
         );
 
-        const defaultData = pContext.defaultData ?? DEFAULT_DATA;
-
-        nodes?.push({ id, data: { ...defaultData }, position });
-
         pContext.dimensions[id] = pContext.calculateDimensions(
           position,
           DEFAULT_SIZE,
         );
 
+        const defaultData = pContext.defaultData ?? DEFAULT_DATA;
+        nodes?.push({ id, data: { ...defaultData }, position });
         return nodes;
       },
     }),
@@ -587,15 +584,13 @@ export const machine = createMachine(
           height,
         );
 
-        const defaultData = pContext.defaultData ?? DEFAULT_DATA;
-
-        nodes?.push({ id, data: { ...defaultData }, position });
-
         pContext.dimensions[id] = pContext.calculateDimensions(
           position,
           parentDimension ?? DEFAULT_SIZE,
         );
 
+        const defaultData = pContext.defaultData ?? DEFAULT_DATA;
+        nodes?.push({ id, data: { ...defaultData }, position });
         return nodes;
       },
     }),
@@ -604,11 +599,13 @@ export const machine = createMachine(
       MOVE_NEW_EDGE: ({ context: { newEdge, board }, payload, pContext }) => {
         if (!board) return undefined;
         if (!newEdge) return undefined;
+
         const { x: x1, y: y1 } = pContext.getBoardPosition(
           payload.x,
           payload.y,
           board,
         );
+
         return { ...newEdge, x1, y1 };
       },
     }),

@@ -22,7 +22,7 @@ import { useFlow } from './FlowChart.context';
  * @see {@linkcode useFlow}
  */
 export const useHook = <D extends Data = Data>(timeout = 270) => {
-  const service = useFlow();
+  const { service } = useFlow();
   const directClose = () => service.send('STOP_EDIT');
   const [closing, setClosing] = createSignal(false);
   const senderData = service.sender('SET_NODE_DATA');

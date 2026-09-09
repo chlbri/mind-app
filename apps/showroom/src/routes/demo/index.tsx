@@ -14,7 +14,7 @@ export const Route = createFileRoute('/demo/')({
         config={{ nodes: INITIAL_NODES, edges: INITIAL_EDGES }}
         Node={ShowroomNode}
         panels={{ topLeft: ShowroomEditPanel }}
-        
+
         defaultData={{
           title: 'New Node',
           content: 'Edit this description in the top-left panel.',

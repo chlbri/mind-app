@@ -31,7 +31,7 @@ export const FlowChart = <N extends Data = Data, E extends Data = Data>(
   props: FlowProps<N, E>,
 ): JSX.Element => {
   const Edge = props.Edge ?? EdgeCursive<E>;
-  const service = useFlow();
+  const { service } = useFlow();
   onCleanup(service.pause);
   let added = false;
   const fromNew = createState(service, { selector: s => s.context.newEdge?.from });

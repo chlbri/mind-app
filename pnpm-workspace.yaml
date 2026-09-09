@@ -12,3 +12,4 @@ minimumReleaseAge: 300
 
 minimumReleaseAgeExclude:
   - '@bemedev/*'
+  - '@rolldown/binding-openharmony-arm64@1.2.8'

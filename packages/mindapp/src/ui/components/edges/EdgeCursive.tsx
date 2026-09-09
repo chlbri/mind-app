@@ -36,7 +36,7 @@ export const DefaultEdgeMiddle_Delete: Component<{
   vector: Accessor<Vector | undefined>;
   id: string;
 }> = props => {
-  const service = useFlow();
+  const { service } = useFlow();
 
   /** Computes the 2D midpoint coordinate of the edge curve for handle placement. */
   const middlePoint = () => {
@@ -87,7 +87,7 @@ export const DefaultEdgeMiddle_Delete: Component<{
 export const EdgeCursive: <E extends Data = Data>(
   props: EdgeProps<E>,
 ) => JSX.Element = props => {
-  const service = useFlow();
+  const { service } = useFlow();
   const Middle = props.middle ?? DefaultEdgeMiddle_Delete;
 
   const vector = createState(service, {

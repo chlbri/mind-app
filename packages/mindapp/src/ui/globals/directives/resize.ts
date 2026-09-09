@@ -10,7 +10,7 @@ import { useFlow } from '../../components/FlowChart.context';
  * @returns Ref callback attaching and cleaning up the observer on unmount.
  */
 export const resize = (id: string) => (el: HTMLDivElement) => {
-  const service = useFlow();
+  const { service } = useFlow();
 
   const resize = new ResizeObserver(entries => {
     const entry = entries[0].target;

@@ -59,7 +59,7 @@ export const NodesBoard = <N extends Data = Data, E extends Data = Data>(
   const [ref, setRef] = createSignal<HTMLDivElement | undefined>();
   let percentX = 0;
   let percentY = 0;
-  const service = useFlow();
+  const { service } = useFlow();
 
   const newEdge = createState(service, {
     selector: s => s.context.newEdge,

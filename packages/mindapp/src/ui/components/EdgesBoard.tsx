@@ -17,7 +17,7 @@ import { useFlow } from './FlowChart.context';
 export const EdgesBoard: <E extends Data = Data>(props: {
   Edge: Component<EdgeProps<E>>;
 }) => JSX.Element = props => {
-  const service = useFlow();
+  const { service } = useFlow();
   const hasNewEdge = createState(service, { selector: s => !!s.context.newEdge });
 
   const edgeIds = createState(service, {
