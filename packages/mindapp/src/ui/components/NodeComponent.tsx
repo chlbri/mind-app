@@ -1,5 +1,5 @@
-import { toArray } from '@bemedev/app';
 import { createState } from '@bemedev/app-solidjs';
+import { toArray } from '@bemedev/app/bemedev';
 import { createDraggable } from '@thisbeyond/solid-dnd';
 import { dequal } from 'dequal';
 import { type Component, For, type JSX, Show } from 'solid-js';

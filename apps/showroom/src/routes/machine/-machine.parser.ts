@@ -1,0 +1,435 @@
+import type { EdgesFrom, NodesFrom } from '@bemedev/mind-flow';
+
+import type {
+  EdgeKind,
+  StateActorData,
+  StateMachineEdgeData,
+  StateMachineNodeData,
+  TransitionItem,
+} from './-machine.types';
+
+/** Standard spacing parameters for node layout positioning. */
+const HORIZONTAL_SPACING = 360;
+const VERTICAL_SPACING = 170;
+const INITIAL_X = 80;
+const INITIAL_Y = 100;
+
+/** Normalizes a raw transition target or candidate into structured properties. */
+type NormalizedTarget = { target: string; guard?: string; actions?: string[] };
+
+const normalizeTarget = (raw: any): NormalizedTarget[] => {
+  if (!raw) return [];
+  if (typeof raw === 'string') return [{ target: raw }];
+  if (Array.isArray(raw)) {
+    return raw.flatMap(item => normalizeTarget(item));
+  }
+  if (typeof raw === 'object') {
+    const target = raw.target ?? raw.state;
+    if (typeof target === 'string') {
+      const guard = raw.guards ?? raw.guard;
+      const actions = Array.isArray(raw.actions)
+        ? raw.actions
+        : raw.actions
+          ? [raw.actions]
+          : undefined;
+      return [
+        { target, guard: typeof guard === 'string' ? guard : undefined, actions },
+      ];
+    }
+  }
+  return [];
+};
+
+/** Normalizes raw actors defined on a state into {@linkcode StateActorData} entries. */
+const extractActors = (rawActors?: Record<string, any>): StateActorData[] => {
+  if (!rawActors || typeof rawActors !== 'object') return [];
+
+  return Object.entries(rawActors).map(([name, config]) => {
+    const isEmitter =
+      config &&
+      (Boolean(config.next) || Boolean(config.error) || Boolean(config.complete));
+    const isChild =
+      config &&
+      (Boolean(config.on) || Boolean(config.contexts) || Boolean(config.src));
+
+    const type: StateActorData['type'] = isEmitter
+      ? 'emitter'
+      : isChild
+        ? 'child'
+        : 'service';
+
+    const emissions: StateActorData['emissions'] = {};
+    if (config.next) {
+      emissions.next = Array.isArray(config.next.actions)
+        ? config.next.actions
+        : config.next.actions
+          ? [config.next.actions]
+          : ['handleNext'];
+    }
+    if (config.error) {
+      emissions.error = Array.isArray(config.error.actions)
+        ? config.error.actions
+        : config.error.actions
+          ? [config.error.actions]
+          : ['handleError'];
+    }
+    if (config.complete) {
+      emissions.complete = Array.isArray(config.complete.actions)
+        ? config.complete.actions
+        : config.complete.actions
+          ? [config.complete.actions]
+          : ['handleComplete'];
+    }
+
+    const events: StateActorData['events'] = {};
+    if (config.on && typeof config.on === 'object') {
+      Object.entries(config.on).forEach(([ev, handler]: [string, any]) => {
+        events[ev] = Array.isArray(handler?.actions)
+          ? handler.actions
+          : handler?.actions
+            ? [handler.actions]
+            : [];
+      });
+    }
+
+    const description =
+      type === 'emitter'
+        ? `Reactive stream emitter subscribed on state entry, emits values to actions, stops on state exit.`
+        : type === 'child'
+          ? `Bi-directional child actor machine handling event delegation and parent context synchronization.`
+          : `Background service executed during the lifecycle of this state.`;
+
+    return {
+      name,
+      type,
+      description,
+      emissions,
+      events,
+      contexts: config.contexts,
+      config,
+    };
+  });
+};
+
+/**
+ * Parses a `@bemedev/app` state machine configuration into a flattened set of
+ * flowchart nodes and 4 distinct edge categories.
+ *
+ * Rules strictly followed:
+ *
+ * 1. No inside children nodes - all states, including children of compound states, are
+ *    rendered as standalone canvas nodes.
+ * 2. Child to parent relation will have a specific edge of type `child_parent`.
+ * 3. `after` transitions map to edges of type `after`.
+ * 4. `always` transitions map to edges of type `always`.
+ * 5. `on` transitions map to edges of type `on`.
+ * 6. State actors are attached to node metadata for rendering the top-right bubble
+ *    badge.
+ */
+export const parseMachineToGraph = (
+  machineConfig: any,
+): {
+  nodes: NodesFrom<StateMachineNodeData>;
+  edges: EdgesFrom<StateMachineEdgeData>;
+} => {
+  const rawConfig = machineConfig?.config ?? machineConfig ?? {};
+  const rootStates = rawConfig.states ?? {};
+  const rootInitial = rawConfig.initial;
+
+  const rawNodes: Array<{
+    id: string;
+    name: string;
+    path: string;
+    parentPath?: string;
+    isInitial: boolean;
+    stateType: 'atomic' | 'compound' | 'initial' | 'final';
+    tags?: string[];
+    entry?: string[];
+    exit?: string[];
+    activities?: string[];
+    actors: StateActorData[];
+    content?: string;
+    rawState: any;
+    depth: number;
+    parentIndex: number;
+  }> = [];
+
+  const rawEdges: Array<{
+    id: string;
+    from: string;
+    to: string;
+    kind: EdgeKind;
+    label: string;
+    event?: string;
+    delay?: string | number;
+    guard?: string;
+    actions?: string[];
+  }> = [];
+
+  // Recursive state walker
+  const walkState = (
+    stateName: string,
+    stateObj: any,
+    parentPath = '',
+    depth = 0,
+    parentIdx = 0,
+  ) => {
+    const currentPath = parentPath ? `${parentPath}/${stateName}` : `/${stateName}`;
+    const id = currentPath;
+    const hasChildren = Boolean(
+      stateObj?.states && Object.keys(stateObj.states).length > 0,
+    );
+    const isInitial =
+      (parentPath === '' && stateName === rootInitial) ||
+      (Boolean(parentPath) && stateObj?.parentInitial === stateName);
+
+    const stateType: StateMachineNodeData['stateType'] =
+      stateObj?.type === 'final'
+        ? 'final'
+        : hasChildren
+          ? 'compound'
+          : isInitial
+            ? 'initial'
+            : 'atomic';
+
+    const actors = extractActors(stateObj?.actors);
+    const entry = Array.isArray(stateObj?.entry)
+      ? stateObj.entry
+      : stateObj?.entry
+        ? [stateObj.entry]
+        : undefined;
+    const exit = Array.isArray(stateObj?.exit)
+      ? stateObj.exit
+      : stateObj?.exit
+        ? [stateObj.exit]
+        : undefined;
+    const activities = stateObj?.activities
+      ? Object.keys(stateObj.activities)
+      : undefined;
+
+    const nodeIndex = rawNodes.length;
+    rawNodes.push({
+      id,
+      name: stateName,
+      path: currentPath,
+      parentPath: parentPath || undefined,
+      isInitial,
+      stateType,
+      tags: stateObj?.tags ? [].concat(stateObj.tags) : undefined,
+      entry,
+      exit,
+      activities,
+      actors,
+      content: stateObj?.description,
+      rawState: stateObj,
+      depth,
+      parentIndex: parentIdx,
+    });
+
+    // 1. Edge for relation between child and parent:
+    // "child to parent, will have a specific edge"
+    if (parentPath) {
+      const edgeId = `edge:hierarchy:${id}=>${parentPath}`;
+      rawEdges.push({
+        id: edgeId,
+        from: id,
+        to: parentPath,
+        kind: 'child_parent',
+        label: `child of ${parentPath.split('/').pop()}`,
+      });
+    }
+
+    // Recursively walk substates if compound
+    if (hasChildren) {
+      const childInitial = stateObj.initial;
+      Object.entries(stateObj.states).forEach(
+        ([childName, childObj]: [string, any]) => {
+          const enrichedChild = { ...childObj, parentInitial: childInitial };
+          walkState(childName, enrichedChild, currentPath, depth + 1, nodeIndex);
+        },
+      );
+    }
+  };
+
+  // Walk all root states
+  Object.entries(rootStates).forEach(([name, obj]) => {
+    walkState(name, obj, '', 0, 0);
+  });
+
+  // Resolve transition targets (on, after, always)
+  const resolveTargetId = (target: string, currentPath: string): string => {
+    if (target.startsWith('/')) {
+      // Absolute path: find exact or prefix match
+      const exact = rawNodes.find(n => n.path === target);
+      if (exact) return exact.id;
+      // Partial match
+      const partial = rawNodes.find(n => n.id.endsWith(target));
+      if (partial) return partial.id;
+      return target;
+    }
+    // Relative path from current parent
+    const parentPart = currentPath.substring(0, currentPath.lastIndexOf('/'));
+    const candidatePath = parentPart ? `${parentPart}/${target}` : `/${target}`;
+    const found = rawNodes.find(n => n.path === candidatePath);
+    if (found) return found.id;
+    return `/${target}`;
+  };
+
+  rawNodes.forEach(node => {
+    const s = node.rawState;
+    if (!s) return;
+
+    // 2. Edge for 'after' transition
+    if (s.after && typeof s.after === 'object') {
+      Object.entries(s.after).forEach(([delay, targetRaw]) => {
+        const targets = normalizeTarget(targetRaw);
+        targets.forEach(({ target, guard, actions }, idx) => {
+          const toId = resolveTargetId(target, node.path);
+          const edgeId = `edge:after:${node.id}=>${toId}:${delay}:${idx}`;
+          rawEdges.push({
+            id: edgeId,
+            from: node.id,
+            to: toId,
+            kind: 'after',
+            label: `after: ${delay}`,
+            delay,
+            guard,
+            actions,
+          });
+        });
+      });
+    }
+
+    // 3. Edge for 'always' transition
+    if (s.always) {
+      const targets = normalizeTarget(s.always);
+      targets.forEach(({ target, guard, actions }, idx) => {
+        const toId = resolveTargetId(target, node.path);
+        const edgeId = `edge:always:${node.id}=>${toId}:${idx}`;
+        const guardLabel = guard ? ` [${guard}]` : '';
+        rawEdges.push({
+          id: edgeId,
+          from: node.id,
+          to: toId,
+          kind: 'always',
+          label: `always${guardLabel}`,
+          guard,
+          actions,
+        });
+      });
+    }
+
+    // 4. Edge for 'on' transition
+    if (s.on && typeof s.on === 'object') {
+      Object.entries(s.on).forEach(([event, targetRaw]) => {
+        const targets = normalizeTarget(targetRaw);
+        targets.forEach(({ target, guard, actions }, idx) => {
+          const toId = resolveTargetId(target, node.path);
+          const edgeId = `edge:on:${node.id}=>${toId}:${event}:${idx}`;
+          const guardLabel = guard ? ` [${guard}]` : '';
+          rawEdges.push({
+            id: edgeId,
+            from: node.id,
+            to: toId,
+            kind: 'on',
+            label: `on: ${event}${guardLabel}`,
+            event,
+            guard,
+            actions,
+          });
+        });
+      });
+    }
+  });
+
+  // Layout calculation: organize nodes into rank columns and spaced rows
+  // Group nodes by root chain / hierarchy
+  const columnPositions: Record<number, number> = {};
+
+  const nodes: NodesFrom<StateMachineNodeData> = rawNodes.map((node, index) => {
+    // Estimate column by node index and depth
+    const col = node.depth === 0 ? Math.floor(index * 0.9) : node.depth + 1;
+    const currentYCount = columnPositions[col] ?? 0;
+    columnPositions[col] = currentYCount + 1;
+
+    const x = INITIAL_X + col * HORIZONTAL_SPACING;
+    const y = INITIAL_Y + currentYCount * VERTICAL_SPACING;
+
+    return {
+      id: node.id,
+      position: { x, y },
+      data: {
+        id: node.id,
+        title: node.name,
+        path: node.path,
+        parentPath: node.parentPath,
+        stateType: node.stateType,
+        isInitial: node.isInitial,
+        tags: node.tags,
+        entry: node.entry,
+        exit: node.exit,
+        activities: node.activities,
+        actors: node.actors,
+        content: node.content,
+      },
+    };
+  });
+
+  // Group transitions by source and target nodes so that two nodes
+  // linked by multiple transitions (after, always, on) share a single edge
+  // with a collection of transitions.
+  const edgeGroups = new Map<
+    string,
+    { id: string; from: string; to: string; transitions: TransitionItem[] }
+  >();
+
+  rawEdges.forEach(e => {
+    const key = `${e.from}=>${e.to}`;
+    const transitionItem: TransitionItem = {
+      id: e.id,
+      kind: e.kind,
+      label: e.label,
+      event: e.event,
+      delay: e.delay,
+      guard: e.guard,
+      actions: e.actions,
+    };
+
+    const existing = edgeGroups.get(key);
+    if (existing) {
+      existing.transitions.push(transitionItem);
+    } else {
+      edgeGroups.set(key, {
+        id: `edge:${key}`,
+        from: e.from,
+        to: e.to,
+        transitions: [transitionItem],
+      });
+    }
+  });
+
+  const edges: EdgesFrom<StateMachineEdgeData> = Array.from(edgeGroups.values()).map(
+    g => {
+      const primary = g.transitions[0];
+      const isMulti = g.transitions.length > 1;
+      return {
+        id: g.id,
+        from: g.from,
+        to: g.to,
+        data: {
+          kind: primary.kind,
+          label: isMulti ? `${g.transitions.length} transitions` : primary.label,
+          event: primary.event,
+          delay: primary.delay,
+          guard: primary.guard,
+          actions: primary.actions,
+          fromState: g.from,
+          toState: g.to,
+          transitions: g.transitions,
+        },
+      };
+    },
+  );
+
+  return { nodes, edges };
+};

@@ -46,6 +46,7 @@ type Args = {
  * @returns The capitalized and sanitized label string.
  */
 export const formatLabel1 = (to: string) => {
+  if (to === '/machine' || to === '/machine/') return 'State Machine';
   const step1 = to.charAt(1).toUpperCase() + to.slice(2);
   const out =
     step1 === '' || step1 === '/'

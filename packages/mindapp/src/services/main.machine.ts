@@ -103,6 +103,7 @@ export const machine = createMachine(
           TOGGLE_ZOOM: { actions: ['toggleZoom'] },
           SET_BOARD: { actions: ['setBoard'] },
           SET_NODE_DATA: { actions: ['setNodeData'] },
+          SET_EDGE_DATA: { actions: ['setEdgeData'] },
           EDIT: { actions: ['edit'] },
           STOP_EDIT: { actions: ['stopEdit'] },
         },
@@ -137,6 +138,7 @@ export const machine = createMachine(
       TOGGLE_ZOOM: 'never',
       RESIZE: { id: 'string', size: { width: 'number', height: 'number' } },
       SET_NODE_DATA: { id: 'string', data: use(data) },
+      SET_EDGE_DATA: { id: 'string', data: use(data) },
     })),
 
     sync: true,
@@ -224,6 +226,17 @@ export const machine = createMachine(
             return { ...node, data: { ...node.data, ...newData } };
           }
           return node;
+        });
+      },
+    }),
+
+    setEdgeData: assign('data.edges', {
+      SET_EDGE_DATA: ({ context: { data }, payload: { id, data: newData } }) => {
+        return data?.edges?.map(edge => {
+          if (edge.id === id) {
+            return { ...edge, data: { ...edge.data, ...newData } };
+          }
+          return edge;
         });
       },
     }),
@@ -453,11 +466,24 @@ export const machine = createMachine(
       assign('data.edges', {
         ADD_EDGE: ({ context, payload: { from, to } }) => {
           const edges = context.data?.edges ?? [];
-          const id = buildEdgeId(from, to);
-          if (edges.some(e => e.id === id)) return edges;
+          const existing = edges.find(
+            e => (e.from === from && e.to === to) || e.id === buildEdgeId(from, to),
+          );
+          if (existing) return edges;
 
+          const id = buildEdgeId(from, to);
           const out = [...edges, { id, from, to }];
           return out;
+        },
+      }),
+
+      assign('selected', {
+        ADD_EDGE: ({ context, payload: { from, to } }) => {
+          const edges = context.data?.edges ?? [];
+          const existing = edges.find(
+            e => (e.from === from && e.to === to) || e.id === buildEdgeId(from, to),
+          );
+          return existing ? existing.id : buildEdgeId(from, to);
         },
       }),
 

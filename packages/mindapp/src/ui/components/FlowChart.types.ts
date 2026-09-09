@@ -1,5 +1,5 @@
 import type { NotUndefined } from '@bemedev/app/bemedev';
-import type { Component } from 'solid-js';
+import type { Component, JSX } from 'solid-js';
 
 import type { Edge } from '#services/main.machine.typings';
 
@@ -24,6 +24,8 @@ export type FlowPanels = {
  *   type {@linkcode Data}.
  */
 export type FlowProps<N extends Data = Data, E extends Data = Data> = {
+  /** Optional child elements rendered inside the flowchart context provider. */
+  children?: JSX.Element;
   /** Optional delay in milliseconds before mounting the flowchart canvas. */
   delay?: number;
   /** Initial flowchart state configuration with nodes and edges. */
@@ -70,25 +72,29 @@ export type FlowProps<N extends Data = Data, E extends Data = Data> = {
 /**
  * Type alias extracting the non-undefined flowchart configuration object.
  *
- * @template | Type {@linkcode Data} `D` - Custom node data dictionary type extending
+ * @template | Type {@linkcode Data} `N` - Custom node data dictionary type extending
+ *   type {@linkcode Data}.
+ * @template | Type {@linkcode Data} `E` - Custom edge data dictionary type extending
  *   type {@linkcode Data}.
  */
-export type ConfigFrom<D extends Data = Data> = NotUndefined<FlowProps<D>['config']>;
+export type ConfigFrom<N extends Data = Data, E extends Data = Data> = NotUndefined<
+  FlowProps<N, E>['config']
+>;
 
 /**
  * Type alias extracting the non-undefined list of nodes from flowchart
  * configuration.
  *
- * @template | Type {@linkcode Data} `D` - Custom node data dictionary type extending
+ * @template | Type {@linkcode Data} `N` - Custom node data dictionary type extending
  *   type {@linkcode Data}.
  */
-export type NodesFrom<D extends Data> = NotUndefined<ConfigFrom<D>['nodes']>;
+export type NodesFrom<N extends Data = Data> = NotUndefined<ConfigFrom<N, any>['nodes']>;
 
 /**
  * Type alias extracting the non-undefined list of edges from flowchart
  * configuration.
  *
- * @template | Type {@linkcode Data} `D` - Custom node data dictionary type extending
+ * @template | Type {@linkcode Data} `E` - Custom edge data dictionary type extending
  *   type {@linkcode Data}.
  */
-export type EdgesFrom<D extends Data> = NotUndefined<ConfigFrom<D>['edges']>;
+export type EdgesFrom<E extends Data = Data> = NotUndefined<ConfigFrom<any, E>['edges']>;

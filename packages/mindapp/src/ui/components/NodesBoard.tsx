@@ -1,5 +1,5 @@
-import { toArray } from '@bemedev/app';
 import { createState } from '@bemedev/app-solidjs';
+import { toArray } from '@bemedev/app/bemedev';
 import {
   DragDropProvider,
   DragDropSensors,

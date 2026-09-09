@@ -35,42 +35,42 @@ const draw = (vector?: Vector) => {
 export const DefaultEdgeMiddle_Delete: Component<{
   vector: Accessor<Vector | undefined>;
   id: string;
+  data?: any;
+  selected?: Accessor<boolean>;
 }> = props => {
   const { service } = useFlow();
 
-  /** Computes the 2D midpoint coordinate of the edge curve for handle placement. */
-  const middlePoint = () => {
-    const v = props.vector();
-    if (!v) return { x: 0, y: 0 };
-    return { x: v.x0 + (v.x1 - v.x0) / 2, y: v.y0 + (v.y1 - v.y0) / 2 };
-  };
+  const selected =
+    props.selected ??
+    createState(service, { selector: s => s.context.selected === props.id });
 
   return (
-    <g
-      cursor='pointer'
-      transform={`translate(${middlePoint().x}, ${middlePoint().y})`}
-      onMouseDown={e => {
-        e.stopPropagation();
-        service.send({ type: 'DELETE', payload: props.id });
-      }}
-      style={{ 'pointer-events': 'all', 'z-index': '30' }}
-    >
-      <circle cx='0' cy='0' r='12' fill='rgba(168, 168, 168, 1)' />
-      <svg
-        fill='currentColor'
-        stroke-width='0'
-        xmlns='http://www.w3.org/2000/svg'
-        class='h-25 w-25 bg-white fill-white'
-        width='20'
-        height='20'
-        viewBox='0 0 20 20'
-        color='white'
-        x='-10'
-        y='-10'
+    <Show when={selected()}>
+      <g
+        cursor='pointer'
+        onMouseDown={e => {
+          e.stopPropagation();
+          service.send({ type: 'DELETE', payload: props.id });
+        }}
+        style={{ 'pointer-events': 'all', 'z-index': '30' }}
       >
-        <path d='M10.185,1.417c-4.741,0-8.583,3.842-8.583,8.583c0,4.74,3.842,8.582,8.583,8.582S18.768,14.74,18.768,10C18.768,5.259,14.926,1.417,10.185,1.417 M10.185,17.68c-4.235,0-7.679-3.445-7.679-7.68c0-4.235,3.444-7.679,7.679-7.679S17.864,5.765,17.864,10C17.864,14.234,14.42,17.68,10.185,17.68 M10.824,10l2.842-2.844c0.178-0.176,0.178-0.46,0-0.637c-0.177-0.178-0.461-0.178-0.637,0l-2.844,2.841L7.341,6.52c-0.176-0.178-0.46-0.178-0.637,0c-0.178,0.176-0.178,0.461,0,0.637L9.546,10l-2.841,2.844c-0.178,0.176-0.178,0.461,0,0.637c0.178,0.178,0.459,0.178,0.637,0l2.844-2.841l2.844,2.841c0.178,0.178,0.459,0.178,0.637,0c0.178-0.176,0.178-0.461,0-0.637L10.824,10z'></path>
-      </svg>
-    </g>
+        <circle cx='0' cy='0' r='12' fill='rgba(168, 168, 168, 1)' />
+        <svg
+          fill='currentColor'
+          stroke-width='0'
+          xmlns='http://www.w3.org/2000/svg'
+          class='h-25 w-25 bg-white fill-white'
+          width='20'
+          height='20'
+          viewBox='0 0 20 20'
+          color='white'
+          x='-10'
+          y='-10'
+        >
+          <path d='M10.185,1.417c-4.741,0-8.583,3.842-8.583,8.583c0,4.74,3.842,8.582,8.583,8.582S18.768,14.74,18.768,10C18.768,5.259,14.926,1.417,10.185,1.417 M10.185,17.68c-4.235,0-7.679-3.445-7.679-7.68c0-4.235,3.444-7.679,7.679-7.679S17.864,5.765,17.864,10C17.864,14.234,14.42,17.68,10.185,17.68 M10.824,10l2.842-2.844c0.178-0.176,0.178-0.46,0-0.637c-0.177-0.178-0.461-0.178-0.637,0l-2.844,2.841L7.341,6.52c-0.176-0.178-0.46-0.178-0.637,0c-0.178,0.176-0.178,0.461,0,0.637L9.546,10l-2.841,2.844c-0.178,0.176-0.178,0.461,0,0.637c0.178,0.178,0.459,0.178,0.637,0l2.844-2.841l2.844,2.841c0.178,0.178,0.459,0.178,0.637,0c0.178-0.176,0.178-0.461,0-0.637L10.824,10z'></path>
+        </svg>
+      </g>
+    </Show>
   );
 };
 
@@ -84,9 +84,9 @@ export const DefaultEdgeMiddle_Delete: Component<{
  *
  * @see {@linkcode draw}, {@linkcode useFlow}
  */
-export const EdgeCursive: <E extends Data = Data>(
+export const EdgeCursive = <E extends Data = Data>(
   props: EdgeProps<E>,
-) => JSX.Element = props => {
+): JSX.Element => {
   const { service } = useFlow();
   const Middle = props.middle ?? DefaultEdgeMiddle_Delete;
 
@@ -102,18 +102,39 @@ export const EdgeCursive: <E extends Data = Data>(
     selector: s => s.context.selected === props.id,
   });
 
+  const edgeData = createState(service, {
+    selector: ({ context }) => {
+      if (props.data) return props.data;
+      const edge = context.data?.edges?.find(e => e.id === props.id);
+      return edge?.data as E | undefined;
+    },
+    equals: dequal,
+  });
+
+  const middlePoint = () => {
+    const v = vector();
+    if (!v) return { x: 0, y: 0 };
+    return { x: (v.x0 + v.x1) / 2, y: (v.y0 + v.y1) / 2 };
+  };
+
   return (
     <Show when={vector()}>
       {v => (
-        <>
+        <g class='relative'>
           <path
             class='relative cursor-pointer fill-transparent'
             classList={{
-              'stroke-[rgba(168,168,168,0.4)] stroke-3 z-200': !!props.isNew,
+              'stroke-[rgba(168,168,168,0.4)] stroke-3 z-200':
+                !props.stroke && !!props.isNew,
               'stroke-[rgba(168,168,168,1)] stroke-4 z-100':
-                selected() && !props.isNew,
-              'stroke-[rgba(168,168,168,0.8)] stroke-3': !selected() && !props.isNew,
+                !props.stroke && selected() && !props.isNew,
+              'stroke-[rgba(168,168,168,0.8)] stroke-3':
+                !props.stroke && !selected() && !props.isNew,
+              'stroke-4 z-100': !!props.stroke && selected() && !props.isNew,
+              'stroke-3': !!props.stroke && !selected() && !props.isNew,
             }}
+            stroke={props.stroke}
+            stroke-dasharray={props.strokeDasharray}
             style={{ 'pointer-events': props.isNew ? 'none' : 'all' }}
             d={draw(v())}
             onMouseDown={e => {
@@ -121,10 +142,20 @@ export const EdgeCursive: <E extends Data = Data>(
               return service.send({ type: 'SELECT', payload: props.id });
             }}
           />
-          <Show when={selected()}>
-            <Middle vector={vector} id={props.id} data={props.data} />
+          <Show when={!props.isNew}>
+            <g
+              transform={`translate(${middlePoint().x}, ${middlePoint().y})`}
+              style={{ 'pointer-events': 'all' }}
+            >
+              <Middle
+                vector={vector}
+                id={props.id}
+                data={edgeData()}
+                selected={selected}
+              />
+            </g>
           </Show>
-        </>
+        </g>
       )}
     </Show>
   );

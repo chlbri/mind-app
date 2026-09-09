@@ -9,5 +9,12 @@ export type EdgeProps<D extends Data = Data> = {
   /** Whether this is a temporary edge currently being dragged. */
   isNew?: boolean;
   data?: D;
-  middle?: Component<{ vector: Accessor<Vector | undefined>; id: string; data?: D }>;
+  middle?: Component<{
+    vector: Accessor<Vector | undefined>;
+    id: string;
+    data?: D;
+    selected?: Accessor<boolean>;
+  }>;
+  stroke?: string;
+  strokeDasharray?: string;
 };

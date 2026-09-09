@@ -14,6 +14,7 @@ import { Route as CountingRouteImport } from './routes/counting'
 import { Route as ZoomRouteImport } from './routes/zoom'
 import { Route as DemoIndexRouteImport } from './routes/demo/index'
 import { Route as DemoDtagndropRouteImport } from './routes/demo/dtagndrop'
+import { Route as MachineIndexRouteImport } from './routes/machine/index'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -40,6 +41,11 @@ const DemoDtagndropRoute = DemoDtagndropRouteImport.update({
   path: '/demo/dtagndrop',
   getParentRoute: () => rootRouteImport,
 } as any)
+const MachineIndexRoute = MachineIndexRouteImport.update({
+  id: '/machine/',
+  path: '/machine/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -47,6 +53,7 @@ export interface FileRoutesByFullPath {
   '/zoom': typeof ZoomRoute
   '/demo/dtagndrop': typeof DemoDtagndropRoute
   '/demo/': typeof DemoIndexRoute
+  '/machine/': typeof MachineIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -54,6 +61,7 @@ export interface FileRoutesByTo {
   '/zoom': typeof ZoomRoute
   '/demo/dtagndrop': typeof DemoDtagndropRoute
   '/demo': typeof DemoIndexRoute
+  '/machine': typeof MachineIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -62,13 +70,22 @@ export interface FileRoutesById {
   '/zoom': typeof ZoomRoute
   '/demo/dtagndrop': typeof DemoDtagndropRoute
   '/demo/': typeof DemoIndexRoute
+  '/machine/': typeof MachineIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/counting' | '/zoom' | '/demo/dtagndrop' | '/demo/'
+  fullPaths:
+    '/' | '/counting' | '/zoom' | '/demo/dtagndrop' | '/demo/' | '/machine/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/counting' | '/zoom' | '/demo/dtagndrop' | '/demo'
-  id: '__root__' | '/' | '/counting' | '/zoom' | '/demo/dtagndrop' | '/demo/'
+  to: '/' | '/counting' | '/zoom' | '/demo/dtagndrop' | '/demo' | '/machine'
+  id:
+    | '__root__'
+    | '/'
+    | '/counting'
+    | '/zoom'
+    | '/demo/dtagndrop'
+    | '/demo/'
+    | '/machine/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -77,6 +94,7 @@ export interface RootRouteChildren {
   ZoomRoute: typeof ZoomRoute
   DemoDtagndropRoute: typeof DemoDtagndropRoute
   DemoIndexRoute: typeof DemoIndexRoute
+  MachineIndexRoute: typeof MachineIndexRoute
 }
 
 declare module '@tanstack/solid-router' {
@@ -116,6 +134,13 @@ declare module '@tanstack/solid-router' {
       preLoaderRoute: typeof DemoDtagndropRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/machine/': {
+      id: '/machine/'
+      path: '/machine'
+      fullPath: '/machine/'
+      preLoaderRoute: typeof MachineIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -125,6 +150,7 @@ const rootRouteChildren: RootRouteChildren = {
   ZoomRoute: ZoomRoute,
   DemoDtagndropRoute: DemoDtagndropRoute,
   DemoIndexRoute: DemoIndexRoute,
+  MachineIndexRoute: MachineIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

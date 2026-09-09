@@ -106,6 +106,58 @@ describe('#01 => Flow State Machine', () => {
     });
   });
 
+  describe('#03 => SET_EDGE_DATA event', () => {
+    it('#01 => should update edge data for an existing edge', () => {
+      const service = createTestService();
+      service.send({
+        type: 'CONFIGURE',
+        payload: {
+          nodes: DEFAULT_NODES,
+          edges: [
+            {
+              id: 'edge-1',
+              from: 'node-0',
+              to: 'node-1',
+              data: { label: 'Initial Edge' },
+            },
+          ],
+        },
+      });
+
+      service.send({
+        type: 'SET_EDGE_DATA',
+        payload: {
+          id: 'edge-1',
+          data: { label: 'Updated Edge Label', custom: 'value' },
+        },
+      });
+
+      const updatedEdge = service.state.context.data?.edges.find(
+        e => e.id === 'edge-1',
+      );
+      expect(updatedEdge?.data).toEqual({
+        label: 'Updated Edge Label',
+        custom: 'value',
+      });
+    });
+
+    it('#02 => should select existing edge when ADD_EDGE called for existing connection', () => {
+      const service = createTestService();
+      service.send({
+        type: 'CONFIGURE',
+        payload: {
+          nodes: DEFAULT_NODES,
+          edges: [{ id: 'edge-0', from: 'node-0', to: 'node-1' }],
+        },
+      });
+
+      service.send({ type: 'ADD_EDGE', payload: { from: 'node-0', to: 'node-1' } });
+
+      expect(service.state.context.selected).toBe('edge-0');
+      expect(service.state.context.data?.edges).toHaveLength(1);
+    });
+  });
+
   describe('#03 => Adding nodes with defaultData & DEFAULT_SIZE', () => {
     it('#01 => should create parent node with defaultData and DEFAULT_SIZE', () => {
       const service = createTestService();

@@ -1,4 +1,4 @@
-import { type } from '@bemedev/app/bemedev';
+import { type, type NOmit } from '@bemedev/app/bemedev';
 import type { inferT } from '@bemedev/app/typings';
 
 /** Schema definition for 2D coordinates `(x, y)`. */
@@ -22,7 +22,7 @@ export const extremities = type({ from: 'string', to: 'string' });
 
 /** Schema definition for primitive values allowed in node data. */
 export const nodeDataValue = type(({ union }) =>
-  union('string', 'boolean', 'number'),
+  union('string', 'boolean', 'number', 'undefined'),
 );
 
 /**
@@ -32,8 +32,8 @@ export const nodeDataValue = type(({ union }) =>
  */
 export const data = type(({ record, use }) => record(use(nodeDataValue)));
 
-/** Serialized node data dictionary type inferred from schema {@linkcode data}. */
-export type Data = inferT<typeof data>;
+/** Serialized node data dictionary type. */
+export type Data = Record<string, any>;
 
 /**
  * Schema definition for a serialized flowchart node entity.
@@ -63,7 +63,9 @@ export const edgeJSON = type(({ use, intersection, optional }) =>
 );
 
 /** Serialized edge properties type inferred from schema {@linkcode edgeJSON}. */
-export type Edge<E extends Data = Data> = inferT<typeof edgeJSON> & { data?: E };
+export type Edge<E extends Data = Data> = NOmit<inferT<typeof edgeJSON>, 'data'> & {
+  data?: E;
+};
 
 /**
  * Schema definition for layout dimensions and connection points of a node.

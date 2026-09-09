@@ -19,7 +19,9 @@ import type { FlowProps } from './components/FlowChart.types';
  *
  * @see {@linkcode Provider}
  */
-export const Flow = <D extends Data = Data>(props: FlowProps<D>): JSX.Element => {
+export const Flow = <D extends Data = Data, E extends Data = Data>(
+  props: FlowProps<D, E>,
+): JSX.Element => {
   return (
     <div
       style={{
@@ -31,6 +33,7 @@ export const Flow = <D extends Data = Data>(props: FlowProps<D>): JSX.Element =>
     >
       <Provider>
         <FlowChart {...props} />
+        {props.children}
       </Provider>
     </div>
   );
