@@ -1,6 +1,6 @@
+import { cn } from 'cn';
 import type { Component } from 'solid-js';
 
-import { cn } from '../../../utils';
 import { TypingText } from '../atoms/TypingText';
 import { FadingDots } from '../molecules/FadingDots';
 

@@ -7,27 +7,32 @@ import type { Data } from './FlowChart';
 import { useFlow } from './FlowChart.context';
 
 /**
- * Hook providing reactive state and mutation helpers for editing flowchart node
- * data.
+ * Hook providing reactive state and mutation helpers for editing flowchart node and
+ * edge data.
  *
  * @template | {@linkcode Data} `D` - Custom node data dictionary type extending
+ *   {@linkcode Data}.
+ * @template | {@linkcode Data} `E` - Custom edge data dictionary type extending
  *   {@linkcode Data}.
  *
  * @param timeout - Transition delay in milliseconds before closing the panel.
  *   Defaults to `270`.
  *
  * @returns An object containing reactive accessors and mutation callbacks for the
- *   active node.
+ *   active node and edge.
  *
  * @see {@linkcode useFlow}
  */
-export const useHook = <D extends Data = Data>(timeout = 270) => {
+export const useHook = <D extends Data = Data, E extends Data = Data>(
+  timeout = 270,
+) => {
   const { service } = useFlow();
   const directClose = () => service.send('STOP_EDIT');
   const [closing, setClosing] = createSignal(false);
-  const senderData = service.sender('SET_NODE_DATA');
+  const senderNodeData = service.sender('SET_NODE_DATA');
+  const senderEdgeData = service.sender('SEND_EDGE_DATA');
 
-  const _editing = createState(service, {
+  const _editingNode = createState(service, {
     selector: ({ context }) => {
       const editingId = context.editing;
       if (!isDefined(editingId)) return;
@@ -36,6 +41,20 @@ export const useHook = <D extends Data = Data>(timeout = 270) => {
       if (!isDefined(item)) return;
 
       return { id: item.id, data: item.data as D };
+    },
+
+    equals: deepEqual<any>,
+  });
+
+  const _editingEdge = createState(service, {
+    selector: ({ context }) => {
+      const editingId = context.editing;
+      if (!isDefined(editingId)) return;
+
+      const item = context.data?.edges?.find(e => e.id === editingId);
+      if (!isDefined(item)) return;
+
+      return { id: item.id, data: (item.data ?? {}) as E };
     },
 
     equals: deepEqual<any>,
@@ -50,20 +69,48 @@ export const useHook = <D extends Data = Data>(timeout = 270) => {
     }, timeout);
   };
 
-  const updateField = <K extends keyof D>(field: K, value: D[K]) => {
-    const current = _editing();
+  const updateNodeData = (data: Partial<D>) => {
+    const current = _editingNode();
     if (!current) return;
 
-    return senderData({ ...current, data: { ...current.data, [field]: value } });
+    return senderNodeData({ ...current, data: { ...current.data, ...data } });
   };
 
-  const updateData = (data: Partial<D>) => {
-    const current = _editing();
+  const updateNodeField = <K extends keyof D>(field: K, value: D[K]) => {
+    const current = _editingNode();
     if (!current) return;
 
-    return senderData({ ...current, data: { ...current.data, ...data } });
+    return senderNodeData({ ...current, data: { ...current.data, [field]: value } });
   };
 
-  const editing = _editing as Accessor<{ id: string; data: D }>;
-  return { editing, updateField, updateData, close, closing, directClose };
+  const updateEdgeData = (data: Partial<E>) => {
+    const current = _editingEdge();
+    if (!current) return;
+
+    return senderEdgeData({ ...current, data: { ...current.data, ...data } });
+  };
+
+  const updateEdgeField = <K extends keyof E>(field: K, value: E[K]) => {
+    const current = _editingEdge();
+    if (!current) return;
+
+    return senderEdgeData({ ...current, data: { ...current.data, [field]: value } });
+  };
+
+  const editingNode = _editingNode as Accessor<{ id: string; data: D }>;
+  const editingEdge = _editingEdge as Accessor<{ id: string; data: E }>;
+
+  return {
+    editingNode,
+    editingEdge,
+    updateNodeField,
+    updateNodeData,
+    updateEdgeField,
+    updateEdgeData,
+    updateField: updateNodeField,
+    updateData: updateNodeData,
+    close,
+    closing,
+    directClose,
+  };
 };

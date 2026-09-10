@@ -126,15 +126,27 @@ export const CustomFlow = () => {
   state machine service.
 - **`EditPanel`**: Configurable overlay panel component for editing active node data.
 - **`Panels`**: Overlay container component rendering custom canvas panels.
+- **`EdgeCursive`**, **`EdgeStraight`**: Built-in curved (cubic bezier) and straight
+  SVG edge components.
+- **`FactoryEdge`**: Higher-order component factory for creating custom SVG edges.
+- **`MiddleDelete`**: Default middle overlay component providing edge deletion
+  interaction.
+- **`useEdge`**: Hook providing reactive state, computed vectors, and styling for
+  edges.
 - **`NodeProps`**: Generic type definition for node elements (`NodeProps<D>`).
-- **`EdgeProps`**: Type definition for edge connections.
+- **`EdgeProps`**: Type definition for edge connections (`EdgeProps<D>`).
+- **`EdgeMiddleProps`**: Type definition for edge middle overlay components
+  (`EdgeMiddleProps<D>`).
 - **`FlowProps`**: Generic props configuration type for `Flow` and `FlowChart`.
 - **`EditPanelProps`**, **`EditPanelChildProps`**: Types for `EditPanel` and its
   children accessor helpers.
+- **`handlePosition`**, **`HandlePosition`**: Schema and type for node handle
+  placement borders (`top`, `right`, `bottom`, `left`).
 - **`CLASSES`**: Array of Tailwind CSS safelist class names used in the UI.
 - **`mouseOut`**, **`clickOutside`**, **`resize`**: Custom Solid.js directives for
   focus/hover handling, outside click detection, and node dimension observation.
 - **`clamp`**: Number boundary constraint helper.
+- **`cn`**: Utility for merging class names.
 
 ## License
 

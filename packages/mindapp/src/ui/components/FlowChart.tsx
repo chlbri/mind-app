@@ -2,14 +2,20 @@ import { createState } from '@bemedev/app-solidjs';
 import { createEffect, type JSX, onCleanup, onMount } from 'solid-js';
 
 import { DEFAULT_NODES } from '#services/main.machine.data';
-import type { Data, NodeProps } from '#services/main.machine.typings';
+import type {
+  Data,
+  HandlePosition,
+  HandleType,
+  NodeHandles,
+  NodeProps,
+} from '#services/main.machine.typings';
 
 import { EdgeCursive } from './edges/EdgeCursive';
 import { useFlow } from './FlowChart.context';
 import type { FlowProps } from './FlowChart.types';
 import { NodesBoard } from './NodesBoard';
 
-export type { Data, NodeProps };
+export type { Data, HandlePosition, HandleType, NodeHandles, NodeProps };
 
 // const PARENT_CHILD_GAP_WIDTH = 75;
 
@@ -94,7 +100,27 @@ export const FlowChart = <N extends Data = Data, E extends Data = Data>(
     const to = inputHandle?.getAttribute('data-node-id');
 
     if (inputHandle && to) {
-      service.send({ type: 'ADD_EDGE', payload: { from, to } });
+      const toPosition = inputHandle.getAttribute('data-handle-position') as
+        | HandlePosition
+        | undefined;
+      const toIndexStr = inputHandle.getAttribute('data-handle-index');
+      const toIndex =
+        toIndexStr !== null && toIndexStr !== undefined
+          ? parseInt(toIndexStr, 10)
+          : undefined;
+      const currentEdge = service.state.context.newEdge;
+
+      service.send({
+        type: 'ADD_EDGE',
+        payload: {
+          from,
+          to,
+          toPosition,
+          toIndex,
+          fromPosition: currentEdge?.fromPosition,
+          fromIndex: currentEdge?.fromIndex,
+        },
+      });
     }
 
     // Cleanup on release

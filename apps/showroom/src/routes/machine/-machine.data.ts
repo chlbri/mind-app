@@ -1,13 +1,19 @@
 import { createMachine } from '@bemedev/app';
-import type { ConfigFrom, EdgesFrom, NodesFrom } from '@bemedev/mind-flow';
+import type {
+  ConfigFrom,
+  EdgesFrom,
+  NodeHandles,
+  NodesFrom,
+} from '@bemedev/mind-flow';
 
 import { parseMachineToGraph } from './-machine.parser';
 import type { StateMachineEdgeData, StateMachineNodeData } from './-machine.types';
 
-// ============================================================================
-// Machine 1: E-Commerce Order Fulfillment & Payment
-// ============================================================================
-
+/**
+ * A state machine representing the lifecycle of an e-commerce order, from cart
+ * selection to payment processing, validation, fulfillment, and potential
+ * cancellation or refund.
+ */
 export const orderMachine = createMachine({
   initial: 'cart',
   states: {
@@ -107,9 +113,31 @@ const ORDER_NODE_POSITIONS: Record<string, { x: number; y: number }> = {
   '/refunded': { x: 1480, y: 50 },
 };
 
+const top: NodeHandles['top'] = ['input', 'input', 'input'];
+const bottom: NodeHandles['bottom'] = ['input', 'input', 'input'];
+
+// Node handle configurations demonstrating multi-side centered handles
+const ORDER_NODE_HANDLES: Record<string, NodeHandles> = {
+  '/cart': { left: ['input', 'input'], right: ['output', 'output'] },
+  '/payment': { top, left: ['input', 'input'], right: ['output'], bottom },
+  '/cancelled': { top, left: ['input'], right: ['output'] },
+  '/validation': { left: ['input'], right: ['output', 'output'], bottom },
+  '/rejected': { top, left: ['input'], bottom },
+  '/fulfillment': { left: ['input'], right: ['output'], top, bottom },
+  '/fulfillment/packaging': { top, right: ['output'], left: ['input'] },
+  '/fulfillment/shipping': { left: ['input'], right: ['output'], top },
+  '/fulfillment/completed': { left: ['input'], top, right: ['output'] },
+  '/refunded': { left: ['input'], bottom },
+};
+
 const ORDER_NODES: NodesFrom<StateMachineNodeData> = ORDER_GRAPH.nodes.map(node => {
   const pos = ORDER_NODE_POSITIONS[node.id];
-  return pos ? { ...node, position: pos } : node;
+  const handles = ORDER_NODE_HANDLES[node.id];
+  return {
+    ...node,
+    ...(pos ? { position: pos } : {}),
+    ...(handles ? { handles } : {}),
+  };
 });
 
 const ORDER_EDGES: EdgesFrom<StateMachineEdgeData> = ORDER_GRAPH.edges;

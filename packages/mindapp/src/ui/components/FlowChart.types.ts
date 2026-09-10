@@ -88,7 +88,9 @@ export type ConfigFrom<N extends Data = Data, E extends Data = Data> = NotUndefi
  * @template | Type {@linkcode Data} `N` - Custom node data dictionary type extending
  *   type {@linkcode Data}.
  */
-export type NodesFrom<N extends Data = Data> = NotUndefined<ConfigFrom<N, any>['nodes']>;
+export type NodesFrom<N extends Data = Data> = NotUndefined<
+  ConfigFrom<N, any>['nodes']
+>;
 
 /**
  * Type alias extracting the non-undefined list of edges from flowchart
@@ -97,4 +99,6 @@ export type NodesFrom<N extends Data = Data> = NotUndefined<ConfigFrom<N, any>['
  * @template | Type {@linkcode Data} `E` - Custom edge data dictionary type extending
  *   type {@linkcode Data}.
  */
-export type EdgesFrom<E extends Data = Data> = NotUndefined<ConfigFrom<any, E>['edges']>;
+export type EdgesFrom<E extends Data = Data> = NotUndefined<
+  ConfigFrom<any, E>['edges']
+>;

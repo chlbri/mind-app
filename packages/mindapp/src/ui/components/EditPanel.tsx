@@ -1,9 +1,9 @@
+import { cn } from 'cn';
 import { type JSX, Show } from 'solid-js';
 
 import type { Data } from '#services/main.machine.typings';
 
 import { clickOutside } from '../globals/directives';
-import { cn } from '../utils';
 import { useHook } from './EditPanel.hooks';
 import type { EditPanelProps } from './EditPanel.types';
 
@@ -31,7 +31,7 @@ export const EditPanel = <D extends Data = Data>(
     props.classList instanceof Function ? props.classList(hooks) : props.classList;
 
   return (
-    <Show when={hooks.editing()}>
+    <Show when={hooks.editingNode()}>
       {node => (
         <div
           class={cn(
@@ -39,8 +39,8 @@ export const EditPanel = <D extends Data = Data>(
           )}
           classList={{
             ...classList(),
-            'pointer-events-none! -z-10': !hooks.editing(),
-            'pointer-events-all! z-50': !!hooks.editing(),
+            'pointer-events-none! -z-10': !hooks.editingNode(),
+            'pointer-events-all! z-50': !!hooks.editingNode(),
           }}
           style={props.style}
           onMouseDown={e => e.stopPropagation()}

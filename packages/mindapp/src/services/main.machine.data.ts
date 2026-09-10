@@ -41,8 +41,26 @@ export const HANDLE_CENTER_X_OFFSET =
 /** Default X offset in pixels for input connection handles. */
 export const DEFAULT_INPUT_OFFSET_X = -HANDLE_CENTER_X_OFFSET;
 
-/** Default Y offset in pixels for input connection handles. */
-export const DEFAULT_INPUT_OFFSET_Y = HANDLE_CENTER_Y;
+/**
+ * Default Y offset in pixels for input connection handles, centered at half default
+ * node height.
+ */
+export const DEFAULT_INPUT_OFFSET_Y = DEFAULT_NODE_HEIGHT / 2;
+
+/**
+ * Computes default input handle offset coordinates given a node height.
+ *
+ * @param height - Node height in pixels, defaults to
+ *   {@linkcode DEFAULT_NODE_HEIGHT}.
+ *
+ * @returns 2D offset coordinates for the input handle.
+ *
+ * @see {@linkcode DEFAULT_INPUT_OFFSET_X}
+ */
+export const getDefaultInputOffset = (height: number = DEFAULT_NODE_HEIGHT) => ({
+  x: DEFAULT_INPUT_OFFSET_X,
+  y: height / 2,
+});
 
 /** Default 2D offset coordinates for input connection handles. */
 export const DEFAULT_INPUT_OFFSET = {
@@ -54,18 +72,20 @@ export const DEFAULT_INPUT_OFFSET = {
 export const CONTAINER_DIMENSIONS = { WIDTH: 5000, HEIGHT: 3500 };
 
 /**
- * Computes default output handle offset coordinates given a node width.
+ * Computes default output handle offset coordinates given a node width and height.
  *
  * @param width - Node width in pixels, defaults to `0`.
+ * @param height - Node height in pixels, defaults to
+ *   {@linkcode DEFAULT_NODE_HEIGHT}.
  *
  * @returns 2D offset coordinates for the output handle.
  *
- * @see {@linkcode HANDLE_CENTER_X_OFFSET}, {@linkcode HANDLE_CENTER_Y}
+ * @see {@linkcode HANDLE_CENTER_X_OFFSET}
  */
-export const getDefaultOutputOffset = (width = 0) => ({
-  x: width + HANDLE_CENTER_X_OFFSET,
-  y: HANDLE_CENTER_Y,
-});
+export const getDefaultOutputOffset = (
+  width = 0,
+  height: number = DEFAULT_NODE_HEIGHT,
+) => ({ x: width + HANDLE_CENTER_X_OFFSET, y: height / 2 });
 
 /** Top offset in pixels for node action toolbars. */
 export const TOOLBAR_TOP_OFFSET = 30;

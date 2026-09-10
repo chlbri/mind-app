@@ -1,19 +1,85 @@
 import { createState } from '@bemedev/app-solidjs';
 import { toArray } from '@bemedev/app/bemedev';
+import { deepEqual } from '@bemedev/app/utils';
 import { createDraggable } from '@thisbeyond/solid-dnd';
-import { dequal } from 'dequal';
 import { type Component, For, type JSX, Show } from 'solid-js';
 import { Dynamic } from 'solid-js/web';
 
-import {
-  HANDLE_CONTAINER_OFFSET_X,
-  HANDLE_MARGIN_TOP,
-  HANDLE_SIZE,
-} from '#services/main.machine.data';
-import type { Data } from '#services/main.machine.typings';
+import { HANDLE_CONTAINER_OFFSET_X, HANDLE_SIZE } from '#services/main.machine.data';
+import { getHandleOffsetPercent } from '#services/main.machine.helpers';
+import type {
+  Data,
+  HandlePosition,
+  HandleType,
+  NodeHandles,
+} from '#services/main.machine.typings';
 
 import { resize } from '../globals/directives';
 import { useFlow } from './FlowChart.context';
+
+export { getHandleOffsetPercent };
+
+/** Default handle configuration applied when none is specified. */
+const DEFAULT_HANDLES: NodeHandles = { left: ['input'], right: ['output'] };
+
+/** Properties for the internal {@linkcode HandleItem} component. */
+type HandleItemProps = {
+  /** Handle category as input or output of type {@linkcode HandleType}. */
+  type: HandleType;
+  /** Node identifier this handle belongs to. */
+  nodeId: string;
+  /** Node side where this handle is positioned of type {@linkcode HandlePosition}. */
+  side: HandlePosition;
+  /** Zero-based index of the handle along that side. */
+  index: number;
+  /** Callback triggered when completing an edge connection to this handle. */
+  onAddEdge: (side: HandlePosition, index: number) => void;
+  /** Callback triggered when starting a new edge drag from this handle. */
+  onStartEdge: (side: HandlePosition, index: number) => void;
+};
+
+/**
+ * Visual handle bubble element supporting mouse connection drag interactions.
+ *
+ * @param props - Component properties of type {@linkcode HandleItemProps}.
+ *
+ * @returns The rendered handle element.
+ *
+ * @see {@linkcode HANDLE_SIZE}, -- type {@linkcode HandlePosition}
+ */
+const HandleItem: Component<HandleItemProps> = props => {
+  const isInput = () => props.type === 'input';
+
+  return (
+    <div
+      data-handle-type={props.type}
+      data-node-id={props.nodeId}
+      data-handle-position={props.side}
+      data-handle-index={props.index}
+      class={`rounded-full bg-[#e38b29] shadow-md transition-transform duration-150 ease-in-out hover:scale-150 ${
+        isInput() ? 'cursor-default' : 'cursor-crosshair'
+      }`}
+      style={{
+        width: `${HANDLE_SIZE}px`,
+        height: `${HANDLE_SIZE}px`,
+        'pointer-events': 'all',
+      }}
+      onPointerDown={e => e.stopPropagation()}
+      onMouseDown={e => {
+        e.stopPropagation();
+        if (!isInput()) {
+          props.onStartEdge(props.side, props.index);
+        }
+      }}
+      onMouseUp={e => {
+        e.stopPropagation();
+        if (isInput()) {
+          props.onAddEdge(props.side, props.index);
+        }
+      }}
+    />
+  );
+};
 
 /** Properties for rendering an individual flowchart node component. */
 export type NodeComponentProps<D extends Data = Data> = {
@@ -21,6 +87,11 @@ export type NodeComponentProps<D extends Data = Data> = {
   id: string;
   /** Custom node component to render inside the node container. */
   children?: Component<D>;
+  /**
+   * Optional handle configurations overriding node handles of type
+   * {@linkcode NodeHandles}.
+   */
+  handles?: NodeHandles;
 };
 
 /**
@@ -34,7 +105,7 @@ export type NodeComponentProps<D extends Data = Data> = {
  *
  * @returns The rendered Solid component.
  *
- * @see {@linkcode useFlow}, {@linkcode HANDLE_CONTAINER_OFFSET_X}, {@linkcode HANDLE_MARGIN_TOP}, {@linkcode HANDLE_SIZE}
+ * @see {@linkcode useFlow}, {@linkcode HANDLE_CONTAINER_OFFSET_X}, {@linkcode HANDLE_SIZE}, -- type {@linkcode NodeHandles}, {@linkcode getHandleOffsetPercent}
  */
 export const NodeComponent = <D extends Data = Data>(
   props: NodeComponentProps<D>,
@@ -52,9 +123,10 @@ export const NodeComponent = <D extends Data = Data>(
         x: item?.position.x ?? 0,
         y: item?.position.y ?? 0,
         data: (item?.data ?? {}) as D,
+        handles: item?.handles,
       };
     },
-    equals: dequal,
+    equals: deepEqual<any>,
   });
 
   const selected = createState(service, {
@@ -68,6 +140,39 @@ export const NodeComponent = <D extends Data = Data>(
       return edges.some(({ to }) => to === props.id);
     },
   });
+
+  const resolvedHandles = (): NodeHandles => {
+    const custom = props.handles ?? node().handles;
+    if (custom !== undefined) return custom;
+    return DEFAULT_HANDLES;
+  };
+
+  const handleAddEdge = (side: HandlePosition, index: number) => {
+    const edge = newEdge();
+    const from = edge?.from;
+    if (from && from !== props.id) {
+      service.send({
+        type: 'ADD_EDGE',
+        payload: {
+          from,
+          to: props.id,
+          toPosition: side,
+          toIndex: index,
+          fromPosition: edge?.fromPosition,
+          fromIndex: edge?.fromIndex,
+        },
+      });
+    }
+    service.send('CLEAR_NEW_EDGE');
+  };
+
+  const handleStartEdge = (side: HandlePosition, index: number) => {
+    service.send('DESELECT');
+    service.send({
+      type: 'START_NEW_EDGE',
+      payload: { from: props.id, position: side, index },
+    });
+  };
 
   return (
     <div
@@ -92,6 +197,7 @@ export const NodeComponent = <D extends Data = Data>(
       }}
     >
       <div
+        class='z-300'
         classList={{
           'pointer-events-none absolute flex items-center justify-end -top-7.5 right-0 transition-all duration-200 ease-in-out space-x-2': true,
           'w-full opacity-100': selected(),
@@ -198,64 +304,150 @@ export const NodeComponent = <D extends Data = Data>(
         </Show>
       </div>
 
-      <div
-        id='inputs'
-        class='pointer-events-none absolute top-0 z-10 flex cursor-default flex-col'
-        style={{ left: `-${HANDLE_CONTAINER_OFFSET_X}px` }}
-      >
+      {/* Dynamic multi-side centered handles */}
+      {/* Top handles */}
+      <Show when={(resolvedHandles().top?.length ?? 0) > 0}>
         <div
-          data-handle-type='input'
-          data-node-id={props.id}
-          onMouseDown={event => event.stopPropagation()}
-          onPointerDown={e => e.stopPropagation()}
-
-          class='cursor-default rounded-full bg-[#e38b29] shadow-md transition-transform duration-150 ease-in-out hover:scale-150'
-
+          id='handles-top'
+          class='pointer-events-none absolute inset-x-0 top-0 z-10'
           style={{
-            width: `${HANDLE_SIZE}px`,
+            top: `-${HANDLE_CONTAINER_OFFSET_X}px`,
             height: `${HANDLE_SIZE}px`,
-            'margin-top': `${HANDLE_MARGIN_TOP}px`,
-            'pointer-events': 'all',
           }}
+        >
+          <For each={resolvedHandles().top}>
+            {(type, index) => (
+              <div
+                class='pointer-events-none absolute'
+                style={{
+                  left: `${getHandleOffsetPercent(index(), resolvedHandles().top!.length)}%`,
+                  top: '0px',
+                  transform: 'translateX(-50%)',
+                  width: `${HANDLE_SIZE}px`,
+                  height: `${HANDLE_SIZE}px`,
+                }}
+              >
+                <HandleItem
+                  type={type}
+                  nodeId={props.id}
+                  side='top'
+                  index={index()}
+                  onAddEdge={handleAddEdge}
+                  onStartEdge={handleStartEdge}
+                />
+              </div>
+            )}
+          </For>
+        </div>
+      </Show>
 
-          onMouseUp={event => {
-            event.stopPropagation();
-            const from = newEdge()?.from;
-
-            if (from && from !== props.id) {
-              service.send({ type: 'ADD_EDGE', payload: { from, to: props.id } });
-            }
-            service.send('CLEAR_NEW_EDGE');
-          }}
-        ></div>
-      </div>
-      <div
-        id='outputs'
-
-        style={{ right: `-${HANDLE_CONTAINER_OFFSET_X}px` }}
-
-        class='pointer-events-none absolute top-0 z-10 flex flex-col'
-      >
+      {/* Bottom handles */}
+      <Show when={(resolvedHandles().bottom?.length ?? 0) > 0}>
         <div
-          data-handle-type='output'
-          data-node-id={props.id}
-          class='cursor-crosshair rounded-full bg-[#e38b29] shadow-md transition-transform duration-150 ease-in-out hover:scale-150'
+          id='handles-bottom'
+          class='pointer-events-none absolute inset-x-0 bottom-0 z-10'
           style={{
-            width: `${HANDLE_SIZE}px`,
+            bottom: `-${HANDLE_CONTAINER_OFFSET_X}px`,
             height: `${HANDLE_SIZE}px`,
-            'margin-top': `${HANDLE_MARGIN_TOP}px`,
-            'pointer-events': 'all',
           }}
-          onMouseDown={event => {
-            event.stopPropagation();
-            service.send('DESELECT');
-            service.send({ type: 'START_NEW_EDGE', payload: props.id });
+        >
+          <For each={resolvedHandles().bottom}>
+            {(type, index) => (
+              <div
+                class='pointer-events-none absolute'
+                style={{
+                  left: `${getHandleOffsetPercent(index(), resolvedHandles().bottom!.length)}%`,
+                  bottom: '0px',
+                  transform: 'translateX(-50%)',
+                  width: `${HANDLE_SIZE}px`,
+                  height: `${HANDLE_SIZE}px`,
+                }}
+              >
+                <HandleItem
+                  type={type}
+                  nodeId={props.id}
+                  side='bottom'
+                  index={index()}
+                  onAddEdge={handleAddEdge}
+                  onStartEdge={handleStartEdge}
+                />
+              </div>
+            )}
+          </For>
+        </div>
+      </Show>
+
+      {/* Left handles */}
+      <Show when={(resolvedHandles().left?.length ?? 0) > 0}>
+        <div
+          id='handles-left'
+          class='pointer-events-none absolute inset-y-0 left-0 z-10'
+          style={{
+            left: `-${HANDLE_CONTAINER_OFFSET_X}px`,
+            width: `${HANDLE_SIZE}px`,
           }}
-          onPointerDown={event => {
-            event.stopPropagation();
+        >
+          <For each={resolvedHandles().left}>
+            {(type, index) => (
+              <div
+                class='pointer-events-none absolute'
+                style={{
+                  top: `${getHandleOffsetPercent(index(), resolvedHandles().left!.length)}%`,
+                  left: '0px',
+                  transform: 'translateY(-50%)',
+                  width: `${HANDLE_SIZE}px`,
+                  height: `${HANDLE_SIZE}px`,
+                }}
+              >
+                <HandleItem
+                  type={type}
+                  nodeId={props.id}
+                  side='left'
+                  index={index()}
+                  onAddEdge={handleAddEdge}
+                  onStartEdge={handleStartEdge}
+                />
+              </div>
+            )}
+          </For>
+        </div>
+      </Show>
+
+      {/* Right handles */}
+      <Show when={(resolvedHandles().right?.length ?? 0) > 0}>
+        <div
+          id='handles-right'
+          class='pointer-events-none absolute inset-y-0 right-0 z-10'
+          style={{
+            right: `-${HANDLE_CONTAINER_OFFSET_X}px`,
+            width: `${HANDLE_SIZE}px`,
           }}
-        ></div>
-      </div>
+        >
+          <For each={resolvedHandles().right}>
+            {(type, index) => (
+              <div
+                class='pointer-events-none absolute'
+                style={{
+                  top: `${getHandleOffsetPercent(index(), resolvedHandles().right!.length)}%`,
+                  right: '0px',
+                  transform: 'translateY(-50%)',
+                  width: `${HANDLE_SIZE}px`,
+                  height: `${HANDLE_SIZE}px`,
+                }}
+              >
+                <HandleItem
+                  type={type}
+                  nodeId={props.id}
+                  side='right'
+                  index={index()}
+                  onAddEdge={handleAddEdge}
+                  onStartEdge={handleStartEdge}
+                />
+              </div>
+            )}
+          </For>
+        </div>
+      </Show>
     </div>
   );
 };

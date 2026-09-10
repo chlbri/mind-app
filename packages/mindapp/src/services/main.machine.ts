@@ -9,8 +9,8 @@ export type DragDropState = Exclude<ReturnType<typeof useDragDropContext>, null>
 import { clamp } from '..';
 import {
   DEFAULT_DATA,
-  DEFAULT_INPUT_OFFSET,
   DEFAULT_SIZE,
+  getDefaultInputOffset,
   getDefaultOutputOffset,
   PARENT_CHILD_GAP_WIDTH,
 } from './main.machine.data';
@@ -18,20 +18,23 @@ import {
   buildEdgeId,
   buildNodeID,
   calculateDimensions,
+  calculateEdgePosition,
+  getHandlePosition,
 } from './main.machine.helpers';
 import {
+  board,
+  data,
   dimension,
   edgeJSON,
   extremities,
   newEdge,
-  data,
   nodeJSON,
   point,
   vector,
-  board,
-  type Dimension,
-  type Point,
   type Board,
+  type Dimension,
+  type HandlePosition,
+  type Point,
   type Vector,
 } from './main.machine.typings';
 
@@ -39,7 +42,7 @@ import {
  * State machine managing flowchart state transitions, nodes, edges, selection, and
  * layout actions.
  *
- * @see {@linkcode calculateDimensions}, {@linkcode buildEdgeId}, {@linkcode buildNodeID}, {@linkcode getDefaultOutputOffset}, {@linkcode DEFAULT_INPUT_OFFSET}, {@linkcode DEFAULT_SIZE}, {@linkcode DEFAULT_DATA}
+ * @see {@linkcode calculateDimensions}, {@linkcode buildEdgeId}, {@linkcode buildNodeID}, {@linkcode getDefaultOutputOffset}, {@linkcode DEFAULT_SIZE}, {@linkcode DEFAULT_DATA}
  */
 export const machine = createMachine(
   {
@@ -104,6 +107,7 @@ export const machine = createMachine(
           SET_BOARD: { actions: ['setBoard'] },
           SET_NODE_DATA: { actions: ['setNodeData'] },
           SET_EDGE_DATA: { actions: ['setEdgeData'] },
+          SEND_EDGE_DATA: { actions: ['setEdgeData'] },
           EDIT: { actions: ['edit'] },
           STOP_EDIT: { actions: ['stopEdit'] },
         },
@@ -111,7 +115,7 @@ export const machine = createMachine(
     },
   },
   {
-    eventsMap: type(({ intersection, use, array, optional }) => ({
+    eventsMap: type(({ intersection, use, array, optional, custom }) => ({
       CONFIGURE: {
         nodes: array(intersection(use(nodeJSON), { id: 'string' })),
         edges: array(intersection(use(edgeJSON), { id: 'string' })),
@@ -131,7 +135,9 @@ export const machine = createMachine(
       EDIT: 'string',
       STOP_EDIT: 'never',
       ADD_EDGE: use(extremities),
-      START_NEW_EDGE: 'string',
+      START_NEW_EDGE: custom<
+        string | { from: string; position?: HandlePosition | string; index?: number }
+      >(),
       MOVE_NEW_EDGE: use(point),
       CLEAR_NEW_EDGE: 'never',
       ZOOM: 'number',
@@ -139,6 +145,7 @@ export const machine = createMachine(
       RESIZE: { id: 'string', size: { width: 'number', height: 'number' } },
       SET_NODE_DATA: { id: 'string', data: use(data) },
       SET_EDGE_DATA: { id: 'string', data: use(data) },
+      SEND_EDGE_DATA: { id: 'string', data: use(data) },
     })),
 
     sync: true,
@@ -239,6 +246,14 @@ export const machine = createMachine(
           return edge;
         });
       },
+      SEND_EDGE_DATA: ({ context: { data }, payload: { id, data: newData } }) => {
+        return data?.edges?.map(edge => {
+          if (edge.id === id) {
+            return { ...edge, data: { ...edge.data, ...newData } };
+          }
+          return edge;
+        });
+      },
     }),
 
     setBoard: assign('board', { SET_BOARD: ({ payload }) => payload }),
@@ -254,9 +269,45 @@ export const machine = createMachine(
     ),
 
     startNewEdge: assign('newEdge', {
-      START_NEW_EDGE: ({ payload: from, pContext: { dimensions } }) => {
-        const { x, y } = dimensions[from].output;
-        return { from, x0: x, y0: y, x1: x, y1: y };
+      START_NEW_EDGE: ({ payload, pContext: { dimensions }, context: { data } }) => {
+        const from = typeof payload === 'string' ? payload : payload.from;
+        const fromPosition =
+          typeof payload === 'object' ? payload.position : undefined;
+        const fromIndex = typeof payload === 'object' ? payload.index : undefined;
+
+        const fromNode = data?.nodes?.find(n => n.id === from);
+        const dimension = dimensions[from];
+        if (!dimension) return { from, x0: 0, y0: 0, x1: 0, y1: 0 };
+
+        const width = dimension.width ?? DEFAULT_SIZE.width;
+        const height = dimension.height ?? DEFAULT_SIZE.height;
+        const nodePos = fromNode?.position ?? { x: 0, y: 0 };
+
+        let side: HandlePosition = (fromPosition as HandlePosition) ?? 'right';
+        let idx = fromIndex ?? 0;
+        if (!fromPosition && fromNode?.handles) {
+          const sides: HandlePosition[] = ['right', 'bottom', 'top', 'left'];
+          for (const s of sides) {
+            const hIdx = fromNode.handles[s]?.indexOf('output');
+            if (hIdx !== undefined && hIdx !== -1) {
+              side = s;
+              idx = hIdx;
+              break;
+            }
+          }
+        }
+        const total = fromNode?.handles?.[side]?.length ?? 1;
+        const p = getHandlePosition(nodePos, { width, height }, side, idx, total);
+
+        return {
+          from,
+          fromPosition: side,
+          fromIndex: idx,
+          x0: p.x,
+          y0: p.y,
+          x1: p.x,
+          y1: p.y,
+        };
       },
     }),
 
@@ -269,38 +320,35 @@ export const machine = createMachine(
         }) => {
           const edges = data?.edges;
           const dimension = dimensions[payload.id];
-          if (!dimension) return;
+          if (!dimension) return edgesPositions;
 
+          const width = dimension.width ?? DEFAULT_SIZE.width;
+          const height = dimension.height ?? DEFAULT_SIZE.height;
           const outputOffset =
-            dimension.outputOffset ?? getDefaultOutputOffset(dimension.width);
+            dimension.outputOffset ?? getDefaultOutputOffset(width, height);
+          const inputOffset = dimension.inputOffset ?? getDefaultInputOffset(height);
 
-          const inputOffset = dimension.inputOffset ?? DEFAULT_INPUT_OFFSET;
-
-          const output = {
+          dimension.output = {
             x: payload.x + outputOffset.x,
             y: payload.y + outputOffset.y,
           };
-
-          const input = {
+          dimension.input = {
             x: payload.x + inputOffset.x,
             y: payload.y + inputOffset.y,
           };
 
-          dimension.output = output;
-          dimension.input = input;
+          const updatedNodes = (data?.nodes ?? []).map(n =>
+            n.id === payload.id
+              ? { ...n, position: { x: payload.x, y: payload.y } }
+              : n,
+          );
 
-          edges?.forEach(({ from, to, id }) => {
-            const edgePosition = edgesPositions[id];
-            if (!edgePosition) return;
-
-            if (from === payload.id) {
-              edgePosition.x0 = output.x;
-              edgePosition.y0 = output.y;
-            }
-
-            if (to === payload.id) {
-              edgePosition.x1 = input.x;
-              edgePosition.y1 = input.y;
+          edges?.forEach(edge => {
+            if (edge.from === payload.id || edge.to === payload.id) {
+              const pos = calculateEdgePosition(edge, updatedNodes, dimensions);
+              if (pos) {
+                edgesPositions[edge.id] = pos;
+              }
             }
           });
 
@@ -312,29 +360,36 @@ export const machine = createMachine(
           payload,
           pContext: { dimensions },
         }) => {
-          data?.edges?.forEach(({ from, to, id }) => {
-            const dimension = dimensions[payload.id];
-            const edgePosition = edgesPositions[id];
-            if (!edgePosition || !dimension) return;
+          const dimension = dimensions[payload.id];
+          if (!dimension) return edgesPositions;
 
-            if (from === payload.id) {
-              const offset =
-                dimension.outputOffset ?? getDefaultOutputOffset(dimension.width);
+          const width = dimension.width ?? DEFAULT_SIZE.width;
+          const height = dimension.height ?? DEFAULT_SIZE.height;
+          const outputOffset =
+            dimension.outputOffset ?? getDefaultOutputOffset(width, height);
+          const inputOffset = dimension.inputOffset ?? getDefaultInputOffset(height);
 
-              const x0 = payload.x + offset.x;
-              const y0 = payload.y + offset.y;
-              edgePosition.x0 = x0;
-              edgePosition.y0 = y0;
-              dimension.output = { x: x0, y: y0 };
-            }
+          dimension.output = {
+            x: payload.x + outputOffset.x,
+            y: payload.y + outputOffset.y,
+          };
+          dimension.input = {
+            x: payload.x + inputOffset.x,
+            y: payload.y + inputOffset.y,
+          };
 
-            if (to === payload.id) {
-              const offset = dimension?.inputOffset ?? DEFAULT_INPUT_OFFSET;
-              const x1 = payload.x + offset.x;
-              const y1 = payload.y + offset.y;
-              edgePosition.x1 = x1;
-              edgePosition.y1 = y1;
-              dimension.input = { x: x1, y: y1 };
+          const updatedNodes = (data?.nodes ?? []).map(n =>
+            n.id === payload.id
+              ? { ...n, position: { x: payload.x, y: payload.y } }
+              : n,
+          );
+
+          data?.edges?.forEach(edge => {
+            if (edge.from === payload.id || edge.to === payload.id) {
+              const pos = calculateEdgePosition(edge, updatedNodes, dimensions);
+              if (pos) {
+                edgesPositions[edge.id] = pos;
+              }
             }
           });
 
@@ -344,17 +399,21 @@ export const machine = createMachine(
         else: ({ context: { data }, pContext: { dimensions } }) => {
           const nextEdgesPositions: Record<string, Vector> = {};
 
-          data?.edges?.forEach(({ from, id, to }) => {
-            const output = dimensions[from]?.output;
-            const input = dimensions[to]?.input;
-
-            if (output && input) {
-              nextEdgesPositions[id] = {
-                x0: output.x,
-                y0: output.y,
-                x1: input.x,
-                y1: input.y,
-              };
+          data?.edges?.forEach(edge => {
+            const pos = calculateEdgePosition(edge, data.nodes, dimensions);
+            if (pos) {
+              nextEdgesPositions[edge.id] = pos;
+            } else {
+              const output = dimensions[edge.from]?.output;
+              const input = dimensions[edge.to]?.input;
+              if (output && input) {
+                nextEdgesPositions[edge.id] = {
+                  x0: output.x,
+                  y0: output.y,
+                  x1: input.x,
+                  y1: input.y,
+                };
+              }
             }
           });
 
@@ -380,8 +439,8 @@ export const machine = createMachine(
         dimension.width = width;
         dimension.height = height;
         const node = data?.nodes?.find(n => n.id === id);
-        const outputOffset = getDefaultOutputOffset(width);
-        const inputOffset = dimension.inputOffset ?? DEFAULT_INPUT_OFFSET;
+        const outputOffset = getDefaultOutputOffset(width, height);
+        const inputOffset = dimension.inputOffset ?? getDefaultInputOffset(height);
         dimension.outputOffset = outputOffset;
         dimension.inputOffset = inputOffset;
 
@@ -407,8 +466,8 @@ export const machine = createMachine(
           const edges = toArray.typed(data?.edges);
           const generatedId = pContext?.generatedId;
           const to = buildNodeID(generatedId);
-          const id = buildEdgeId(from, to);
-          edges.push({ id, from, to });
+          const id = buildEdgeId(from, to, 'left', 0);
+          edges.push({ id, from, to, toPosition: 'left', toIndex: 0 });
           return edges;
         },
       }),
@@ -427,8 +486,8 @@ export const machine = createMachine(
           if (!from) return edges;
 
           const to = buildNodeID(generatedId);
-          const id = buildEdgeId(from, to);
-          edges.push({ from, to, id });
+          const id = buildEdgeId(from, to, 'left', 0);
+          edges.push({ from, to, id, toPosition: 'left', toIndex: 0 });
           return edges;
         },
       }),
@@ -464,26 +523,58 @@ export const machine = createMachine(
 
     addEdge: batch(
       assign('data.edges', {
-        ADD_EDGE: ({ context, payload: { from, to } }) => {
+        ADD_EDGE: ({ context, payload }) => {
+          const p =
+            typeof payload === 'string'
+              ? { from: payload, to: '' }
+              : (payload as any);
+          const { from, to, toPosition, toIndex, fromPosition, fromIndex } = p;
           const edges = context.data?.edges ?? [];
+          const id = buildEdgeId(from, to, toPosition, toIndex);
           const existing = edges.find(
-            e => (e.from === from && e.to === to) || e.id === buildEdgeId(from, to),
+            e =>
+              e.id === id ||
+              (e.from === from &&
+                e.to === to &&
+                (!toPosition || e.toPosition === toPosition) &&
+                (toIndex === undefined || e.toIndex === toIndex)),
           );
           if (existing) return edges;
 
-          const id = buildEdgeId(from, to);
-          const out = [...edges, { id, from, to }];
+          const out = [
+            ...edges,
+            {
+              id,
+              from,
+              to,
+              ...(toPosition ? { toPosition } : {}),
+              ...(toIndex !== undefined ? { toIndex } : {}),
+              ...(fromPosition ? { fromPosition } : {}),
+              ...(fromIndex !== undefined ? { fromIndex } : {}),
+            },
+          ];
           return out;
         },
       }),
 
       assign('selected', {
-        ADD_EDGE: ({ context, payload: { from, to } }) => {
+        ADD_EDGE: ({ context, payload }) => {
+          const p =
+            typeof payload === 'string'
+              ? { from: payload, to: '' }
+              : (payload as any);
+          const { from, to, toPosition, toIndex } = p;
           const edges = context.data?.edges ?? [];
+          const id = buildEdgeId(from, to, toPosition, toIndex);
           const existing = edges.find(
-            e => (e.from === from && e.to === to) || e.id === buildEdgeId(from, to),
+            e =>
+              e.id === id ||
+              (e.from === from &&
+                e.to === to &&
+                (!toPosition || e.toPosition === toPosition) &&
+                (toIndex === undefined || e.toIndex === toIndex)),
           );
-          return existing ? existing.id : buildEdgeId(from, to);
+          return existing ? existing.id : id;
         },
       }),
 

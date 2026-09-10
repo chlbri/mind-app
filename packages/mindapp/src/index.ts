@@ -4,7 +4,7 @@ export * from './ui/components/classes';
 export * from './ui/components/FlowChart';
 export type * from './ui/components/FlowChart.types';
 export * from './ui/components/FlowChart.context';
-export * from './ui/components/edges/EdgeCursive';
+export * from './ui/components/edges';
 export type * from './ui/components/edges/types';
 export * from './ui/Flow';
 export * from './ui/components/EditPanel';
