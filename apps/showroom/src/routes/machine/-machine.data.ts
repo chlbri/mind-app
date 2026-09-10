@@ -114,7 +114,7 @@ const ORDER_NODE_POSITIONS: Record<string, { x: number; y: number }> = {
 };
 
 const top: NodeHandles['top'] = ['input', 'input', 'input'];
-const bottom: NodeHandles['bottom'] = ['input', 'input', 'input'];
+const bottom: NodeHandles['bottom'] = ['output', 'input', 'output'];
 
 // Node handle configurations demonstrating multi-side centered handles
 const ORDER_NODE_HANDLES: Record<string, NodeHandles> = {
