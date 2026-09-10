@@ -107,7 +107,6 @@ export const machine = createMachine(
           SET_BOARD: { actions: ['setBoard'] },
           SET_NODE_DATA: { actions: ['setNodeData'] },
           SET_EDGE_DATA: { actions: ['setEdgeData'] },
-          SEND_EDGE_DATA: { actions: ['setEdgeData'] },
           EDIT: { actions: ['edit'] },
           STOP_EDIT: { actions: ['stopEdit'] },
         },
@@ -145,7 +144,6 @@ export const machine = createMachine(
       RESIZE: { id: 'string', size: { width: 'number', height: 'number' } },
       SET_NODE_DATA: { id: 'string', data: use(data) },
       SET_EDGE_DATA: { id: 'string', data: use(data) },
-      SEND_EDGE_DATA: { id: 'string', data: use(data) },
     })),
 
     sync: true,
@@ -239,14 +237,6 @@ export const machine = createMachine(
 
     setEdgeData: assign('data.edges', {
       SET_EDGE_DATA: ({ context: { data }, payload: { id, data: newData } }) => {
-        return data?.edges?.map(edge => {
-          if (edge.id === id) {
-            return { ...edge, data: { ...edge.data, ...newData } };
-          }
-          return edge;
-        });
-      },
-      SEND_EDGE_DATA: ({ context: { data }, payload: { id, data: newData } }) => {
         return data?.edges?.map(edge => {
           if (edge.id === id) {
             return { ...edge, data: { ...edge.data, ...newData } };

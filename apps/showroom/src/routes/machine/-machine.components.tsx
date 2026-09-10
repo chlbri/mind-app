@@ -232,37 +232,58 @@ export const StateMachineEdgeMiddle: Component<
     switch (k) {
       case 'child_parent':
         return {
+          bg: 'bg-purple-600',
+          border: 'border-purple-300',
+          text: 'text-white',
           fill: '#7c3aed',
           stroke: '#c4b5fd',
           icon: '⮑',
           name: 'Child-to-Parent',
         };
       case 'after':
-        return { fill: '#d97706', stroke: '#fde68a', icon: '⏱', name: 'After' };
+        return {
+          bg: 'bg-amber-600',
+          border: 'border-amber-200',
+          text: 'text-white',
+          fill: '#d97706',
+          stroke: '#fde68a',
+          icon: '⏱',
+          name: 'After',
+        };
       case 'always':
-        return { fill: '#059669', stroke: '#a7f3d0', icon: '⚡', name: 'Always' };
+        return {
+          bg: 'bg-emerald-600',
+          border: 'border-emerald-200',
+          text: 'text-white',
+          fill: '#059669',
+          stroke: '#a7f3d0',
+          icon: '⚡',
+          name: 'Always',
+        };
       case 'on':
       default:
-        return { fill: '#2563eb', stroke: '#bfdbfe', icon: '🔀', name: 'On' };
+        return {
+          bg: 'bg-blue-600',
+          border: 'border-blue-200',
+          text: 'text-white',
+          fill: '#2563eb',
+          stroke: '#bfdbfe',
+          icon: '🔀',
+          name: 'On',
+        };
     }
   };
 
-  const badgeWidth = () => {
-    const list = transitions();
-    if (!list || list.length === 0) return 86;
-    const lengths = list.map(t => {
-      const text = t?.label || t?.kind || 'transition';
-      return String(text).length;
-    });
-    const maxLen = Math.max(...lengths, 8);
-    return Math.max(86, Math.min(230, maxLen * 6.8 + 26));
-  };
+  const BADGE_WIDTH = 110;
+  const ITEM_HEIGHT = 22;
+  const GAP = 4;
 
   const count = () => Math.max(1, transitions().length);
-  const pillHeight = 20;
-  const gap = 3;
-  const totalHeight = () => count() * pillHeight + (count() - 1) * gap;
-  const y0 = () => -totalHeight() / 2;
+  const totalHeight = () => {
+    const itemsH = count() * ITEM_HEIGHT + (count() - 1) * GAP;
+    const addH = showAdd() ? ITEM_HEIGHT + GAP : 0;
+    return itemsH + addH + 4;
+  };
 
   const deleteTransition = (transitionId: string) => {
     const current = transitions();
@@ -287,142 +308,101 @@ export const StateMachineEdgeMiddle: Component<
     }
   };
 
+  const showAdd = () => {
+    const _transitions = transitions();
+
+    if (_transitions.length === 1) {
+      const transition = _transitions[0];
+      if (transition.kind === 'child_parent') return false;
+    }
+
+    if (_transitions.length === 0) return selected();
+    return selected();
+  };
+
   return (
-    <g
-      class='cursor-pointer select-none'
-      style={{ 'pointer-events': 'all' }}
-      onMouseDown={e => {
-        e.stopPropagation();
-        service.send({ type: 'SELECT', payload: props.id });
-      }}
+    <foreignObject
+      x={-BADGE_WIDTH / 2}
+      y={-totalHeight() / 2}
+      width={BADGE_WIDTH}
+      height={totalHeight()}
+      style={{ overflow: 'visible', 'pointer-events': 'none' }}
     >
-      {/* Outer selection glow */}
-      <Show when={selected()}>
-        <rect
-          x={-badgeWidth() / 2 - 4}
-          y={y0() - 4}
-          width={badgeWidth() + 8}
-          height={totalHeight() + 8}
-          rx={13}
-          ry={13}
-          fill='none'
-          stroke='#6366f1'
-          stroke-width='2'
-          stroke-opacity='0.6'
-        />
-      </Show>
-
-      {/* Stacked Transition Badges */}
-      <For each={transitions()}>
-        {(t, idx) => {
-          const y = () => y0() + idx() * (pillHeight + gap);
-          const conf = () => getKindConfig(t.kind);
-
-          return (
-            <g transform={`translate(0, ${y()})`}>
-              {/* Pill background */}
-              <rect
-                x={-badgeWidth() / 2}
-                y={0}
-                width={badgeWidth()}
-                height={pillHeight}
-                rx={10}
-                ry={10}
-                fill={conf().fill}
-                stroke={selected() ? '#ffffff' : conf().stroke}
-                stroke-width={selected() ? '1.8' : '1.2'}
-                filter='drop-shadow(0px 2px 3px rgba(0, 0, 0, 0.22))'
-              />
-
-              {/* Text label */}
-              <text
-                x={0}
-                y={10}
-                text-anchor='middle'
-                dominant-baseline='central'
-                fill='#ffffff'
-                font-size='10'
-                font-weight='bold'
-                font-family='ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
-                style={{ 'pointer-events': 'none' }}
-              >
-                {`${conf().icon} ${t.label || conf().name}`}
-              </text>
-
-              {/* Delete handle for this specific transition */}
-              <Show when={selected()}>
-                <g
-                  cursor='pointer'
-                  transform={`translate(${badgeWidth() / 2 + 11}, 10)`}
-                  onMouseDown={e => {
-                    e.stopPropagation();
-                    deleteTransition(t.id);
-                  }}
-                >
-                  <circle
-                    cx='0'
-                    cy='0'
-                    r='8'
-                    fill='#ef4444'
-                    stroke='#ffffff'
-                    stroke-width='1.2'
-                    filter='drop-shadow(0px 1px 2px rgba(0,0,0,0.3))'
-                  />
-                  <path
-                    d='M-2.5 -2.5 L2.5 2.5 M2.5 -2.5 L-2.5 2.5'
-                    stroke='#ffffff'
-                    stroke-width='1.5'
-                    stroke-linecap='round'
-                  />
-                </g>
-              </Show>
-            </g>
-          );
+      <div
+        class={`flex min-w-40 cursor-pointer flex-col items-center justify-center gap-0.5 select-none`}
+        style={{
+          width: '100%',
+          height: `${totalHeight()}px`,
+          'pointer-events': 'none',
         }}
-      </For>
+        classList={{
+          'rounded-xl ring-2 ring-offset-4 ring-indigo-400': showAdd(),
+          'rounded-xl ring-1 ring-offset-1 ring-orange-400':
+            !showAdd() && selected(),
+        }}
+      >
+        {/* Stacked Transition Badges */}
+        <For each={transitions()}>
+          {t => {
+            const conf = () => getKindConfig(t.kind);
 
-      {/* "+ Add transition" button when selected */}
-      <Show when={selected()}>
-        <g
-          cursor='pointer'
-          transform={`translate(0, ${y0() + totalHeight() + 6})`}
-          onMouseDown={e => {
-            e.stopPropagation();
-            setActiveAddTransitionEdge({
-              edgeId: props.id,
-              from: edgeData()?.fromState ?? '',
-              to: edgeData()?.toState ?? '',
-            });
+            return (
+              <div
+                class={`flex w-full items-center justify-center gap-1`}
+                style={{ padding: '2px 8px', 'pointer-events': 'all' }}
+                onMouseDown={e => {
+                  e.stopPropagation();
+                  service.send({ type: 'SELECT', payload: props.id });
+                }}
+              >
+                <p
+                  class={`flex max-w-full min-w-0 items-center gap-1 rounded-full border px-3 py-0.5 text-[10px] font-bold shadow-sm ${conf().bg} ${conf().text}`}
+                >
+                  <span class='shrink-0'>{conf().icon}</span>
+                  <span class='min-w-0 flex-1 truncate text-center'>
+                    {t.label || conf().name}
+                  </span>
+                </p>
+
+                {/* Delete button for this transition when edge is selected */}
+                <Show when={showAdd()}>
+                  <button
+                    type='button'
+                    class='ml-1 h-3.5 w-3.5 shrink-0 cursor-pointer rounded-full bg-red-500 text-[9px] font-black text-white shadow-sm hover:bg-red-600'
+                    title='Delete transition'
+                    onMouseDown={e => {
+                      e.stopPropagation();
+                      deleteTransition(t.id);
+                    }}
+                  >
+                    X
+                  </button>
+                </Show>
+              </div>
+            );
           }}
-        >
-          <rect
-            x={-52}
-            y={0}
-            width={104}
-            height={18}
-            rx={9}
-            ry={9}
-            fill='#4f46e5'
-            stroke='#c7d2fe'
-            stroke-width='1.2'
-            filter='drop-shadow(0px 2px 3px rgba(0, 0, 0, 0.2))'
-          />
-          <text
-            x={0}
-            y={9}
-            text-anchor='middle'
-            dominant-baseline='central'
-            fill='#ffffff'
-            font-size='9.5'
-            font-weight='bold'
-            font-family='ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
-            style={{ 'pointer-events': 'none' }}
+        </For>
+
+        {/* "+ Add transition" button when selected */}
+        <Show when={showAdd()}>
+          <button
+            type='button'
+            class='flex cursor-pointer items-center justify-center rounded-full border border-indigo-200 bg-indigo-600 text-[9.5px] font-bold text-white shadow-sm hover:bg-indigo-700'
+            style={{ width: '100%', padding: '2px 8px', 'pointer-events': 'all' }}
+            onMouseDown={e => {
+              e.stopPropagation();
+              setActiveAddTransitionEdge({
+                edgeId: props.id,
+                from: edgeData()?.fromState ?? '',
+                to: edgeData()?.toState ?? '',
+              });
+            }}
           >
             + Add transition
-          </text>
-        </g>
-      </Show>
-    </g>
+          </button>
+        </Show>
+      </div>
+    </foreignObject>
   );
 };
 

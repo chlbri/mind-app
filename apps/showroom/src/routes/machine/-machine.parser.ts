@@ -1,12 +1,18 @@
-import type { EdgesFrom, NodesFrom } from '@bemedev/mind-flow';
+import type { EdgesFrom, NodeHandles, NodesFrom } from '@bemedev/mind-flow';
 
 import type {
   EdgeKind,
+  MachineConfig,
+  Position,
   StateActorData,
   StateMachineEdgeData,
   StateMachineNodeData,
+  StateNodeKeys,
+  StateNodePositions,
   TransitionItem,
 } from './-machine.types';
+
+export type { MachineConfig, Position, StateNodeKeys, StateNodePositions };
 
 /** Standard spacing parameters for node layout positioning. */
 const HORIZONTAL_SPACING = 360;
@@ -125,14 +131,34 @@ const extractActors = (rawActors?: Record<string, any>): StateActorData[] => {
  * 5. `on` transitions map to edges of type `on`.
  * 6. State actors are attached to node metadata for rendering the top-right bubble
  *    badge.
+ * 7. All StateNodes will have handles: `{ left: ['input'], right: ['output'] }`.
+ * 8. For compound states with children, `bottom: ['output', 'input', 'output']` handles
+ *    are added.
+ * 9. For child states, `top: ['input', 'input', 'input']` handles are added.
+ *
+ * @template | {@linkcode MachineConfig} `T` - Machine configuration or machine
+ *   instance type.
+ *
+ * @param machineConfig - The state machine configuration object or machine instance.
+ * @param positions - Optional dictionary mapping inferred state node path keys to
+ *   canvas positions.
+ *
+ * @returns An object containing the generated nodes and edges.
+ *
+ * @see -- type {@linkcode MachineConfig}
+ * @see -- type {@linkcode Position}
+ * @see -- type {@linkcode StateNodeKeys}
  */
-export const parseMachineToGraph = (
-  machineConfig: any,
+export const parseMachineToGraph = <
+  const T extends MachineConfig | { config: MachineConfig } = MachineConfig,
+>(
+  machineConfig: T,
+  positions: Record<StateNodeKeys<T>, Position>,
 ): {
   nodes: NodesFrom<StateMachineNodeData>;
   edges: EdgesFrom<StateMachineEdgeData>;
 } => {
-  const rawConfig = machineConfig?.config ?? machineConfig ?? {};
+  const rawConfig = (machineConfig as any)?.config ?? machineConfig ?? {};
   const rootStates = rawConfig.states ?? {};
   const rootInitial = rawConfig.initial;
 
@@ -142,6 +168,8 @@ export const parseMachineToGraph = (
     path: string;
     parentPath?: string;
     isInitial: boolean;
+    hasChildren: boolean;
+    isChild: boolean;
     stateType: 'atomic' | 'compound' | 'initial' | 'final';
     tags?: string[];
     entry?: string[];
@@ -179,6 +207,7 @@ export const parseMachineToGraph = (
     const hasChildren = Boolean(
       stateObj?.states && Object.keys(stateObj.states).length > 0,
     );
+    const isChild = Boolean(parentPath);
     const isInitial =
       (parentPath === '' && stateName === rootInitial) ||
       (Boolean(parentPath) && stateObj?.parentInitial === stateName);
@@ -214,6 +243,8 @@ export const parseMachineToGraph = (
       path: currentPath,
       parentPath: parentPath || undefined,
       isInitial,
+      hasChildren,
+      isChild,
       stateType,
       tags: stateObj?.tags ? [].concat(stateObj.tags) : undefined,
       entry,
@@ -235,7 +266,7 @@ export const parseMachineToGraph = (
         from: id,
         to: parentPath,
         kind: 'child_parent',
-        label: `child of ${parentPath.split('/').pop()}`,
+        label: `child of : /${parentPath.split('/').pop()}`,
       });
     }
 
@@ -352,12 +383,22 @@ export const parseMachineToGraph = (
     const currentYCount = columnPositions[col] ?? 0;
     columnPositions[col] = currentYCount + 1;
 
-    const x = INITIAL_X + col * HORIZONTAL_SPACING;
-    const y = INITIAL_Y + currentYCount * VERTICAL_SPACING;
+    const defaultX = INITIAL_X + col * HORIZONTAL_SPACING;
+    const defaultY = INITIAL_Y + currentYCount * VERTICAL_SPACING;
+    const pos = positions?.[node.id as keyof typeof positions];
+    const position = pos ? { x: pos.x, y: pos.y } : { x: defaultX, y: defaultY };
+
+    const handles: NodeHandles = {
+      left: ['input'],
+      right: ['output'],
+      ...(node.hasChildren ? { bottom: ['output', 'input', 'output'] } : {}),
+      ...(node.isChild ? { top: ['input', 'input', 'input'] } : {}),
+    };
 
     return {
       id: node.id,
-      position: { x, y },
+      position,
+      handles,
       data: {
         id: node.id,
         title: node.name,

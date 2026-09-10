@@ -156,7 +156,7 @@ export const NodesBoard = <N extends Data = Data, E extends Data = Data>(
         }
       }}
 
-      class='relative mx-auto h-full w-full overflow-hidden'
+      class='relative mx-auto h-full w-full'
     >
       <DragDropProvider
         onDragMove={({ draggable: { transform: _transform, node, id } }) => {
@@ -229,7 +229,7 @@ export const NodesBoard = <N extends Data = Data, E extends Data = Data>(
           <DragDropSensors />
           <div
             ref={setRef}
-            class='relative cursor-crosshair overflow-hidden'
+            class='relative cursor-crosshair'
             classList={{ 'cursor-grabbing': isPanning() }}
             style={{ height: cHeight(), width: cWidth() }}
             // onScroll={() => {}}

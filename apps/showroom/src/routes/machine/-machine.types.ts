@@ -1,4 +1,54 @@
-import type { Data } from '@bemedev/mind-flow';
+import type { CommonConfig3 } from '@bemedev/app';
+import type { Data, Point } from '@bemedev/mind-flow';
+
+/** 2D coordinate position representing a node's location on the canvas. */
+export type Position = Point;
+
+/**
+ * Configuration structure for a `@bemedev/app` state machine.
+ *
+ * @template {string} Paths - Allowed state path union. Defaults to `string`.
+ */
+export type MachineConfig<Paths extends string = string> = CommonConfig3<Paths>;
+
+/**
+ * Recursively extracts all state path keys (e.g. `'/cart'`,
+ * `'/fulfillment/packaging'`) from a state machine configuration tree.
+ *
+ * @template T - State machine configuration node or tree.
+ * @template {string} Prefix - Current state path prefix.
+ */
+export type ExtractStateKeys<T, Prefix extends string = ''> = T extends {
+  states: infer S;
+}
+  ? string extends keyof S
+    ? string
+    : {
+        [K in keyof S & string]:
+          | `${Prefix}/${K}`
+          | ExtractStateKeys<S[K], `${Prefix}/${K}`>;
+      }[keyof S & string]
+  : never;
+
+/**
+ * Extracts all state node path identifiers from a machine or machine configuration.
+ *
+ * @template T - State machine or configuration object.
+ */
+export type StateNodeKeys<T> = T extends { config: infer C }
+  ? ExtractStateKeys<C> extends never
+    ? string
+    : ExtractStateKeys<C>
+  : ExtractStateKeys<T> extends never
+    ? string
+    : ExtractStateKeys<T>;
+
+/**
+ * Dictionary mapping each state node path key to its canvas position.
+ *
+ * @template T - State machine or configuration object.
+ */
+export type StateNodePositions<T> = Record<StateNodeKeys<T>, Position>;
 
 /** Four distinct edge categories in the state machine diagram. */
 export type EdgeKind = 'child_parent' | 'after' | 'always' | 'on';

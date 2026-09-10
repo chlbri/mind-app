@@ -30,7 +30,7 @@ export const useHook = <D extends Data = Data, E extends Data = Data>(
   const directClose = () => service.send('STOP_EDIT');
   const [closing, setClosing] = createSignal(false);
   const senderNodeData = service.sender('SET_NODE_DATA');
-  const senderEdgeData = service.sender('SEND_EDGE_DATA');
+  const senderEdgeData = service.sender('SET_EDGE_DATA');
 
   const _editingNode = createState(service, {
     selector: ({ context }) => {
