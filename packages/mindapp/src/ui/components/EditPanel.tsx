@@ -1,9 +1,9 @@
+import { cn } from 'cn';
 import { type JSX, Show } from 'solid-js';
 
 import type { Data } from '#services/main.machine.typings';
 
 import { clickOutside } from '../globals/directives';
-import { cn } from '../utils';
 import { useHook } from './EditPanel.hooks';
 import type { EditPanelProps } from './EditPanel.types';
 

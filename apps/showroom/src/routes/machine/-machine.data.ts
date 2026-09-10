@@ -113,36 +113,21 @@ const ORDER_NODE_POSITIONS: Record<string, { x: number; y: number }> = {
   '/refunded': { x: 1480, y: 50 },
 };
 
+const top: NodeHandles['top'] = ['input', 'input', 'input'];
+const bottom: NodeHandles['bottom'] = ['input', 'input', 'input'];
+
 // Node handle configurations demonstrating multi-side centered handles
 const ORDER_NODE_HANDLES: Record<string, NodeHandles> = {
   '/cart': { left: ['input', 'input'], right: ['output', 'output'] },
-  '/payment': {
-    top: ['input'],
-    left: ['input', 'input'],
-    right: ['output'],
-    bottom: ['output'],
-  },
-  '/cancelled': { top: ['input'], left: ['input'], right: ['output'] },
-  '/validation': {
-    left: ['input'],
-    right: ['output', 'output'],
-    bottom: ['output'],
-  },
-  '/rejected': { top: ['input'], left: ['input'], bottom: ['output'] },
-  '/fulfillment': {
-    left: ['input'],
-    right: ['output'],
-    top: ['input', 'input'],
-    bottom: ['output', 'output'],
-  },
-  '/fulfillment/packaging': { top: ['input'], right: ['output'], left: ['input'] },
-  '/fulfillment/shipping': {
-    left: ['input'],
-    right: ['output'],
-    top: ['input', 'input'],
-  },
-  '/fulfillment/completed': { left: ['input'], top: ['input'], right: ['output'] },
-  '/refunded': { left: ['input'], bottom: ['output'] },
+  '/payment': { top, left: ['input', 'input'], right: ['output'], bottom },
+  '/cancelled': { top, left: ['input'], right: ['output'] },
+  '/validation': { left: ['input'], right: ['output', 'output'], bottom },
+  '/rejected': { top, left: ['input'], bottom },
+  '/fulfillment': { left: ['input'], right: ['output'], top, bottom },
+  '/fulfillment/packaging': { top, right: ['output'], left: ['input'] },
+  '/fulfillment/shipping': { left: ['input'], right: ['output'], top },
+  '/fulfillment/completed': { left: ['input'], top, right: ['output'] },
+  '/refunded': { left: ['input'], bottom },
 };
 
 const ORDER_NODES: NodesFrom<StateMachineNodeData> = ORDER_GRAPH.nodes.map(node => {

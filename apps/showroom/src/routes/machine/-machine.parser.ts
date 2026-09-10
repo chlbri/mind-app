@@ -416,6 +416,10 @@ export const parseMachineToGraph = (
         id: g.id,
         from: g.from,
         to: g.to,
+        toPosition: primary.kind === 'child_parent' ? 'bottom' : undefined,
+        fromPosition: primary.kind === 'child_parent' ? 'top' : undefined,
+        fromIndex: primary.kind === 'child_parent' ? 1 : undefined,
+        toIndex: primary.kind === 'child_parent' ? 1 : undefined,
         data: {
           kind: primary.kind,
           label: isMulti ? `${g.transitions.length} transitions` : primary.label,

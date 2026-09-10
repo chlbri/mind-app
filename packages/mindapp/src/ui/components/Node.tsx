@@ -1,7 +1,7 @@
 import { createState } from '@bemedev/app-solidjs';
 import { toArray } from '@bemedev/app/bemedev';
+import { deepEqual } from '@bemedev/app/utils';
 import { createDraggable } from '@thisbeyond/solid-dnd';
-import { dequal } from 'dequal';
 import { type Component, For, type JSX, Show } from 'solid-js';
 import { Dynamic } from 'solid-js/web';
 
@@ -126,7 +126,7 @@ export const NodeComponent = <D extends Data = Data>(
         handles: item?.handles,
       };
     },
-    equals: dequal,
+    equals: deepEqual<any>,
   });
 
   const selected = createState(service, {
@@ -197,6 +197,7 @@ export const NodeComponent = <D extends Data = Data>(
       }}
     >
       <div
+        class='z-300'
         classList={{
           'pointer-events-none absolute flex items-center justify-end -top-7.5 right-0 transition-all duration-200 ease-in-out space-x-2': true,
           'w-full opacity-100': selected(),

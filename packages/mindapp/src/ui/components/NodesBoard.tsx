@@ -1,11 +1,11 @@
 import { createState } from '@bemedev/app-solidjs';
 import { toArray } from '@bemedev/app/bemedev';
+import { deepEqual } from '@bemedev/app/utils';
 import {
   DragDropProvider,
   DragDropSensors,
   DragOverlay,
 } from '@thisbeyond/solid-dnd';
-import { dequal } from 'dequal';
 import {
   type Component,
   createEffect,
@@ -63,7 +63,7 @@ export const NodesBoard = <N extends Data = Data, E extends Data = Data>(
 
   const newEdge = createState(service, {
     selector: s => s.context.newEdge,
-    equals: dequal,
+    equals: deepEqual<any>,
   });
 
   const zoom = createState(service, { selector: s => s.context.zoom ?? 1 });

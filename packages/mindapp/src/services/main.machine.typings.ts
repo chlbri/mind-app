@@ -17,19 +17,27 @@ export const nodeOffset = type(({ use }) => ({
   output: use(point),
 }));
 
-/** Available node container sides for handle placement. */
-export type HandlePosition = 'top' | 'right' | 'bottom' | 'left';
+/** Schema definition for node handle placement positions. */
+export const handlePosition = type(({ litterals }) =>
+  litterals('top', 'right', 'bottom', 'left'),
+);
+
+/**
+ * Available node container sides for handle placement inferred from schema
+ * {@linkcode handlePosition}.
+ */
+export type HandlePosition = inferT<typeof handlePosition>;
 
 /**
  * Schema definition for edge extremities, supporting optional handle positions and
  * indices.
  */
-export const extremities = type(({ optional }) => ({
+export const extremities = type(({ optional, use }) => ({
   from: 'string',
   to: 'string',
-  toPosition: optional('string'),
+  toPosition: optional(use(handlePosition)),
   toIndex: optional('number'),
-  fromPosition: optional('string'),
+  fromPosition: optional(use(handlePosition)),
   fromIndex: optional('number'),
 }));
 
@@ -147,9 +155,10 @@ export const newEdge = type(({ intersection, use, optional }) =>
   intersection(
     {
       from: 'string',
-      fromPosition: optional('string'),
+      fromPosition: optional(use(handlePosition)),
       fromIndex: optional('number'),
     },
+
     use(vector),
   ),
 );

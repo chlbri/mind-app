@@ -3,6 +3,30 @@
 <details>
 <summary>
 
+## **[1.5.0] - 10/09/2026** => _01:48_
+
+</summary>
+
+- Add modular SVG edge rendering system with `FactoryEdge`, `EdgeCursive`,
+  `EdgeStraight`, `MiddleDelete`, and `useEdge`
+- Add multi-handle position support across all node borders with `handlePosition`
+  schema
+- Add top toolbar actions to nodes for quick deletion and child creation
+- Enhance comprehensive JSDoc documentation across types, edge components, and hooks
+- Refactor `EdgeComponent` into modular components under `ui/components/edges/`
+- Refactor `NodeComponent` into dedicated `Node.tsx` supporting multi-border handle
+  distribution
+- Replace internal utility with `cn` package dependency
+- Add `cn` dependency and update `@types/node` to `^26.5.1`
+- <u>Test coverage **_100%_**</u>
+
+</details>
+
+<br/>
+
+<details>
+<summary>
+
 ## **[1.4.1] - 27/08/2026** => _19:01_
 
 </summary>

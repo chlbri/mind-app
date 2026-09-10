@@ -1,6 +1,6 @@
+import { cn } from 'cn';
 import { splitProps, type Component, JSX } from 'solid-js';
 
-import { cn } from '../../../utils';
 import type { OmitPropsOf } from '../../types';
 
 /**

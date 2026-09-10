@@ -4,13 +4,16 @@ import type { Data } from '../services/main.machine.typings';
 import { FlowChart } from './components/FlowChart';
 import { Provider } from './components/FlowChart.context';
 import type { FlowProps } from './components/FlowChart.types';
+export { cn } from 'cn';
 
 /**
  * Root Flow component wrapping the {@linkcode FlowChart} inside the flow context
  * provider.
  *
- * @template | Type {@linkcode Data} `D` - Custom node data dictionary type extending
- *   type {@linkcode Data}.
+ * @template | {@linkcode Data} `D` - Custom node data dictionary type extending type
+ *   {@linkcode Data}.
+ * @template | {@linkcode Data} `E` - Custom edge data dictionary type extending type
+ *   {@linkcode Data}.
  *
  * @param props - Flow chart configuration and callbacks of type
  *   {@linkcode FlowProps}.

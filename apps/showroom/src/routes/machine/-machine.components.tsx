@@ -1,11 +1,12 @@
 import { createState } from '@bemedev/app-solidjs';
+import { deepEqual } from '@bemedev/app/utils';
 import {
   EdgeCursive,
+  EdgeStraight,
   useFlow,
   type EdgeProps,
   type Vector,
 } from '@bemedev/mind-flow';
-import { dequal } from 'dequal';
 import { nanoid } from 'nanoid';
 import {
   createSignal,
@@ -24,10 +25,6 @@ import type {
   TransitionItem,
 } from './-machine.types';
 
-// ============================================================================
-// Shared Modal Signals for Actor Details and Adding Transitions
-// ============================================================================
-
 export const [activeActorNode, setActiveActorNode] =
   createSignal<StateMachineNodeData | null>(null);
 
@@ -40,10 +37,6 @@ export const [activeAddTransitionEdge, setActiveAddTransitionEdge] =
 export const [edgeFilters, setEdgeFilters] = createSignal<Record<EdgeKind, boolean>>(
   { child_parent: true, after: true, always: true, on: true },
 );
-
-// ============================================================================
-// 1. Custom State Node Component
-// ============================================================================
 
 /**
  * Custom node renderer for `@bemedev/app` state machines.
@@ -175,10 +168,6 @@ export const StateMachineNode: Component<StateMachineNodeData> = props => {
   );
 };
 
-// ============================================================================
-// 2. Custom Middle Component & State Machine Edge Component
-// ============================================================================
-
 /** Properties received by the custom edge middle component. */
 export type StateMachineEdgeMiddleProps = {
   vector: Accessor<Vector | undefined>;
@@ -206,7 +195,7 @@ export const StateMachineEdgeMiddle: Component<
 
   const edgeRecord = createState(service, {
     selector: ({ context }) => context.data?.edges?.find(e => e.id === props.id),
-    equals: dequal,
+    equals: deepEqual<any>,
   });
 
   const edgeData = () =>
@@ -449,7 +438,7 @@ export const StateMachineEdge: Component<
 
   const edgeRecord = createState(service, {
     selector: ({ context }) => context.data?.edges?.find(e => e.id === props.id),
-    equals: dequal,
+    equals: deepEqual<any>,
   });
 
   const edgeData = () =>
@@ -457,22 +446,14 @@ export const StateMachineEdge: Component<
 
   const transitions = () => edgeData()?.transitions ?? [];
 
-  // Toggle visibility according to legend filter controls:
-  // An edge is visible if at least one of its transitions is active in edgeFilters!
-  const isVisible = () => {
-    const ts = transitions();
-    if (ts.length === 0) {
-      const k = edgeData()?.kind ?? 'on';
-      return edgeFilters()[k];
-    }
-    return ts.some(t => edgeFilters()[t.kind]);
-  };
-
   const isMulti = () => transitions().length > 1;
+  const kind = () => {
+    return transitions()[0]?.kind ?? edgeData()?.kind ?? 'on';
+  };
 
   const strokeColor = () => {
     if (isMulti()) return '#6366f1'; // Indigo for multi-transition connections
-    const k = transitions()[0]?.kind ?? edgeData()?.kind ?? 'on';
+    const k = kind();
     switch (k) {
       case 'child_parent':
         return '#8b5cf6'; // Violet
@@ -492,8 +473,18 @@ export const StateMachineEdge: Component<
   };
 
   return (
-    <Show when={isVisible()}>
-      <EdgeCursive<StateMachineEdgeData>
+    <Show
+      fallback={
+        <EdgeCursive<StateMachineEdgeData>
+          {...props}
+          stroke={strokeColor()}
+          strokeDasharray={strokeDasharray()}
+          middle={StateMachineEdgeMiddle}
+        />
+      }
+      when={kind() === 'child_parent'}
+    >
+      <EdgeStraight<StateMachineEdgeData>
         {...props}
         stroke={strokeColor()}
         strokeDasharray={strokeDasharray()}
@@ -502,10 +493,6 @@ export const StateMachineEdge: Component<
     </Show>
   );
 };
-
-// ============================================================================
-// 3. Actor Detail Window Component (Modal)
-// ============================================================================
 
 /**
  * Window component that displays full details for actors attached to a state when
@@ -733,10 +720,6 @@ export const ActorDetailModal: Component = () => {
     </Show>
   );
 };
-
-// ============================================================================
-// 4. Add Transition Modal Component
-// ============================================================================
 
 /**
  * Modal dialog that allows users to add a new transition (`on`, `after`, or
@@ -1012,168 +995,5 @@ export const AddTransitionModal: Component = () => {
         </div>
       )}
     </Show>
-  );
-};
-
-// ============================================================================
-// 5. Top-Left Control Panel (Machine Selector & Edge Type Legend)
-// ============================================================================
-
-export type MachineControlPanelProps = {
-  activePresetId: string;
-  onSelectPreset: (id: string) => void;
-  presets: Array<{ id: string; name: string; description: string }>;
-  nodesCount: number;
-  edgesCount: number;
-};
-
-/**
- * Top-left overlay panel providing:
- *
- * - Machine preset selection
- * - Interactive legend for the 4 distinct edge categories with toggle filters
- * - Graph statistics
- */
-export const MachineControlPanel: Component<MachineControlPanelProps> = props => {
-  const [collapsed, setCollapsed] = createSignal(false);
-
-  const toggleFilter = (kind: EdgeKind) => {
-    setEdgeFilters(prev => ({ ...prev, [kind]: !prev[kind] }));
-  };
-
-  return (
-    <div class='pointer-events-all flex w-80 flex-col gap-2 rounded-xl border border-gray-200/80 bg-white/95 p-3.5 text-left shadow-lg backdrop-blur-md transition-all duration-200'>
-      {/* Header with collapse toggle */}
-      <div class='flex items-center justify-between border-b border-gray-100 pb-2'>
-        <div class='flex items-center gap-1.5'>
-          <span class='flex h-2.5 w-2.5 rounded-full bg-indigo-600'></span>
-          <h3 class='text-xs font-bold tracking-wide text-gray-900 uppercase'>
-            State Machine Showroom
-          </h3>
-        </div>
-
-        <button
-          type='button'
-          onClick={() => setCollapsed(!collapsed())}
-          class='cursor-pointer text-xs text-gray-400 hover:text-gray-700'
-          title={collapsed() ? 'Expand panel' : 'Collapse panel'}
-        >
-          {collapsed() ? 'Show ▼' : 'Hide ▲'}
-        </button>
-      </div>
-
-      <Show when={!collapsed()}>
-        {/* Machine Preset Selector */}
-        <div class='space-y-1'>
-          <label class='text-[11px] font-semibold text-gray-600'>
-            Active Machine
-          </label>
-          <select
-            class='w-full cursor-pointer rounded-lg border border-gray-300 bg-white px-2.5 py-1.5 text-xs text-gray-800 shadow-2xs focus:border-indigo-500 focus:outline-none'
-            value={props.activePresetId}
-            onChange={e => props.onSelectPreset(e.currentTarget.value)}
-          >
-            <For each={props.presets}>
-              {preset => <option value={preset.id}>{preset.name}</option>}
-            </For>
-          </select>
-        </div>
-
-        {/* 4 Edge Types Legend */}
-        <div class='mt-2 space-y-1.5'>
-          <div class='flex items-center justify-between'>
-            <label class='text-[11px] font-semibold text-gray-600'>
-              4 Edge Types (Click to toggle)
-            </label>
-            <span class='font-mono text-[10px] text-gray-400'>
-              {props.edgesCount} edges
-            </span>
-          </div>
-
-          <div class='flex flex-col gap-1.5 text-xs'>
-            {/* Edge Type 1: Child to Parent */}
-            <button
-              type='button'
-              onClick={() => toggleFilter('child_parent')}
-              class={`flex cursor-pointer items-center justify-between rounded-lg border px-2 py-1 text-left transition-all ${
-                edgeFilters().child_parent
-                  ? 'border-purple-300 bg-purple-50 font-semibold text-purple-900'
-                  : 'border-gray-200 bg-gray-50 text-gray-400 line-through opacity-60'
-              }`}
-            >
-              <div class='flex items-center gap-1.5'>
-                <span class='flex h-2 w-2 rounded-full bg-purple-500'></span>
-                <span class='text-[11px]'>1. Child to Parent</span>
-              </div>
-              <span class='font-mono text-[10px]'>dashed</span>
-            </button>
-
-            {/* Edge Type 2: After Transition */}
-            <button
-              type='button'
-              onClick={() => toggleFilter('after')}
-              class={`flex cursor-pointer items-center justify-between rounded-lg border px-2 py-1 text-left transition-all ${
-                edgeFilters().after
-                  ? 'border-amber-300 bg-amber-50 font-semibold text-amber-900'
-                  : 'border-gray-200 bg-gray-50 text-gray-400 line-through opacity-60'
-              }`}
-            >
-              <div class='flex items-center gap-1.5'>
-                <span class='flex h-2 w-2 rounded-full bg-amber-500'></span>
-                <span class='text-[11px]'>2. After Transition</span>
-              </div>
-              <span class='font-mono text-[10px]'>timer</span>
-            </button>
-
-            {/* Edge Type 3: Always Transition */}
-            <button
-              type='button'
-              onClick={() => toggleFilter('always')}
-              class={`flex cursor-pointer items-center justify-between rounded-lg border px-2 py-1 text-left transition-all ${
-                edgeFilters().always
-                  ? 'border-emerald-300 bg-emerald-50 font-semibold text-emerald-900'
-                  : 'border-gray-200 bg-gray-50 text-gray-400 line-through opacity-60'
-              }`}
-            >
-              <div class='flex items-center gap-1.5'>
-                <span class='flex h-2 w-2 rounded-full bg-emerald-500'></span>
-                <span class='text-[11px]'>3. Always Transition</span>
-              </div>
-              <span class='font-mono text-[10px]'>eventless</span>
-            </button>
-
-            {/* Edge Type 4: On Transition */}
-            <button
-              type='button'
-              onClick={() => toggleFilter('on')}
-              class={`flex cursor-pointer items-center justify-between rounded-lg border px-2 py-1 text-left transition-all ${
-                edgeFilters().on
-                  ? 'border-blue-300 bg-blue-50 font-semibold text-blue-900'
-                  : 'border-gray-200 bg-gray-50 text-gray-400 line-through opacity-60'
-              }`}
-            >
-              <div class='flex items-center gap-1.5'>
-                <span class='flex h-2 w-2 rounded-full bg-blue-500'></span>
-                <span class='text-[11px]'>4. On Transition</span>
-              </div>
-              <span class='font-mono text-[10px]'>event</span>
-            </button>
-          </div>
-        </div>
-
-        {/* Information tip */}
-        <div class='mt-1 space-y-1 rounded-lg border border-indigo-100 bg-indigo-50/60 p-2 text-[10px] leading-snug text-indigo-900'>
-          <div>
-            💡 <strong>Multi-Transition Edges:</strong> When states are linked by
-            multiple transitions (after, always, on), they are grouped on a single
-            edge.
-          </div>
-          <div>
-            ➕ <strong>Add Transitions:</strong> Click an edge to select it, then
-            click <code>+ Add transition</code> to connect more transitions.
-          </div>
-        </div>
-      </Show>
-    </div>
   );
 };

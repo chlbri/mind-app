@@ -1,7 +1,7 @@
 import { isDefined } from '@bemedev/app/bemedev';
+import { cn } from 'cn';
 import { Show, type Component } from 'solid-js';
 
-import { cn } from '../utils';
 import type { FlowPanels } from './FlowChart.types';
 
 /** Properties for the internal {@linkcode Panel} wrapper component. */
