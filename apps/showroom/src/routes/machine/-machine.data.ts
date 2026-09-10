@@ -1,5 +1,10 @@
 import { createMachine } from '@bemedev/app';
-import type { ConfigFrom, EdgesFrom, NodesFrom } from '@bemedev/mind-flow';
+import type {
+  ConfigFrom,
+  EdgesFrom,
+  NodeHandles,
+  NodesFrom,
+} from '@bemedev/mind-flow';
 
 import { parseMachineToGraph } from './-machine.parser';
 import type { StateMachineEdgeData, StateMachineNodeData } from './-machine.types';
@@ -108,9 +113,46 @@ const ORDER_NODE_POSITIONS: Record<string, { x: number; y: number }> = {
   '/refunded': { x: 1480, y: 50 },
 };
 
+// Node handle configurations demonstrating multi-side centered handles
+const ORDER_NODE_HANDLES: Record<string, NodeHandles> = {
+  '/cart': { left: ['input', 'input'], right: ['output', 'output'] },
+  '/payment': {
+    top: ['input'],
+    left: ['input', 'input'],
+    right: ['output'],
+    bottom: ['output'],
+  },
+  '/cancelled': { top: ['input'], left: ['input'], right: ['output'] },
+  '/validation': {
+    left: ['input'],
+    right: ['output', 'output'],
+    bottom: ['output'],
+  },
+  '/rejected': { top: ['input'], left: ['input'], bottom: ['output'] },
+  '/fulfillment': {
+    left: ['input'],
+    right: ['output'],
+    top: ['input', 'input'],
+    bottom: ['output', 'output'],
+  },
+  '/fulfillment/packaging': { top: ['input'], right: ['output'], left: ['input'] },
+  '/fulfillment/shipping': {
+    left: ['input'],
+    right: ['output'],
+    top: ['input', 'input'],
+  },
+  '/fulfillment/completed': { left: ['input'], top: ['input'], right: ['output'] },
+  '/refunded': { left: ['input'], bottom: ['output'] },
+};
+
 const ORDER_NODES: NodesFrom<StateMachineNodeData> = ORDER_GRAPH.nodes.map(node => {
   const pos = ORDER_NODE_POSITIONS[node.id];
-  return pos ? { ...node, position: pos } : node;
+  const handles = ORDER_NODE_HANDLES[node.id];
+  return {
+    ...node,
+    ...(pos ? { position: pos } : {}),
+    ...(handles ? { handles } : {}),
+  };
 });
 
 const ORDER_EDGES: EdgesFrom<StateMachineEdgeData> = ORDER_GRAPH.edges;

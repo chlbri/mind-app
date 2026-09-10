@@ -14,7 +14,7 @@ import type { EdgeProps } from './types';
  *
  * @returns Offset distance in pixels for bezier curvature.
  */
-const calculateOffset = (value: number) => (value * 100) / 200;
+const calculateOffset = (value: number) => value * 0.5;
 
 /**
  * Generates an SVG cubic bezier path `d` string between coordinates `(x0, y0)` and
@@ -36,16 +36,12 @@ export const DefaultEdgeMiddle_Delete: Component<{
   vector: Accessor<Vector | undefined>;
   id: string;
   data?: any;
-  selected?: Accessor<boolean>;
+  selected: Accessor<boolean>;
 }> = props => {
   const { service } = useFlow();
 
-  const selected =
-    props.selected ??
-    createState(service, { selector: s => s.context.selected === props.id });
-
   return (
-    <Show when={selected()}>
+    <Show when={props.selected()}>
       <g
         cursor='pointer'
         onMouseDown={e => {

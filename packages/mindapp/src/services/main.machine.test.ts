@@ -156,6 +156,40 @@ describe('#01 => Flow State Machine', () => {
       expect(service.state.context.selected).toBe('edge-0');
       expect(service.state.context.data?.edges).toHaveLength(1);
     });
+
+    it('#03 => should update edge data using SEND_EDGE_DATA', () => {
+      const service = createTestService();
+      service.send({
+        type: 'CONFIGURE',
+        payload: {
+          nodes: DEFAULT_NODES,
+          edges: [
+            {
+              id: 'edge-1',
+              from: 'node-0',
+              to: 'node-1',
+              data: { label: 'Initial Edge' },
+            },
+          ],
+        },
+      });
+
+      service.send({
+        type: 'SEND_EDGE_DATA',
+        payload: {
+          id: 'edge-1',
+          data: { label: 'Updated Edge Label via SEND', custom: 'value2' },
+        },
+      });
+
+      const updatedEdge = service.state.context.data?.edges.find(
+        e => e.id === 'edge-1',
+      );
+      expect(updatedEdge?.data).toEqual({
+        label: 'Updated Edge Label via SEND',
+        custom: 'value2',
+      });
+    });
   });
 
   describe('#03 => Adding nodes with defaultData & DEFAULT_SIZE', () => {

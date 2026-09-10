@@ -31,7 +31,7 @@ export const EditPanel = <D extends Data = Data>(
     props.classList instanceof Function ? props.classList(hooks) : props.classList;
 
   return (
-    <Show when={hooks.editing()}>
+    <Show when={hooks.editingNode()}>
       {node => (
         <div
           class={cn(
@@ -39,8 +39,8 @@ export const EditPanel = <D extends Data = Data>(
           )}
           classList={{
             ...classList(),
-            'pointer-events-none! -z-10': !hooks.editing(),
-            'pointer-events-all! z-50': !!hooks.editing(),
+            'pointer-events-none! -z-10': !hooks.editingNode(),
+            'pointer-events-all! z-50': !!hooks.editingNode(),
           }}
           style={props.style}
           onMouseDown={e => e.stopPropagation()}

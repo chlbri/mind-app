@@ -17,8 +17,21 @@ export const nodeOffset = type(({ use }) => ({
   output: use(point),
 }));
 
-/** Schema definition for edge extremities. */
-export const extremities = type({ from: 'string', to: 'string' });
+/** Available node container sides for handle placement. */
+export type HandlePosition = 'top' | 'right' | 'bottom' | 'left';
+
+/**
+ * Schema definition for edge extremities, supporting optional handle positions and
+ * indices.
+ */
+export const extremities = type(({ optional }) => ({
+  from: 'string',
+  to: 'string',
+  toPosition: optional('string'),
+  toIndex: optional('number'),
+  fromPosition: optional('string'),
+  fromIndex: optional('number'),
+}));
 
 /** Schema definition for primitive values allowed in node data. */
 export const nodeDataValue = type(({ union }) =>
@@ -35,14 +48,34 @@ export const data = type(({ record, use }) => record(use(nodeDataValue)));
 /** Serialized node data dictionary type. */
 export type Data = Record<string, any>;
 
+/** Classification of a node connection handle as either input or output. */
+export type HandleType = 'input' | 'output';
+
+/**
+ * Handle configurations per side of a node container.
+ *
+ * @see -- type {@linkcode HandleType}
+ */
+export type NodeHandles = {
+  /** Handles placed on the top side. */
+  top?: Array<HandleType>;
+  /** Handles placed on the right side. */
+  right?: Array<HandleType>;
+  /** Handles placed on the bottom side. */
+  bottom?: Array<HandleType>;
+  /** Handles placed on the left side. */
+  left?: Array<HandleType>;
+};
+
 /**
  * Schema definition for a serialized flowchart node entity.
  *
- * @see {@linkcode point}, {@linkcode data}
+ * @see {@linkcode point}, {@linkcode data}, -- type {@linkcode NodeHandles}
  */
-export const nodeJSON = type(({ use }) => ({
+export const nodeJSON = type(({ use, optional, custom }) => ({
   position: use(point),
   data: use(data),
+  handles: optional(custom<NodeHandles>()),
 }));
 
 /**
@@ -50,8 +83,14 @@ export const nodeJSON = type(({ use }) => ({
  *
  * @template | {@linkcode Data} `D` - Custom data properties type extending
  *   {@linkcode Data}.
+ *
+ * @see -- type {@linkcode Point}, -- type {@linkcode NodeHandles}
  */
-export type NodeProps<D extends Data = Data> = { position: Point; data: D };
+export type NodeProps<D extends Data = Data> = {
+  position: Point;
+  data: D;
+  handles?: NodeHandles;
+};
 
 /**
  * Schema definition for a serialized flowchart edge entity.
@@ -104,8 +143,15 @@ export type Vector = inferT<typeof vector>;
  *
  * @see {@linkcode vector}
  */
-export const newEdge = type(({ intersection, use }) =>
-  intersection({ from: 'string' }, use(vector)),
+export const newEdge = type(({ intersection, use, optional }) =>
+  intersection(
+    {
+      from: 'string',
+      fromPosition: optional('string'),
+      fromIndex: optional('number'),
+    },
+    use(vector),
+  ),
 );
 
 /** Ongoing new connection edge preview type inferred from schema {@linkcode newEdge}. */

@@ -7,12 +7,12 @@ import {
   BOUNDS_CONSTRAINTS,
   DEFAULT_INPUT_OFFSET,
   DEFAULT_SIZE,
+  getDefaultInputOffset,
   getDefaultOutputOffset,
 } from '#services/main.machine.data';
-import type { Data, Dimension, Point } from '#services/main.machine.typings';
+import type { Dimension, Point } from '#services/main.machine.typings';
 
 import { EdgeCursive } from './edges/EdgeCursive';
-import type { HighComponent } from './types';
 
 /**
  * Solid Context Provider component and hook for accessing flowchart board state,
@@ -120,8 +120,9 @@ export const [Provider, useFlow] = createContext(
           const width = parentDimension.width;
           const height = parentDimension.height;
           const outputOffset =
-            parentDimension.outputOffset ?? getDefaultOutputOffset(width);
-          const inputOffset = parentDimension.inputOffset ?? DEFAULT_INPUT_OFFSET;
+            parentDimension.outputOffset ?? getDefaultOutputOffset(width, height);
+          const inputOffset =
+            parentDimension.inputOffset ?? getDefaultInputOffset(height);
 
           const output = {
             x: position.x + outputOffset.x,
@@ -138,8 +139,7 @@ export const [Provider, useFlow] = createContext(
     });
 
     service.start();
-    const Node: HighComponent<Data> = () => null;
-    return { service, Edge: EdgeCursive, Node };
+    return { service, Edge: EdgeCursive };
   },
   { name: 'FlowContext' },
 );
