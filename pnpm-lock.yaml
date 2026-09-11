@@ -218,8 +218,8 @@ importers:
         specifier: ^5.0.3
         version: 5.0.3
       lucide-solid:
-        specifier: ^1.44.0
-        version: 1.44.0(solid-js@1.9.15)
+        specifier: ^1.45.0
+        version: 1.45.0(solid-js@1.9.15)
       nanoid:
         specifier: ^6.0.1
         version: 6.0.1
@@ -4475,8 +4475,8 @@ packages:
   lru-cache@5.1.1:
     resolution: {integrity: sha512-KpNARQA3Iwv+jTA0utUVVbrh+Jlrr1Fv0e56GGzAFOXN7dk/FviaDW8LHmK52DlcH4WP2n6gI8vN1aesBFgo9w==}
 
-  lucide-solid@1.44.0:
-    resolution: {integrity: sha512-PpmuH8m4c3Sa26tWJbU46tixnCc/Nh+mUus6EPQfMsUFcnlGJToxvCFq3OmifCSStNR8WXAowHo6hbTNzysJ6w==}
+  lucide-solid@1.45.0:
+    resolution: {integrity: sha512-aNhW4zWzRpBjpFVCAwXvpzkoCNpYrBkuPq3Fb9qsOkr3H83jJH+gaabgQL+nB7hv3qa2S+vT8qg2Lk8+kldbsQ==}
     peerDependencies:
       solid-js: ^1.4.7
 
@@ -4698,8 +4698,8 @@ packages:
     resolution: {integrity: sha512-1FlR+gjXK7X+AsAHso35MnyN5KqGwJRi/31ft6x0M194ht7S+rWAvd7PHss9xSKMzE0asv1pyIHaJYq+BbacAQ==}
     engines: {node: '>=12'}
 
-  open@11.0.2:
-    resolution: {integrity: sha512-RWqF+pBSkqecEvCKOn8QYhaNdRMJDZRIrlS/7rTDdLHaPcfXGCZ/h8zb413NfvdeAV0MR7T1yJcA34/q+CSm1Q==}
+  open@11.0.3:
+    resolution: {integrity: sha512-b3souUgU0VaAvMmzA4+9cRgrOgMdE0vc9H9VhQ0FYnjjcyZ8R/f9DiwMU9V8rl+vjf05On9UJhbgb06fsTs87Q==}
     engines: {node: '>=20'}
 
   oxc-parser@0.120.0:
@@ -9590,7 +9590,7 @@ snapshots:
     dependencies:
       yallist: 3.1.1
 
-  lucide-solid@1.44.0(solid-js@1.9.15):
+  lucide-solid@1.45.0(solid-js@1.9.15):
     dependencies:
       solid-js: 1.9.15
 
@@ -9884,7 +9884,7 @@ snapshots:
     dependencies:
       mimic-fn: 4.0.0
 
-  open@11.0.2:
+  open@11.0.3:
     dependencies:
       default-browser: 5.5.1
       define-lazy-prop: 3.0.0
@@ -10237,7 +10237,7 @@ snapshots:
 
   rollup-plugin-visualizer@7.1.1(rolldown@1.2.8)(rollup@4.63.1):
     dependencies:
-      open: 11.0.2
+      open: 11.0.3
       picomatch: 4.0.7
       source-map: 0.8.0
       yargs: 18.1.0

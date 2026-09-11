@@ -5,12 +5,12 @@ import { getHandleOffsetPercent } from '#services/main.machine.helpers';
 import type {
   HandlePosition,
   HandleType,
-  NodeHandles as _Handles,
+  NodeHandles_T,
 } from '#services/main.machine.typings';
 
 /** Properties for the internal {@linkcode HandleItem} component. */
 export type HandleItemProps = {
-  /** Handle category as input or output of type {@linkcode HandleType}. */
+  /** Handle category as input, output, or none of type {@linkcode HandleType}. */
   type: HandleType;
   /** Node identifier this handle belongs to. */
   nodeId: string;
@@ -34,7 +34,8 @@ export type HandleItemProps = {
  * @see {@linkcode HANDLE_SIZE}, -- type {@linkcode HandlePosition}
  */
 export const HandleItem: Component<HandleItemProps> = props => {
-  const isInput = () => props.type === 'input';
+  const isInput = props.type === 'input';
+  const isNone = props.type === 'none';
 
   return (
     <div
@@ -42,24 +43,33 @@ export const HandleItem: Component<HandleItemProps> = props => {
       data-node-id={props.nodeId}
       data-handle-position={props.side}
       data-handle-index={props.index}
-      class={`rounded-full bg-[#e38b29] shadow-md transition-transform duration-150 ease-in-out hover:scale-150 ${
-        isInput() ? 'cursor-default' : 'cursor-crosshair'
-      }`}
-      style={{
-        width: `${HANDLE_SIZE}px`,
-        height: `${HANDLE_SIZE}px`,
-        'pointer-events': 'all',
+
+      classList={{
+        'rounded-full bg-[#e38b29] shadow-md transition-transform duration-150 ease-in-out': true,
+        'pointer-events-none': isNone,
+        'hover:scale-150 pointer-events-all': !isNone,
+        'cursor-default': isInput,
+        'cursor-crosshair': !isInput && !isNone,
       }}
-      onPointerDown={e => e.stopPropagation()}
+
+      style={{ width: `${HANDLE_SIZE}px`, height: `${HANDLE_SIZE}px` }}
+
+      onPointerDown={e => {
+        if (!isNone) e.stopPropagation();
+      }}
+
       onMouseDown={e => {
+        if (isNone) return;
         e.stopPropagation();
-        if (!isInput()) {
+        if (props.type === 'output') {
           props.onStartEdge(props.side, props.index);
         }
       }}
+
       onMouseUp={e => {
+        if (isNone) return;
         e.stopPropagation();
-        if (isInput()) {
+        if (isInput) {
           props.onAddEdge(props.side, props.index);
         }
       }}
@@ -67,14 +77,32 @@ export const HandleItem: Component<HandleItemProps> = props => {
   );
 };
 
-export const NodeHandles: Component<{
-  resolvedHandles: Accessor<_Handles>;
+/** Properties for the {@linkcode NodeHandles} component. */
+export type NodeHandlesProps = {
+  /**
+   * Accessor providing the resolved node handles configuration of type
+   * {@linkcode NodeHandles}.
+   */
+  resolvedHandles: Accessor<NodeHandles_T>;
+  /** Unique identifier of the node. */
   id: string;
   /** Callback triggered when completing an edge connection to this handle. */
   onAddEdge: (side: HandlePosition, index: number) => void;
   /** Callback triggered when starting a new edge drag from this handle. */
   onStartEdge: (side: HandlePosition, index: number) => void;
-}> = props => (
+};
+
+/**
+ * Container rendering all dynamic connection handles positioned along each border of
+ * a node.
+ *
+ * @param props - Component properties of type {@linkcode NodeHandlesProps}.
+ *
+ * @returns The rendered node handles element.
+ *
+ * @see {@linkcode HandleItem}, -- type {@linkcode NodeHandles}
+ */
+export const NodeHandles: Component<NodeHandlesProps> = props => (
   <>
     {/* Dynamic multi-side centered handles */}
 

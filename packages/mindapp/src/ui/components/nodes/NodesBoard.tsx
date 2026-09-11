@@ -35,8 +35,9 @@ export type NodesBoardProps<N extends Data = Data, E extends Data = Data> = {
   Node?: Component<N>;
   /** Optional custom edge component. */
   Edge: Component<EdgeProps<E>>;
-  /** Optional custom overlay panels. */
+  /** Component rendered when a node is selected, providing action buttons. */
   NodeSelected: NodeComponentProps<N>['Selected'];
+  /** Optional custom overlay panels of type {@linkcode FlowPanels}. */
   panels?: FlowPanels;
 };
 

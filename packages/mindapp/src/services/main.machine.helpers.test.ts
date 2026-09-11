@@ -208,5 +208,46 @@ describe('#01 => main.machine.helpers', () => {
 
       expect(coords).toBeUndefined();
     });
+
+    it('#06 => should calculate extremities when connecting to or from a none handle programmatically', () => {
+      const customNodes: (NodeProps & { id: string })[] = [
+        {
+          id: 'node-none-0',
+          position: { x: 100, y: 100 },
+          data: {},
+          handles: { right: ['none'] },
+        },
+        {
+          id: 'node-none-1',
+          position: { x: 300, y: 200 },
+          data: {},
+          handles: { left: ['none'] },
+        },
+      ];
+      const customDimensions: Record<string, Dimension> = {
+        'node-none-0': { width: 100, height: 50, output: { x: 200, y: 125 } },
+        'node-none-1': { width: 100, height: 50, output: { x: 400, y: 225 } },
+      };
+
+      const coords = calculateEdgePosition(
+        {
+          id: 'node-none-0 => node-none-1:left:0',
+          from: 'node-none-0',
+          to: 'node-none-1',
+          fromPosition: 'right',
+          fromIndex: 0,
+          toPosition: 'left',
+          toIndex: 0,
+        },
+        customNodes,
+        customDimensions,
+      );
+
+      expect(coords).toBeDefined();
+      expect(coords?.x0).toBe(200 + HANDLE_OFFSET);
+      expect(coords?.y0).toBe(125);
+      expect(coords?.x1).toBe(300 - HANDLE_OFFSET);
+      expect(coords?.y1).toBe(225);
+    });
   });
 });

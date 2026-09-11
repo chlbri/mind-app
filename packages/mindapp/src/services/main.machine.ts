@@ -286,6 +286,9 @@ export const machine = createMachine(
             }
           }
         }
+        if (fromNode?.handles && fromNode.handles[side]?.[idx] === 'none') {
+          return undefined;
+        }
         const total = fromNode?.handles?.[side]?.length ?? 1;
         const p = getHandlePosition(nodePos, { width, height }, side, idx, total);
 

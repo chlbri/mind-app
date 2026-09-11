@@ -5,17 +5,16 @@ import type {
   Data,
   HandlePosition,
   HandleType,
-  NodeHandles,
+  NodeHandles_T,
   NodeProps,
 } from '#services/main.machine.typings';
 
-import { EdgeCursive } from './edges/EdgeCursive';
+import { EdgeCursive } from './edges';
 import { useFlow } from './FlowChart.context';
 import type { FlowProps } from './FlowChart.types';
-import { NodesBoard } from './nodes/NodesBoard';
-import { DefaultNodeSelected } from './nodes/selecteds';
+import { DefaultNodeSelected, NodesBoard } from './nodes';
 
-export type { Data, HandlePosition, HandleType, NodeHandles, NodeProps };
+export type { Data, HandlePosition, HandleType, NodeHandles_T, NodeProps };
 
 // const PARENT_CHILD_GAP_WIDTH = 75;
 

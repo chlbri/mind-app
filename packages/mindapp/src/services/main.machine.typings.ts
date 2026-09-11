@@ -56,15 +56,23 @@ export const data = type(({ record, use }) => record(use(nodeDataValue)));
 /** Serialized node data dictionary type. */
 export type Data = Record<string, any>;
 
-/** Classification of a node connection handle as either input or output. */
-export type HandleType = 'input' | 'output';
+/** Schema definition for node connection handle classification. */
+export const handleType = type(({ litterals }) =>
+  litterals('input', 'output', 'none'),
+);
+
+/**
+ * Classification of a node connection handle as input, output, or none (programmatic
+ * only) inferred from schema {@linkcode handleType}.
+ */
+export type HandleType = inferT<typeof handleType>;
 
 /**
  * Handle configurations per side of a node container.
  *
  * @see -- type {@linkcode HandleType}
  */
-export type NodeHandles = {
+export type NodeHandles_T = {
   /** Handles placed on the top side. */
   top?: Array<HandleType>;
   /** Handles placed on the right side. */
@@ -78,12 +86,12 @@ export type NodeHandles = {
 /**
  * Schema definition for a serialized flowchart node entity.
  *
- * @see {@linkcode point}, {@linkcode data}, -- type {@linkcode NodeHandles}
+ * @see {@linkcode point}, {@linkcode data}, -- type {@linkcode NodeHandles_T}
  */
 export const nodeJSON = type(({ use, optional, custom }) => ({
   position: use(point),
   data: use(data),
-  handles: optional(custom<NodeHandles>()),
+  handles: optional(custom<NodeHandles_T>()),
 }));
 
 /**
@@ -92,12 +100,12 @@ export const nodeJSON = type(({ use, optional, custom }) => ({
  * @template | {@linkcode Data} `D` - Custom data properties type extending
  *   {@linkcode Data}.
  *
- * @see -- type {@linkcode Point}, -- type {@linkcode NodeHandles}
+ * @see -- type {@linkcode Point}, -- type {@linkcode NodeHandles_T}
  */
 export type NodeProps<D extends Data = Data> = {
   position: Point;
   data: D;
-  handles?: NodeHandles;
+  handles?: NodeHandles_T;
 };
 
 /**
