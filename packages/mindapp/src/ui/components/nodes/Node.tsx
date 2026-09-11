@@ -8,7 +8,7 @@ import { getHandleOffsetPercent } from '#services/main.machine.helpers';
 import type {
   Data,
   HandlePosition,
-  NodeHandles as _Handles,
+  NodeHandles_T,
 } from '#services/main.machine.typings';
 
 import { resize } from '../../globals/directives';
@@ -24,12 +24,10 @@ export type NodeComponentProps<D extends Data = Data> = {
   id: string;
   /** Custom node component to render inside the node container. */
   children?: Component<D>;
-  /**
-   * Optional handle configurations overriding node handles of type
-   * {@linkcode NodeHandles}.
-   */
+  /** Custom component rendered for node selection action controls. */
   Selected: Component<{ id: string }>;
-  handles?: _Handles;
+  /** Optional handle configurations overriding default node handles of type */
+  handles?: NodeHandles_T;
 };
 
 /**
@@ -71,13 +69,18 @@ export const NodeComponent = <D extends Data = Data>(
     selector: ({ context }) => context.selected === props.id,
   });
 
-  const resolvedHandles = (): _Handles => {
+  const resolvedHandles = (): NodeHandles_T => {
     const custom = props.handles ?? node().handles;
     if (custom !== undefined) return custom;
     return DEFAULT_HANDLES;
   };
 
   const handleAddEdge = (side: HandlePosition, index: number) => {
+    const handles = resolvedHandles();
+    if (handles[side]?.[index] === 'none') {
+      send('CLEAR_NEW_EDGE');
+      return;
+    }
     const edge = newEdge();
     const from = edge?.from;
     if (from && from !== props.id) {
@@ -97,6 +100,8 @@ export const NodeComponent = <D extends Data = Data>(
   };
 
   const handleStartEdge = (side: HandlePosition, index: number) => {
+    const handles = resolvedHandles();
+    if (handles[side]?.[index] === 'none') return;
     send('DESELECT');
     send({
       type: 'START_NEW_EDGE',

@@ -142,6 +142,8 @@ export const CustomFlow = () => {
   children accessor helpers.
 - **`handlePosition`**, **`HandlePosition`**: Schema and type for node handle
   placement borders (`top`, `right`, `bottom`, `left`).
+- **`handleType`**, **`HandleType`**: Schema and type for node connection handle
+  classification (`'input'`, `'output'`, `'none'`).
 - **`CLASSES`**: Array of Tailwind CSS safelist class names used in the UI.
 - **`mouseOut`**, **`clickOutside`**, **`resize`**: Custom Solid.js directives for
   focus/hover handling, outside click detection, and node dimension observation.

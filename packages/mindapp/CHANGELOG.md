@@ -3,6 +3,30 @@
 <details>
 <summary>
 
+## **[1.5.1] - 11/09/2026** => _16:22_
+
+</summary>
+
+- Add programmatic-only `none` handle type to disable interactive connections while
+  supporting algorithmic edge links
+- Add `handleType` schema and update `HandleType` to include `'none'`
+- Add `NodeHandlesProps` and `DefaultNodeSelectedProps` component prop types
+- Fix handle interaction handlers to ignore `none` handles during pointer and mouse
+  events
+- Fix `NodeComponent` and state machine to guard against starting new edges from
+  `none` handles
+- Fix JSDoc annotations on `NodeComponentProps`, `NodesBoardProps`, and node
+  selection components
+- Enhance comprehensive JSDoc documentation across types and node components
+- <u>Test coverage **_100%_**</u>
+
+</details>
+
+<br/>
+
+<details>
+<summary>
+
 ## **[1.5.0] - 10/09/2026** => _01:48_
 
 </summary>

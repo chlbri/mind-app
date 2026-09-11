@@ -4,7 +4,23 @@ import { HANDLE_SIZE } from '#services/main.machine.data';
 
 import { useFlow } from '../FlowChart.context';
 
-export const DefaultNodeSelected: Component<{ id: string }> = props => {
+/** Properties for the {@linkcode DefaultNodeSelected} component. */
+export type DefaultNodeSelectedProps = {
+  /** Unique identifier of the node. */
+  id: string;
+};
+
+/**
+ * Default floating action toolbar rendered above a selected node, providing
+ * deletion, sibling addition, and child creation triggers.
+ *
+ * @param props - Component properties of type {@linkcode DefaultNodeSelectedProps}.
+ *
+ * @returns The rendered node selection toolbar element.
+ *
+ * @see {@linkcode useFlow}, {@linkcode HANDLE_SIZE}
+ */
+export const DefaultNodeSelected: Component<DefaultNodeSelectedProps> = props => {
   const { hooks, service } = useFlow();
 
   const hasParent = hooks.state({

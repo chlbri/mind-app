@@ -1,4 +1,9 @@
-import type { EdgesFrom, NodeHandles, NodesFrom } from '@bemedev/mind-flow';
+import type {
+  EdgesFrom,
+  HandleType,
+  NodeHandles,
+  NodesFrom,
+} from '@bemedev/mind-flow';
 
 import type {
   EdgeKind,
@@ -19,6 +24,8 @@ const HORIZONTAL_SPACING = 360;
 const VERTICAL_SPACING = 170;
 const INITIAL_X = 80;
 const INITIAL_Y = 100;
+const top: Array<HandleType> = ['input', 'none', 'input'];
+const bottom: Array<HandleType> = ['output', 'none', 'output'];
 
 /** Normalizes a raw transition target or candidate into structured properties. */
 type NormalizedTarget = { target: string; guard?: string; actions?: string[] };
@@ -382,18 +389,13 @@ export const parseMachineToGraph = <
     const col = node.depth === 0 ? Math.floor(index * 0.9) : node.depth + 1;
     const currentYCount = columnPositions[col] ?? 0;
     columnPositions[col] = currentYCount + 1;
-
     const defaultX = INITIAL_X + col * HORIZONTAL_SPACING;
     const defaultY = INITIAL_Y + currentYCount * VERTICAL_SPACING;
     const pos = positions?.[node.id as keyof typeof positions];
     const position = pos ? { x: pos.x, y: pos.y } : { x: defaultX, y: defaultY };
-
-    const handles: NodeHandles = {
-      left: ['input'],
-      right: ['output'],
-      ...(node.hasChildren ? { bottom: ['output', 'input', 'output'] } : {}),
-      ...(node.isChild ? { top: ['input', 'input', 'input'] } : {}),
-    };
+    const handles: NodeHandles = { left: ['input'], right: ['output'] };
+    if (node.isChild) handles.top = top;
+    if (node.hasChildren) handles.bottom = bottom;
 
     return {
       id: node.id,
