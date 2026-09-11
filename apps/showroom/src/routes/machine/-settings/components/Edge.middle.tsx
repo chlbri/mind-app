@@ -105,8 +105,8 @@ export const StateMachineEdgeMiddle: Component<
 
   const ITEM_HEIGHT = 22;
   const GAP = 4;
-
   const count = () => Math.max(0, transitions().length);
+
   const totalHeight = () => {
     const itemsH = count() * ITEM_HEIGHT + (count() - 1) * GAP;
     const addH = showAdd() ? ITEM_HEIGHT + GAP : 0;
@@ -115,6 +115,7 @@ export const StateMachineEdgeMiddle: Component<
 
   const deleteTransition = (transitionId: string) => {
     const current = transitions();
+
     if (current.length <= 1) {
       send({ type: 'DELETE', payload: props.id });
     } else {
@@ -157,15 +158,15 @@ export const StateMachineEdgeMiddle: Component<
       style={{ overflow: 'visible', 'pointer-events': 'none' }}
     >
       <div
-        class={`flex cursor-pointer flex-col items-center justify-center gap-px select-none`}
+        class={`flex cursor-pointer flex-col items-center justify-center gap-px border-none select-none`}
         style={{
           width: '100%',
           height: `${totalHeight()}px`,
           'pointer-events': 'none',
         }}
         classList={{
-          'rounded-xl ring-2 ring-offset-4 ring-indigo-400': showAdd(),
-          'rounded-xl ring-1 ring-offset-1 ring-orange-400':
+          'rounded-xl ring-2 ring-offset-8 ring-indigo-400': showAdd(),
+          'rounded-xl ring-2 ring-offset-2 ring-purple-600':
             !showAdd() && selected(),
         }}
       >
