@@ -156,6 +156,7 @@ export const StateMachineEdgeMiddle: Component<
       width={badgeWidth()}
       height={totalHeight()}
       style={{ overflow: 'visible', 'pointer-events': 'none' }}
+      class='z-100'
     >
       <div
         class={`flex cursor-pointer flex-col items-center justify-center gap-px border-none select-none`}
@@ -217,7 +218,7 @@ export const StateMachineEdgeMiddle: Component<
           <div class='flex w-full items-center justify-center'>
             <button
               type='button'
-              class='flex max-w-fit cursor-pointer items-center justify-center rounded-full border border-indigo-200 bg-indigo-600 px-3 py-1 text-[9.5px] font-bold text-white shadow-sm hover:bg-indigo-700'
+              class='flex max-w-fit cursor-pointer items-center justify-center rounded-full border border-indigo-200 bg-indigo-600 px-2 py-1 text-[9.5px] font-bold text-white shadow-sm hover:bg-indigo-700'
               style={{ width: '100%', 'pointer-events': 'all' }}
               onMouseDown={e => {
                 e.stopPropagation();
