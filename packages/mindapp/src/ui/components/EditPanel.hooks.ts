@@ -1,5 +1,4 @@
 import { deepEqual } from '@bemedev/app';
-import { createState } from '@bemedev/app-solidjs';
 import { isDefined } from '@bemedev/app/bemedev';
 import { createSignal, type Accessor } from 'solid-js';
 
@@ -26,13 +25,13 @@ import { useFlow } from './FlowChart.context';
 export const useHook = <D extends Data = Data, E extends Data = Data>(
   timeout = 270,
 ) => {
-  const { service } = useFlow();
-  const directClose = () => service.send('STOP_EDIT');
+  const { hooks, sender, send } = useFlow();
+  const directClose = () => send('STOP_EDIT');
   const [closing, setClosing] = createSignal(false);
-  const senderNodeData = service.sender('SET_NODE_DATA');
-  const senderEdgeData = service.sender('SET_EDGE_DATA');
+  const senderNodeData = sender('SET_NODE_DATA');
+  const senderEdgeData = sender('SET_EDGE_DATA');
 
-  const _editingNode = createState(service, {
+  const _editingNode = hooks.state({
     selector: ({ context }) => {
       const editingId = context.editing;
       if (!isDefined(editingId)) return;
@@ -46,7 +45,7 @@ export const useHook = <D extends Data = Data, E extends Data = Data>(
     equals: deepEqual<any>,
   });
 
-  const _editingEdge = createState(service, {
+  const _editingEdge = hooks.state({
     selector: ({ context }) => {
       const editingId = context.editing;
       if (!isDefined(editingId)) return;

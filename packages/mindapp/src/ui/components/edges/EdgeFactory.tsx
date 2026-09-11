@@ -42,7 +42,7 @@ export const FactoryEdge: FactoryEdge_F = ({ draw }) => {
   return props => {
     const Middle = props.middle ?? MiddleDelete;
 
-    const { vector, stroke, strokeWidth, service, selected, middlePoint, edgeData } =
+    const { vector, stroke, strokeWidth, send, selected, middlePoint, edgeData } =
       useEdge(props);
 
     return (
@@ -62,7 +62,7 @@ export const FactoryEdge: FactoryEdge_F = ({ draw }) => {
               d={draw(v())}
               onMouseDown={e => {
                 e.stopPropagation();
-                return service.send({ type: 'SELECT', payload: props.id });
+                return send({ type: 'SELECT', payload: props.id });
               }}
             />
             <Show when={!props.isNew}>

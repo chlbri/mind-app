@@ -5,6 +5,7 @@ import type { Edge } from '#services/main.machine.typings';
 
 import type { EdgeProps } from './edges/types';
 import type { Data, NodeProps } from './FlowChart';
+import type { NodeComponentProps } from './nodes/Node';
 
 /** Overlay panel slots positioned around the flowchart canvas. */
 export type FlowPanels = {
@@ -35,6 +36,8 @@ export type FlowProps<N extends Data = Data, E extends Data = Data> = {
   };
   /** Custom node component to render inside each flowchart node. */
   Node?: Component<N>;
+
+  NodeSelected?: NodeComponentProps<N>['Selected'];
 
   /** Custom edge component to render inside each flowchart edge. */
   Edge?: Component<EdgeProps<E>>;

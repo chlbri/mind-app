@@ -1,4 +1,3 @@
-import { createState } from '@bemedev/app-solidjs';
 import { toArray } from '@bemedev/app/bemedev';
 import { deepEqual } from '@bemedev/app/utils';
 import {
@@ -17,23 +16,27 @@ import {
   Show,
 } from 'solid-js';
 
-import { CANVAS_FACTOR, SCROLL_MULTIPLIER } from '../../services/main.machine.data';
-import type { Data } from '../../services/main.machine.typings';
-import { DragBounds } from './Bounds';
-import type { EdgeProps } from './edges/types';
-import { EdgesBoard } from './EdgesBoard';
-import { useFlow } from './FlowChart.context';
-import type { FlowPanels } from './FlowChart.types';
-import { NodeComponent } from './Node';
-import { Panels } from './Panels';
+import {
+  CANVAS_FACTOR,
+  SCROLL_MULTIPLIER,
+} from '../../../services/main.machine.data';
+import type { Data } from '../../../services/main.machine.typings';
+import { DragBounds } from '../Bounds';
+import { EdgesBoard } from '../edges/EdgesBoard';
+import type { EdgeProps } from '../edges/types';
+import { useFlow } from '../FlowChart.context';
+import type { FlowPanels } from '../FlowChart.types';
+import { Panels } from '../Panels';
+import { NodeComponent, type NodeComponentProps } from './Node';
 
 /** Properties for the {@linkcode NodesBoard} component. */
-type Props<N extends Data = Data, E extends Data = Data> = {
+export type NodesBoardProps<N extends Data = Data, E extends Data = Data> = {
   /** Optional custom node component. */
   Node?: Component<N>;
   /** Optional custom edge component. */
   Edge: Component<EdgeProps<E>>;
   /** Optional custom overlay panels. */
+  NodeSelected: NodeComponentProps<N>['Selected'];
   panels?: FlowPanels;
 };
 
@@ -44,14 +47,14 @@ type Props<N extends Data = Data, E extends Data = Data> = {
  * @template | {@linkcode Data} `N` - Custom node data dictionary type extending
  *   {@linkcode Data}.
  *
- * @param props - Board component properties of type {@linkcode Props}.
+ * @param props - Board component properties of type {@linkcode NodesBoardProps}.
  *
  * @returns The rendered Solid component.
  *
  * @see {@linkcode DragBounds}, {@linkcode EdgesBoard}, {@linkcode NodeComponent}, {@linkcode useFlow}, {@linkcode CANVAS_FACTOR}, {@linkcode SCROLL_MULTIPLIER}
  */
 export const NodesBoard = <N extends Data = Data, E extends Data = Data>(
-  props: Props<N, E>,
+  props: NodesBoardProps<N, E>,
 ): JSX.Element => {
   let containerRef: HTMLDivElement;
   const [isPanning, setIsPanning] = createSignal(false);
@@ -59,18 +62,18 @@ export const NodesBoard = <N extends Data = Data, E extends Data = Data>(
   const [ref, setRef] = createSignal<HTMLDivElement | undefined>();
   let percentX = 0;
   let percentY = 0;
-  const { service } = useFlow();
+  const { hooks, send } = useFlow();
 
-  const newEdge = createState(service, {
+  const newEdge = hooks.state({
     selector: s => s.context.newEdge,
     equals: deepEqual<any>,
   });
 
-  const zoom = createState(service, { selector: s => s.context.zoom ?? 1 });
+  const zoom = hooks.state({ selector: s => s.context.zoom ?? 1 });
 
   /**
    * Dispatches the current board geometry and parent container dimensions to the
-   * state machine service.
+   * state machine service
    */
   const sendBoard = () => {
     const el = ref();
@@ -95,7 +98,7 @@ export const NodesBoard = <N extends Data = Data, E extends Data = Data>(
         : undefined,
     };
 
-    service.send({ type: 'SET_BOARD', payload });
+    send({ type: 'SET_BOARD', payload });
   };
 
   /**
@@ -125,9 +128,9 @@ export const NodesBoard = <N extends Data = Data, E extends Data = Data>(
 
   onMount(sendBoard);
 
-  const selectedId = createState(service, { selector: s => s.context?.selected });
+  const selectedId = hooks.state({ selector: s => s.context?.selected });
 
-  const nodeIds = createState(service, {
+  const nodeIds = hooks.state({
     selector: ({ context }) => {
       const list = toArray.typed(context.data?.nodes);
       return list.map(item => item.id);
@@ -152,7 +155,7 @@ export const NodesBoard = <N extends Data = Data, E extends Data = Data>(
           e.preventDefault();
           updateScrollPercentages();
           const delta = e.deltaY < 0 ? 0.1 : -0.1;
-          service.send({ type: 'ZOOM', payload: delta });
+          send({ type: 'ZOOM', payload: delta });
         }
       }}
 
@@ -186,7 +189,7 @@ export const NodesBoard = <N extends Data = Data, E extends Data = Data>(
             `translate3d(${deltaX}px, ${deltaY}px, 0)`,
           );
 
-          service.send({ type: 'MOVE_IMMEDIATE', payload: { id: `${id}`, x, y } });
+          send({ type: 'MOVE_IMMEDIATE', payload: { id: `${id}`, x, y } });
           setTransform({ x: deltaX * currentZoom, y: deltaY * currentZoom });
         }}
 
@@ -213,7 +216,7 @@ export const NodesBoard = <N extends Data = Data, E extends Data = Data>(
           node.style.setProperty('left', X + 'px');
           node.style.removeProperty('transform');
 
-          service.send({ type: 'MOVE', payload: { id: `${id}`, x: X, y: Y } });
+          send({ type: 'MOVE', payload: { id: `${id}`, x: X, y: Y } });
           setTimeout(() => {
             setTransform({ x: 0, y: 0 });
           }, 0);
@@ -236,7 +239,7 @@ export const NodesBoard = <N extends Data = Data, E extends Data = Data>(
 
             onMouseDown={e => {
               if (newEdge() || e.button !== 0) return;
-              service.send('DESELECT');
+              send('DESELECT');
               setIsPanning(true);
 
               // #region Props
@@ -273,7 +276,13 @@ export const NodesBoard = <N extends Data = Data, E extends Data = Data>(
               <DragBounds />
               <EdgesBoard Edge={props.Edge} />
               <For each={nodeIds()}>
-                {id => <NodeComponent id={id} children={props.Node} />}
+                {id => (
+                  <NodeComponent
+                    id={id}
+                    children={props.Node}
+                    Selected={props.NodeSelected}
+                  />
+                )}
               </For>
             </div>
           </div>
@@ -288,7 +297,7 @@ export const NodesBoard = <N extends Data = Data, E extends Data = Data>(
             class='flex size-9 cursor-pointer items-center justify-center rounded-lg bg-gray-100 text-lg font-bold text-gray-700 shadow-sm transition-all duration-150 hover:bg-gray-200 active:scale-95'
             onClick={() => {
               updateScrollPercentages();
-              service.send({ type: 'ZOOM', payload: -0.1 });
+              send({ type: 'ZOOM', payload: -0.1 });
             }}
             title='Zoom out'
             aria-label='Zoom out'
@@ -300,7 +309,7 @@ export const NodesBoard = <N extends Data = Data, E extends Data = Data>(
             class='h-9 cursor-pointer rounded-lg px-2 text-xs font-semibold text-gray-700 transition-colors hover:bg-gray-100'
             onClick={() => {
               updateScrollPercentages();
-              service.send('TOGGLE_ZOOM');
+              send('TOGGLE_ZOOM');
             }}
             title='Reset zoom'
             aria-label='Reset zoom'
@@ -312,7 +321,7 @@ export const NodesBoard = <N extends Data = Data, E extends Data = Data>(
             class='flex size-9 cursor-pointer items-center justify-center rounded-lg bg-gray-100 text-lg font-bold text-gray-700 shadow-sm transition-all duration-150 hover:bg-gray-200 active:scale-95'
             onClick={() => {
               updateScrollPercentages();
-              service.send({ type: 'ZOOM', payload: 0.1 });
+              send({ type: 'ZOOM', payload: 0.1 });
             }}
             title='Zoom in'
             aria-label='Zoom in'
@@ -324,7 +333,7 @@ export const NodesBoard = <N extends Data = Data, E extends Data = Data>(
           <button
             type='button'
             class='flex size-9 cursor-pointer items-center justify-center rounded-lg bg-blue-600 text-white shadow transition-all duration-150 hover:bg-blue-700 active:scale-95'
-            onClick={() => service.send('ADD_PARENT')}
+            onClick={() => send('ADD_PARENT')}
             title='Add parent node'
             aria-label='Add parent node'
           >

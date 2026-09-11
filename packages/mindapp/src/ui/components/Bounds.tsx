@@ -1,4 +1,3 @@
-import { createState } from '@bemedev/app-solidjs';
 import { useDragDropContext, type Transformer } from '@thisbeyond/solid-dnd';
 import { type Component } from 'solid-js';
 
@@ -16,9 +15,9 @@ import { useFlow } from './FlowChart.context';
  * @see {@linkcode useFlow}, {@linkcode BOUNDS_CONSTRAINTS}
  */
 export const DragBounds: Component = () => {
-  const { service } = useFlow();
-  const zoom = createState(service, { selector: ({ context }) => context.zoom });
-  const board = createState(service, { selector: ({ context }) => context.board });
+  const { hooks } = useFlow();
+  const zoom = hooks.state({ selector: ({ context }) => context.zoom });
+  const board = hooks.state({ selector: ({ context }) => context.board });
 
   const [state, { addTransformer, removeTransformer, onDragStart, onDragEnd }] =
     useDragDropContext()!;

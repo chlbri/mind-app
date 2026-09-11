@@ -1,4 +1,3 @@
-import { createState } from '@bemedev/app-solidjs';
 import { createEffect, type JSX, onCleanup, onMount } from 'solid-js';
 
 import { DEFAULT_NODES } from '#services/main.machine.data';
@@ -13,7 +12,8 @@ import type {
 import { EdgeCursive } from './edges/EdgeCursive';
 import { useFlow } from './FlowChart.context';
 import type { FlowProps } from './FlowChart.types';
-import { NodesBoard } from './NodesBoard';
+import { NodesBoard } from './nodes/NodesBoard';
+import { DefaultNodeSelected } from './nodes/selecteds';
 
 export type { Data, HandlePosition, HandleType, NodeHandles, NodeProps };
 
@@ -36,18 +36,17 @@ export type { Data, HandlePosition, HandleType, NodeHandles, NodeProps };
 export const FlowChart = <N extends Data = Data, E extends Data = Data>(
   props: FlowProps<N, E>,
 ): JSX.Element => {
-  const Edge = props.Edge ?? EdgeCursive<E>;
-  const { service } = useFlow();
-  onCleanup(service.pause);
+  const { service, hooks, send } = useFlow();
   let added = false;
-  const fromNew = createState(service, { selector: s => s.context.newEdge?.from });
+  const fromNew = hooks.state({ selector: s => s.context.newEdge?.from });
   // Track the currently enlarged handle during edge drag
   let activeHandle: HTMLElement | null = null;
+  onCleanup(service.pause);
 
   onMount(() => {
     service.resume();
 
-    service.send({
+    send({
       type: 'CONFIGURE',
       payload: {
         nodes: props.config?.nodes ?? DEFAULT_NODES,
@@ -66,7 +65,7 @@ export const FlowChart = <N extends Data = Data, E extends Data = Data>(
   };
 
   const handlePointerMove = (e: MouseEvent | PointerEvent) => {
-    service.send({ type: 'MOVE_NEW_EDGE', payload: { x: e.clientX, y: e.clientY } });
+    send({ type: 'MOVE_NEW_EDGE', payload: { x: e.clientX, y: e.clientY } });
 
     const elements = document.elementsFromPoint(e.clientX, e.clientY);
     const inputHandle = elements
@@ -110,7 +109,7 @@ export const FlowChart = <N extends Data = Data, E extends Data = Data>(
           : undefined;
       const currentEdge = service.state.context.newEdge;
 
-      service.send({
+      send({
         type: 'ADD_EDGE',
         payload: {
           from,
@@ -125,7 +124,7 @@ export const FlowChart = <N extends Data = Data, E extends Data = Data>(
 
     // Cleanup on release
     clearActiveHandle();
-    service.send('CLEAR_NEW_EDGE');
+    send('CLEAR_NEW_EDGE');
   };
 
   createEffect(() => {
@@ -150,7 +149,12 @@ export const FlowChart = <N extends Data = Data, E extends Data = Data>(
         class='h-full w-full'
         style={{ cursor: fromNew() ? 'inherit' : 'crosshair' }}
       >
-        <NodesBoard panels={props.panels} Node={props.Node} Edge={Edge} />
+        <NodesBoard
+          panels={props.panels}
+          Node={props.Node}
+          Edge={props.Edge ?? EdgeCursive<E>}
+          NodeSelected={props.NodeSelected ?? DefaultNodeSelected}
+        />
       </div>
     </div>
   );

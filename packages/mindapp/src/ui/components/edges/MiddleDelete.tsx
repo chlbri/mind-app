@@ -16,7 +16,7 @@ import type { EdgeMiddleProps } from './types';
  * @see {@linkcode useFlow}
  */
 export const MiddleDelete: Component<EdgeMiddleProps> = props => {
-  const { service } = useFlow();
+  const { send } = useFlow();
 
   return (
     <Show when={props.selected()}>
@@ -24,7 +24,7 @@ export const MiddleDelete: Component<EdgeMiddleProps> = props => {
         cursor='pointer'
         onMouseDown={e => {
           e.stopPropagation();
-          service.send({ type: 'DELETE', payload: props.id });
+          return send({ type: 'DELETE', payload: props.id });
         }}
         style={{ 'pointer-events': 'all' }}
         class={cn(props.selected() ? 'z-101' : 'z-30')}

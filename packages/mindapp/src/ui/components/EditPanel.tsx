@@ -35,7 +35,8 @@ export const EditPanel = <D extends Data = Data>(
       {node => (
         <div
           class={cn(
-            `w-80 cursor-default rounded-2xl border border-gray-200 bg-white/95 p-4 shadow-xl backdrop-blur-md transition-all ${props.class ?? ''}`,
+            'w-80 cursor-default rounded-2xl border border-gray-200 bg-white/95 p-4 shadow-xl backdrop-blur-md transition-all',
+            props.class,
           )}
           classList={{
             ...classList(),

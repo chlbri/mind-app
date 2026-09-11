@@ -1,10 +1,9 @@
-import { createState } from '@bemedev/app-solidjs';
 import { Component, For, Show, type JSX } from 'solid-js';
 
 import type { Data } from '#services/main.machine.typings';
 
-import type { EdgeProps } from './edges/types';
-import { useFlow } from './FlowChart.context';
+import { useFlow } from '../FlowChart.context';
+import type { EdgeProps } from './types';
 
 /**
  * SVG board overlay component that renders all active connecting edges and ongoing
@@ -17,10 +16,10 @@ import { useFlow } from './FlowChart.context';
 export const EdgesBoard: <E extends Data = Data>(props: {
   Edge: Component<EdgeProps<E>>;
 }) => JSX.Element = props => {
-  const { service } = useFlow();
-  const hasNewEdge = createState(service, { selector: s => !!s.context.newEdge });
+  const { hooks } = useFlow();
+  const hasNewEdge = hooks.state({ selector: s => !!s.context.newEdge });
 
-  const edgeIds = createState(service, {
+  const edgeIds = hooks.state({
     selector: ({ context }) => Object.keys(context.edgesPositions ?? {}),
     equals: (prev, next) => prev.length === next.length,
   });

@@ -43,7 +43,7 @@
     "pnpm:devPreinstall": "node -e \"const fs=require('fs'); const pkg=JSON.parse(fs.readFileSync('./package.json')); const version=require('child_process').execSync('pnpm -v').toString().trim(); pkg.packageManager='pnpm@' + version; fs.writeFileSync('./package.json', JSON.stringify(pkg, null, 2) + '\\n');\"",
     "build": "pnpm -r --sort --sequential run build",
     "config": "pnpm i",
-    "rimraf": "pnpx rimraf -rf",
+    "rimraf": "rimraf -rf",
     "rinit": "pnpm run rm && pnpm run config",
     "fmt": "pnpm run -r fmt",
     "fmt:check": "pnpm run -r fmt:check",
@@ -52,7 +52,7 @@
     "test": "pnpm run -r test",
     "posttest": "pnpm run -r posttest",
     "test:only": "pnpm run -r test:only",
-    "rm": "pnpm run rimraf -- node_modules pnpm-lock.yaml && pnpm clean lockfile",
+    "rm": "pnpm run rimraf -- node_modules pnpm-lock.yaml && pnpm clean --lockfile",
     "up": "pnpm -r update --latest !typescript && pnpm run check-updates",
     "check-updates": "pnpm dlx npm-check-updates -w -u --dep peer,optional,prod",
     "prepare": "husky",
@@ -82,5 +82,5 @@
   "engines": {
     "node": ">=22"
   },
-  "packageManager": "pnpm@11.22.0"
+  "packageManager": "pnpm@12.3.4"
 }

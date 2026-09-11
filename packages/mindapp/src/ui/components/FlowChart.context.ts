@@ -1,4 +1,5 @@
 import { interpret } from '@bemedev/app';
+import { createService } from '@bemedev/app-solidjs';
 
 import { clamp } from '#helpers/clamp';
 import { createContext } from '#helpers/createContext';
@@ -11,8 +12,6 @@ import {
   getDefaultOutputOffset,
 } from '#services/main.machine.data';
 import type { Dimension, Point } from '#services/main.machine.typings';
-
-import { EdgeCursive } from './edges/EdgeCursive';
 
 /**
  * Solid Context Provider component and hook for accessing flowchart board state,
@@ -139,7 +138,10 @@ export const [Provider, useFlow] = createContext(
     });
 
     service.start();
-    return { service, Edge: EdgeCursive };
+    const hooks = createService(service);
+    const send = service.send;
+    const sender = service.sender;
+    return { service, hooks, send, sender };
   },
   { name: 'FlowContext' },
 );

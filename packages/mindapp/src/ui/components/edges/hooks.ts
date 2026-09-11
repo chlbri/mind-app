@@ -1,4 +1,3 @@
-import { createState } from '@bemedev/app-solidjs';
 import type { NOmit } from '@bemedev/app/bemedev';
 import { deepEqual } from '@bemedev/app/utils';
 import { TinyColor } from '@ctrl/tinycolor';
@@ -25,9 +24,9 @@ import type { EdgeProps } from './types';
 export const useEdge = <E extends Data = Data>(
   props: NOmit<EdgeProps<E>, 'middle'>,
 ) => {
-  const { service } = useFlow();
+  const { hooks, send } = useFlow();
 
-  const vector = createState(service, {
+  const vector = hooks.state({
     selector: ({ context: { newEdge, edgesPositions } }) => {
       if (props.isNew) return newEdge;
       return edgesPositions[props.id];
@@ -35,11 +34,9 @@ export const useEdge = <E extends Data = Data>(
     equals: deepEqual<any>,
   });
 
-  const selected = createState(service, {
-    selector: s => s.context.selected === props.id,
-  });
+  const selected = hooks.state({ selector: s => s.context.selected === props.id });
 
-  const edgeData = createState(service, {
+  const edgeData = hooks.state({
     selector: ({ context }) => {
       if (props.data) return props.data;
       const edge = context.data?.edges?.find(e => e.id === props.id);
@@ -64,5 +61,5 @@ export const useEdge = <E extends Data = Data>(
     return _stroke.setAlpha(0.7).toHex8String();
   };
 
-  return { vector, selected, edgeData, middlePoint, strokeWidth, stroke, service };
+  return { vector, selected, edgeData, middlePoint, strokeWidth, stroke, send };
 };
