@@ -6,9 +6,9 @@ import {
   AddTransitionModal,
   StateMachineEdge,
   StateMachineNode,
-} from './-machine.components';
-import { config } from './-machine.data';
-import type { StateMachineEdgeData, StateMachineNodeData } from './-machine.types';
+} from './-settings/components';
+import { config } from './-settings/data';
+import type { StateMachineEdgeData, StateMachineNodeData } from './-settings/types';
 
 /**
  * Interactive State Machine Showroom route demonstrating `@bemedev/app` graph

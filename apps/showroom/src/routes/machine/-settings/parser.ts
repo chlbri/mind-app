@@ -1,7 +1,7 @@
 import type {
   EdgesFrom,
   HandleType,
-  NodeHandles,
+  NodeHandles_T,
   NodesFrom,
 } from '@bemedev/mind-flow';
 
@@ -15,7 +15,7 @@ import type {
   StateNodeKeys,
   StateNodePositions,
   TransitionItem,
-} from './-machine.types';
+} from './types';
 
 export type { MachineConfig, Position, StateNodeKeys, StateNodePositions };
 
@@ -393,7 +393,7 @@ export const parseMachineToGraph = <
     const defaultY = INITIAL_Y + currentYCount * VERTICAL_SPACING;
     const pos = positions?.[node.id as keyof typeof positions];
     const position = pos ? { x: pos.x, y: pos.y } : { x: defaultX, y: defaultY };
-    const handles: NodeHandles = { left: ['input'], right: ['output'] };
+    const handles: NodeHandles_T = { left: ['input'], right: ['output'] };
     if (node.isChild) handles.top = top;
     if (node.hasChildren) handles.bottom = bottom;
 
