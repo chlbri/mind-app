@@ -24,6 +24,8 @@ export type EdgeMiddleProps<D extends Data = Data> = {
  *
  * @template | {@linkcode Data} `D` - Type of the custom data associated with the
  *   edge.
+ *
+ * @see {@linkcode EdgeMiddleProps}
  */
 export type EdgeProps<D extends Data = Data> = {
   /** Unique identifier of the edge. */
@@ -32,7 +34,10 @@ export type EdgeProps<D extends Data = Data> = {
   isNew?: boolean;
   /** Custom data attached to the edge. */
   data?: D;
-  /** Component to render at the middle point of the edge. */
+  /**
+   * Component to render at the middle point of the edge with properties of type
+   * {@linkcode EdgeMiddleProps}.
+   */
   middle?: Component<EdgeMiddleProps<D>>;
   /** SVG stroke color or expression. */
   stroke?: string;

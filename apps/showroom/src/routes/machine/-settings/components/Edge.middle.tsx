@@ -92,6 +92,7 @@ export const StateMachineEdgeMiddle: Component<
 
   const badgeWidth = () => {
     const added = selected() ? 30 : 12;
+    const min = selected() ? 130 : 100;
 
     const text = transitions()
       .map(t => {
@@ -100,7 +101,7 @@ export const StateMachineEdgeMiddle: Component<
       })
       .sort((a, b) => a.length - b.length)[0];
 
-    return clamp(monoLength(text) + added, 100, 210);
+    return clamp(monoLength(text) + added, min, 210);
   };
 
   const ITEM_HEIGHT = 22;
@@ -169,6 +170,7 @@ export const StateMachineEdgeMiddle: Component<
           'rounded-xl ring-2 ring-offset-8 ring-indigo-400': showAdd(),
           'rounded-xl ring-2 ring-offset-2 ring-purple-600':
             !showAdd() && selected(),
+          'bg-gray-50/80': selected(),
         }}
       >
         {/* Stacked Transition Badges */}
@@ -215,11 +217,14 @@ export const StateMachineEdgeMiddle: Component<
 
         {/* "+ Add transition" button when selected */}
         <Show when={showAdd()}>
-          <div class='flex w-full items-center justify-center'>
+          <div
+            class='flex w-full items-center justify-center'
+            style={{ 'pointer-events': 'all' }}
+          >
             <button
               type='button'
               class='flex max-w-fit cursor-pointer items-center justify-center rounded-full border border-indigo-200 bg-indigo-600 px-2 py-1 text-[9.5px] font-bold text-white shadow-sm hover:bg-indigo-700'
-              style={{ width: '100%', 'pointer-events': 'all' }}
+              style={{ width: '100%' }}
               onMouseDown={e => {
                 e.stopPropagation();
                 setActiveAddTransitionEdge({
@@ -231,6 +236,19 @@ export const StateMachineEdgeMiddle: Component<
             >
               + Add transition
             </button>
+            <Show when={transitions().length === 0}>
+              <button
+                type='button'
+                class='ml-1 h-3.5 w-3.5 shrink-0 cursor-pointer rounded-full bg-red-500 text-[9px] font-black text-white shadow-sm hover:bg-red-600'
+                title='Delete transition'
+                onMouseDown={e => {
+                  e.stopPropagation();
+                  send({ type: 'DELETE', payload: props.id });
+                }}
+              >
+                X
+              </button>
+            </Show>
           </div>
         </Show>
       </div>

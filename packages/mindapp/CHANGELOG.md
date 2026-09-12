@@ -3,6 +3,26 @@
 <details>
 <summary>
 
+## **[1.5.2] - 12/09/2026** => _00:44_
+
+</summary>
+
+- Add `EdgesBoardProps` component prop type definition
+- Enhance `EdgesBoard` to reorder edge IDs so the selected edge renders last in SVG
+  DOM order, bringing it to the front
+- Enhance `FactoryEdge` z-index layering for selected edge paths (`z-150`) and middle
+  overlays (`z-200`)
+- Enhance comprehensive JSDoc documentation across edge components, types, and
+  helpers
+- <u>Test coverage **_100%_**</u>
+
+</details>
+
+<br/>
+
+<details>
+<summary>
+
 ## **[1.5.1] - 11/09/2026** => _16:22_
 
 </summary>

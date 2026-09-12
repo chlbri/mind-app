@@ -126,9 +126,14 @@ export const CustomFlow = () => {
   state machine service.
 - **`EditPanel`**: Configurable overlay panel component for editing active node data.
 - **`Panels`**: Overlay container component rendering custom canvas panels.
+- **`EdgesBoard`**, **`EdgesBoardProps`**: SVG board overlay component and prop type
+  rendering active connecting edges.
 - **`EdgeCursive`**, **`EdgeStraight`**: Built-in curved (cubic bezier) and straight
   SVG edge components.
-- **`FactoryEdge`**: Higher-order component factory for creating custom SVG edges.
+- **`FactoryEdge`**, **`FactoryProps`**: Higher-order component factory and options
+  for creating custom SVG edges.
+- **`createDraw`**: Helper creating type-safe SVG path draw functions for custom
+  edges.
 - **`MiddleDelete`**: Default middle overlay component providing edge deletion
   interaction.
 - **`useEdge`**: Hook providing reactive state, computed vectors, and styling for

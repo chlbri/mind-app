@@ -31,7 +31,7 @@ export type FactoryEdge_F = ({
  * standard selection, styling, and middle overlay behavior.
  *
  * @param options - Configuration options of type {@linkcode FactoryProps}.
- * @param options.draw - Function computing the SVG path `d` attribute from a
+ * @param options.draw - Function computing the SVG path `d` attribute from a type
  *   {@linkcode Vector}.
  *
  * @returns An SVG edge component accepting properties of type {@linkcode EdgeProps}.
@@ -53,7 +53,7 @@ export const FactoryEdge: FactoryEdge_F = ({ draw }) => {
               class='relative cursor-pointer fill-transparent'
               classList={{
                 'z-200': props.isNew,
-                'z-100': !props.isNew && selected(),
+                'z-150': !props.isNew && selected(),
               }}
               stroke={stroke()}
               stroke-dasharray={props.strokeDasharray}
@@ -69,6 +69,7 @@ export const FactoryEdge: FactoryEdge_F = ({ draw }) => {
               <g
                 transform={`translate(${middlePoint().x}, ${middlePoint().y})`}
                 style={{ 'pointer-events': 'all' }}
+                classList={{ 'z-200': selected() }}
               >
                 <Middle
                   vector={vector}
