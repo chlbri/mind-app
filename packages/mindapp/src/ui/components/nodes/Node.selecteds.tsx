@@ -5,7 +5,7 @@ import { HANDLE_SIZE } from '#services/main.machine.data';
 import { useFlow } from '../FlowChart.context';
 
 /** Properties for the {@linkcode DefaultNodeSelected} component. */
-export type DefaultNodeSelectedProps = {
+export type DefaultNodeSelected_Props = {
   /** Unique identifier of the node. */
   id: string;
 };
@@ -14,14 +14,14 @@ export type DefaultNodeSelectedProps = {
  * Default floating action toolbar rendered above a selected node, providing
  * deletion, sibling addition, and child creation triggers.
  *
- * @param props - Component properties of type {@linkcode DefaultNodeSelectedProps}.
+ * @param props - Component properties of type {@linkcode DefaultNodeSelected_Props}.
  *
  * @returns The rendered node selection toolbar element.
  *
  * @see {@linkcode useFlow}, {@linkcode HANDLE_SIZE}
  */
-export const DefaultNodeSelected: Component<DefaultNodeSelectedProps> = props => {
-  const { hooks, service } = useFlow();
+export const DefaultNodeSelected: Component<DefaultNodeSelected_Props> = props => {
+  const { hooks, send } = useFlow();
 
   const hasParent = hooks.state({
     selector: ({ context: { data } }) => {
@@ -41,7 +41,7 @@ export const DefaultNodeSelected: Component<DefaultNodeSelectedProps> = props =>
 
         onClick={e => {
           e.stopPropagation();
-          service.send({ type: 'DELETE', payload: props.id });
+          send({ type: 'DELETE', payload: props.id });
         }}
 
         style={{
@@ -72,7 +72,7 @@ export const DefaultNodeSelected: Component<DefaultNodeSelectedProps> = props =>
           preserveAspectRatio='xMaxYMax'
           xmlns='http://www.w3.org/2000/svg'
           fill='white'
-          onClick={() => service.send({ type: 'ADD_SIBLING', payload: props.id })}
+          onClick={() => send({ type: 'ADD_SIBLING', payload: props.id })}
         >
           <g id='background'>
             <path d='M467.40667,277.66696c-0.05948,-14.53055 5.75527,-22.95613 -8.62044,-20.90487c-112.55699,16.0607 -222.1609,112.14558 -245.06161,239.85765c-46.52056,259.43466 231.33083,443.06705 449.51209,316.97506c117.31668,-67.80002 160.95215,-190.43324 151.34416,-288.29849c-5.92276,-60.32819 -27.80273,-107.95668 -53.44246,-144.25469l59.39269,-42.05363c111.72214,156.309 73.11535,351.55635 -25.06953,459.45565c-184.18877,202.4124 -470.46624,145.52064 -592.95027,-32.92123c-156.18269,-227.53604 -27.15324,-543.64371 261.18883,-582.44416c5.0579,-0.68061 3.56556,-7.04079 3.56442,-8.58985c-0.05594,-76.3354 -0.11021,-76.7687 1.10909,-77.24589c2.06886,-0.80969 151.41433,118.4561 151.92482,118.95524c4.65592,4.55233 -0.99548,7.829 -29.07828,30.50907c-120.49369,97.31245 -120.4977,98.55675 -123.0691,97.87586c-0.43639,-0.11555 -0.80698,-0.31322 -0.74442,-66.91571Z' />
@@ -84,7 +84,7 @@ export const DefaultNodeSelected: Component<DefaultNodeSelectedProps> = props =>
 
       <svg
         class='flex cursor-pointer items-center justify-center rounded-lg bg-blue-500 p-0.5 text-center font-bold text-white hover:bg-blue-600'
-        onClick={() => service.send({ type: 'ADD_CHILD', payload: props.id })}
+        onClick={() => send({ type: 'ADD_CHILD', payload: props.id })}
         viewBox='0 0 24 24'
         stroke='currentColor'
         stroke-width='2'
