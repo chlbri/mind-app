@@ -34,9 +34,8 @@ export const DefaultNodeSelected: Component<DefaultNodeSelected_Props> = props =
   return (
     <>
       <svg
-        class='cursor-pointer rounded-full fill-[#a11111] opacity-100 transition-all duration-200 ease-in-out'
+        class='cursor-pointer rounded-full fill-[#a11111] stroke-2 opacity-100 transition-all duration-200 ease-in-out'
         fill='currentColor'
-        stroke-width='2'
         viewBox='4 4 16 16'
 
         onClick={e => {
