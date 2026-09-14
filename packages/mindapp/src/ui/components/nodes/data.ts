@@ -5,4 +5,7 @@ import type { NodeHandles_T } from '#services/main.machine.typings';
  *
  * @see -- type {@linkcode NodeHandles_T}
  */
-export const DEFAULT_HANDLES: NodeHandles_T = { left: ['input'], right: ['output'] };
+export const DEFAULT_HANDLES: NodeHandles_T = {
+  left: [{ type: 'input' }],
+  right: [{ type: 'output' }],
+};

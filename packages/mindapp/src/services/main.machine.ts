@@ -142,7 +142,7 @@ export const machine = createMachine(
       SET_EDGE_DATA: { id: 'string', data: use(data) },
 
       START_NEW_EDGE: custom<
-        string | { from: string; position?: HandlePosition | string; index?: number }
+        string | { from: string; position: HandlePosition | string; index: number }
       >(),
 
       CONFIGURE: {
@@ -273,7 +273,7 @@ export const machine = createMachine(
 
         const fromNode = data?.nodes?.find(n => n.id === from);
         const dimension = dimensions[from];
-        if (!dimension) return { from, x0: 0, y0: 0, x1: 0, y1: 0 };
+        if (!dimension) return undefined;
 
         const width = dimension.width ?? DEFAULT_SIZE.width;
         const height = dimension.height ?? DEFAULT_SIZE.height;
@@ -284,7 +284,7 @@ export const machine = createMachine(
         if (!fromPosition && fromNode?.handles) {
           const sides: HandlePosition[] = ['right', 'bottom', 'top', 'left'];
           for (const s of sides) {
-            const hIdx = fromNode.handles[s]?.indexOf('output');
+            const hIdx = fromNode.handles[s]?.findIndex(h => h.type === 'output');
             if (hIdx !== undefined && hIdx !== -1) {
               side = s;
               idx = hIdx;
@@ -292,7 +292,8 @@ export const machine = createMachine(
             }
           }
         }
-        if (fromNode?.handles && fromNode.handles[side]?.[idx] === 'none') {
+        const handle = fromNode?.handles?.[side]?.[idx];
+        if (fromNode?.handles && handle?.type === 'none') {
           return undefined;
         }
         const total = fromNode?.handles?.[side]?.length ?? 1;

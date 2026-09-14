@@ -27,8 +27,15 @@ export const useEdge = <E extends Data = Data>(
   const { hooks, send } = useFlow();
 
   const vector = hooks.state({
-    selector: ({ context: { newEdge, edgesPositions } }) => {
-      if (props.isNew) return newEdge;
+    selector: ({ context: { newEdge, edgesPositions, data } }) => {
+      if (props.isNew && newEdge) {
+        const color = data?.nodes?.find(({ id }) => id === newEdge.from)?.handles?.[
+          newEdge.fromPosition
+        ]?.[newEdge.fromIndex]?.color;
+
+        return { ...newEdge, color };
+      }
+
       return edgesPositions[props.id];
     },
     equals: deepEqual<any>,
@@ -42,6 +49,7 @@ export const useEdge = <E extends Data = Data>(
       const edge = context.data?.edges?.find(e => e.id === props.id);
       return edge?.data as E | undefined;
     },
+
     equals: deepEqual<any>,
   });
 
@@ -51,11 +59,16 @@ export const useEdge = <E extends Data = Data>(
     return { x: (v.x0 + v.x1) / 2, y: (v.y0 + v.y1) / 2 };
   };
 
-  const _stroke = new TinyColor(props.stroke ?? '#a8a8a8');
+  const __stroke = () => {
+    const color: string | undefined = (vector() as any).color;
+    return new TinyColor(color ?? props.stroke ?? '#a8a8a8');
+  };
+
   const strokeWidth = () => (selected() ? 4 : 3);
 
   const stroke = () => {
     const _selected = selected();
+    const _stroke = __stroke();
     if (props.isNew === true) return _stroke.setAlpha(0.4).toHex8String();
     if (_selected) return _stroke.setAlpha(1).toHex8String();
     return _stroke.setAlpha(0.7).toHex8String();

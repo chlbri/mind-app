@@ -12,6 +12,8 @@ import type {
 export type HandleItemProps = {
   /** Handle category as input, output, or none of type {@linkcode HandleType}. */
   type: HandleType;
+  /** Optional custom background color for the handle. */
+  color?: string;
   /** Node identifier this handle belongs to. */
   nodeId: string;
   /** Node side where this handle is positioned of type {@linkcode HandlePosition}. */
@@ -45,14 +47,19 @@ export const HandleItem: Component<HandleItemProps> = props => {
       data-handle-index={props.index}
 
       classList={{
-        'rounded-full bg-[#e38b29] shadow-md transition-transform duration-150 ease-in-out': true,
+        'rounded-full shadow-md transition-transform duration-150 ease-in-out': true,
+        'bg-[#e38b29]': !props.color,
         'pointer-events-none': isNone,
         'hover:scale-150 pointer-events-all': !isNone,
         'cursor-default': isInput,
         'cursor-crosshair': !isInput && !isNone,
       }}
 
-      style={{ width: `${HANDLE_SIZE}px`, height: `${HANDLE_SIZE}px` }}
+      style={{
+        width: `${HANDLE_SIZE}px`,
+        height: `${HANDLE_SIZE}px`,
+        ...(props.color ? { 'background-color': props.color } : {}),
+      }}
 
       onPointerDown={e => {
         if (!isNone) e.stopPropagation();
@@ -117,7 +124,7 @@ export const NodeHandles: Component<NodeHandlesProps> = props => (
         }}
       >
         <For each={props.resolvedHandles().top}>
-          {(type, index) => (
+          {(handle, index) => (
             <div
               class='pointer-events-none absolute'
               style={{
@@ -129,7 +136,8 @@ export const NodeHandles: Component<NodeHandlesProps> = props => (
               }}
             >
               <HandleItem
-                type={type}
+                type={handle.type}
+                color={handle.color}
                 nodeId={props.id}
                 side='top'
                 index={index()}
@@ -153,7 +161,7 @@ export const NodeHandles: Component<NodeHandlesProps> = props => (
         }}
       >
         <For each={props.resolvedHandles().bottom}>
-          {(type, index) => (
+          {(handle, index) => (
             <div
               class='pointer-events-none absolute'
               style={{
@@ -165,7 +173,8 @@ export const NodeHandles: Component<NodeHandlesProps> = props => (
               }}
             >
               <HandleItem
-                type={type}
+                type={handle.type}
+                color={handle.color}
                 nodeId={props.id}
                 side='bottom'
                 index={index()}
@@ -189,7 +198,7 @@ export const NodeHandles: Component<NodeHandlesProps> = props => (
         }}
       >
         <For each={props.resolvedHandles().left}>
-          {(type, index) => (
+          {(handle, index) => (
             <div
               class='pointer-events-none absolute'
               style={{
@@ -201,7 +210,8 @@ export const NodeHandles: Component<NodeHandlesProps> = props => (
               }}
             >
               <HandleItem
-                type={type}
+                type={handle.type}
+                color={handle.color}
                 nodeId={props.id}
                 side='left'
                 index={index()}
@@ -225,7 +235,7 @@ export const NodeHandles: Component<NodeHandlesProps> = props => (
         }}
       >
         <For each={props.resolvedHandles().right}>
-          {(type, index) => (
+          {(handle, index) => (
             <div
               class='pointer-events-none absolute'
               style={{
@@ -237,7 +247,8 @@ export const NodeHandles: Component<NodeHandlesProps> = props => (
               }}
             >
               <HandleItem
-                type={type}
+                type={handle.type}
+                color={handle.color}
                 nodeId={props.id}
                 side='right'
                 index={index()}

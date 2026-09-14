@@ -6,6 +6,7 @@ import {
   AddTransitionModal,
   StateMachineEdge,
   StateMachineNode,
+  StateMachineNodeSelected,
 } from './-settings/components';
 import { config } from './-settings/data';
 import type { StateMachineEdgeData, StateMachineNodeData } from './-settings/types';
@@ -22,8 +23,18 @@ export const Route = createFileRoute('/machine/')({
           delay={100}
           config={config}
           Node={StateMachineNode}
+          NodeSelected={StateMachineNodeSelected}
           Edge={StateMachineEdge}
-
+          edgesAllowed={(from, to) => {
+            // A child state cannot transition to its parent
+            const isChild =
+              from.data?.parentPath === to.data?.path ||
+              from.data?.parentPath === to.id ||
+              (Boolean(to.data?.path) &&
+                Boolean(from.data?.path) &&
+                from?.data?.path.startsWith(`${to?.data?.path}/`));
+            return !isChild;
+          }}
           defaultData={{
             id: 'new-state',
             title: 'New State',

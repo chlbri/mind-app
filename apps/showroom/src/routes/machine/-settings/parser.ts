@@ -1,9 +1,4 @@
-import type {
-  EdgesFrom,
-  HandleType,
-  NodeHandles_T,
-  NodesFrom,
-} from '@bemedev/mind-flow';
+import type { EdgesFrom, NodeHandles_T, NodesFrom } from '@bemedev/mind-flow';
 
 import type {
   EdgeKind,
@@ -24,8 +19,6 @@ const HORIZONTAL_SPACING = 360;
 const VERTICAL_SPACING = 170;
 const INITIAL_X = 80;
 const INITIAL_Y = 100;
-const top: Array<HandleType> = ['input', 'none', 'input'];
-const bottom: Array<HandleType> = ['output', 'none', 'output'];
 
 /** Normalizes a raw transition target or candidate into structured properties. */
 type NormalizedTarget = { target: string; guard?: string; actions?: string[] };
@@ -393,9 +386,21 @@ export const parseMachineToGraph = <
     const defaultY = INITIAL_Y + currentYCount * VERTICAL_SPACING;
     const pos = positions?.[node.id as keyof typeof positions];
     const position = pos ? { x: pos.x, y: pos.y } : { x: defaultX, y: defaultY };
-    const handles: NodeHandles_T = { left: ['input'], right: ['output'] };
-    if (node.isChild) handles.top = top;
-    if (node.hasChildren) handles.bottom = bottom;
+    const handles: NodeHandles_T = {
+      top: [{ type: 'none', color: '#8b5cf6' }], // link to parent
+      bottom: [{ type: 'none', color: '#8b5cf6' }], // link to children
+
+      left: [
+        { type: 'input', color: '#f97316' }, // after [orange]
+        { type: 'input', color: '#22c55e' }, // always [green]
+        { type: 'input', color: '#3b82f6' }, // on [blue]
+      ],
+      right: [
+        { type: 'output', color: '#f97316' }, // after [orange]
+        { type: 'output', color: '#22c55e' }, // always [green]
+        { type: 'output', color: '#3b82f6' }, // on [blue]
+      ],
+    };
 
     return {
       id: node.id,
@@ -455,14 +460,43 @@ export const parseMachineToGraph = <
     g => {
       const primary = g.transitions[0];
       const isMulti = g.transitions.length > 1;
+
+      let fromPosition: 'top' | 'right' | 'bottom' | 'left' = 'right';
+      let toPosition: 'top' | 'right' | 'bottom' | 'left' = 'left';
+      let fromIndex: number | undefined = undefined;
+      let toIndex: number | undefined = undefined;
+
+      if (primary.kind === 'child_parent') {
+        fromPosition = 'top';
+        toPosition = 'bottom';
+        fromIndex = 0;
+        toIndex = 0;
+      } else if (primary.kind === 'after') {
+        fromPosition = 'right';
+        toPosition = 'left';
+        fromIndex = 0;
+        toIndex = 0;
+      } else if (primary.kind === 'always') {
+        fromPosition = 'right';
+        toPosition = 'left';
+        fromIndex = 1;
+        toIndex = 1;
+      } else {
+        // 'on'
+        fromPosition = 'right';
+        toPosition = 'left';
+        fromIndex = 2;
+        toIndex = 2;
+      }
+
       return {
         id: g.id,
         from: g.from,
         to: g.to,
-        toPosition: primary.kind === 'child_parent' ? 'bottom' : undefined,
-        fromPosition: primary.kind === 'child_parent' ? 'top' : undefined,
-        fromIndex: primary.kind === 'child_parent' ? 1 : undefined,
-        toIndex: primary.kind === 'child_parent' ? 1 : undefined,
+        fromPosition,
+        toPosition,
+        fromIndex,
+        toIndex,
         data: {
           kind: primary.kind,
           label: isMulti ? `${g.transitions.length} transitions` : primary.label,

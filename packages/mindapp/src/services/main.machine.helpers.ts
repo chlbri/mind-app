@@ -220,7 +220,7 @@ export const calculateEdgePosition = (
   if (!edge.fromPosition && fromNode?.handles) {
     const sides: HandlePosition[] = ['right', 'bottom', 'top', 'left'];
     for (const s of sides) {
-      const idx = fromNode.handles[s]?.indexOf('output');
+      const idx = fromNode.handles[s]?.findIndex(h => h.type === 'output');
       if (idx !== undefined && idx !== -1) {
         fromSide = s;
         fromIndex = idx;
@@ -242,7 +242,7 @@ export const calculateEdgePosition = (
   if (!edge.toPosition && !parsed.position && toNode?.handles) {
     const sides: HandlePosition[] = ['left', 'top', 'bottom', 'right'];
     for (const s of sides) {
-      const idx = toNode.handles[s]?.indexOf('input');
+      const idx = toNode.handles[s]?.findIndex(h => h.type === 'input');
       if (idx !== undefined && idx !== -1) {
         toSide = s;
         toIndex = idx;

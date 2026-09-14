@@ -48,7 +48,7 @@ export const EdgesBoard = <E extends Data = Data>(
   return (
     <svg class='pointer-events-none h-full w-full overflow-visible'>
       <Show when={hasNewEdge()}>
-        <props.Edge id='__#new-edge#__TEMP' isNew />
+        <props.Edge id='__#new-edge#__TEMP' isNew  />
       </Show>
 
       <For each={edgeIds()}>{id => <props.Edge id={id} />}</For>

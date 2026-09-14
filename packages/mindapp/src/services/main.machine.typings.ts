@@ -41,17 +41,8 @@ export const extremities = type(({ optional, use }) => ({
   fromIndex: optional('number'),
 }));
 
-/** Schema definition for primitive values allowed in node data. */
-export const nodeDataValue = type(({ union }) =>
-  union('string', 'boolean', 'number', 'undefined'),
-);
-
-/**
- * Schema definition for serialized node data dictionary.
- *
- * @see {@linkcode nodeDataValue}
- */
-export const data = type(({ record, use }) => record(use(nodeDataValue)));
+/** Schema definition for serialized node data dictionary. */
+export const data = type(({ record }) => record('any'));
 
 /** Serialized node data dictionary type. */
 export type Data = inferT<typeof data>;
@@ -67,15 +58,30 @@ export const handleType = type(({ litterals }) =>
  */
 export type HandleType = inferT<typeof handleType>;
 
+/** Schema definition for custom handle configuration with optional color. */
+export const handleConfig = type(({ use, optional }) => ({
+  type: use(handleType),
+  color: optional('string'),
+}));
+
+/** Handle configuration object with type and optional color styling. */
+export type HandleConfig = inferT<typeof handleConfig>;
+
+/** Schema definition for a handle item: a handle config object. */
+export const handleItem = handleConfig;
+
+/** Handle item definition specifying type and optional color. */
+export type HandleItem = HandleConfig;
+
 export const nodeHandles = type(({ use, partial, array }) => {
-  const top = array(use(handleType));
+  const top = array(use(handleItem));
   return partial({ top, right: top, left: top, bottom: top });
 });
 
 /**
  * Handle configurations per side of a node container.
  *
- * @see -- type {@linkcode HandleType}
+ * @see -- type {@linkcode HandleItem}
  */
 export type NodeHandles_T = inferT<typeof nodeHandles>;
 
@@ -100,7 +106,7 @@ export const nodeJSON = type(({ use, optional }) => ({
  */
 export type NodeProps<D extends Data = Data> = {
   position: Point;
-  data: D;
+  data?: D;
   handles?: NodeHandles_T;
 };
 
@@ -184,13 +190,9 @@ export type Vector = inferT<typeof vector>;
  *
  * @see {@linkcode vector}
  */
-export const newEdge = type(({ intersection, use, optional }) =>
+export const newEdge = type(({ intersection, use }) =>
   intersection(
-    {
-      from: 'string',
-      fromPosition: optional(use(handlePosition)),
-      fromIndex: optional('number'),
-    },
+    { from: 'string', fromPosition: use(handlePosition), fromIndex: 'number' },
 
     use(vector),
   ),

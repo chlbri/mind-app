@@ -77,7 +77,8 @@ export const NodeComponent = <D extends Data = Data>(
 
   const handleAddEdge = (side: HandlePosition, index: number) => {
     const handles = resolvedHandles();
-    if (handles[side]?.[index] === 'none') {
+    const handle = handles[side]?.[index];
+    if (handle?.type === 'none') {
       send('CLEAR_NEW_EDGE');
       return;
     }
@@ -101,7 +102,8 @@ export const NodeComponent = <D extends Data = Data>(
 
   const handleStartEdge = (side: HandlePosition, index: number) => {
     const handles = resolvedHandles();
-    if (handles[side]?.[index] === 'none') return;
+    const handle = handles[side]?.[index];
+    if (handle?.type === 'none') return;
     send('DESELECT');
     send({
       type: 'START_NEW_EDGE',

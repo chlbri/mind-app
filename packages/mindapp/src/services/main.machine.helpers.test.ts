@@ -105,13 +105,16 @@ describe('#01 => main.machine.helpers', () => {
         id: 'node-0',
         position: { x: 100, y: 100 },
         data: {},
-        handles: { right: ['output'], top: ['output'] },
+        handles: { right: [{ type: 'output' }], top: [{ type: 'output' }] },
       },
       {
         id: 'node-1',
         position: { x: 300, y: 200 },
         data: {},
-        handles: { left: ['input'], top: ['input', 'input'] },
+        handles: {
+          left: [{ type: 'input' }],
+          top: [{ type: 'input' }, { type: 'input' }],
+        },
       },
     ];
 
@@ -215,13 +218,13 @@ describe('#01 => main.machine.helpers', () => {
           id: 'node-none-0',
           position: { x: 100, y: 100 },
           data: {},
-          handles: { right: ['none'] },
+          handles: { right: [{ type: 'none' }] },
         },
         {
           id: 'node-none-1',
           position: { x: 300, y: 200 },
           data: {},
-          handles: { left: ['none'] },
+          handles: { left: [{ type: 'none' }] },
         },
       ];
       const customDimensions: Record<string, Dimension> = {
