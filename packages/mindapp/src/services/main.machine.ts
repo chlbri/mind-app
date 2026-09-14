@@ -62,6 +62,28 @@ export const machine = createMachine(
       working: {
         on: {
           CONFIGURE: { actions: ['configure'], target: '/construction' },
+          RESIZE: { actions: ['resize', 'buildUI'] },
+          MOVE: { actions: ['moveNode', 'buildUI'], target: '/construction' },
+          START_NEW_EDGE: { actions: ['startNewEdge'] },
+          MOVE_NEW_EDGE: { actions: ['moveNewEdge'] },
+          CLEAR_NEW_EDGE: { actions: ['clearNewEdge'] },
+          DELETE: { actions: ['delete'], target: '/construction' },
+          SELECT: { actions: ['select'] },
+          DESELECT: { actions: ['deselect'] },
+          ZOOM: { actions: ['zoom'] },
+          TOGGLE_ZOOM: { actions: ['toggleZoom'] },
+          SET_BOARD: { actions: ['setBoard'] },
+          SET_NODE_DATA: { actions: ['setNodeData'] },
+          SET_EDGE_DATA: { actions: ['setEdgeData'] },
+          EDIT: { actions: ['edit'] },
+          STOP_EDIT: { actions: ['stopEdit'] },
+
+          ADD_EDGE: {
+            actions: ['addEdge'],
+            target: '/construction',
+            guards: 'edgesAllowed',
+          },
+
           MOVE_IMMEDIATE: {
             actions: [{ name: 'buildUI', description: 'Must be in the ui' }],
           },
@@ -92,35 +114,12 @@ export const machine = createMachine(
             ],
             target: '/construction',
           },
-
-          RESIZE: { actions: ['resize', 'buildUI'] },
-          MOVE: { actions: ['moveNode', 'buildUI'], target: '/construction' },
-          ADD_EDGE: { actions: ['addEdge'], target: '/construction' },
-          START_NEW_EDGE: { actions: ['startNewEdge'] },
-          MOVE_NEW_EDGE: { actions: ['moveNewEdge'] },
-          CLEAR_NEW_EDGE: { actions: ['clearNewEdge'] },
-          DELETE: { actions: ['delete'], target: '/construction' },
-          SELECT: { actions: ['select'] },
-          DESELECT: { actions: ['deselect'] },
-          ZOOM: { actions: ['zoom'] },
-          TOGGLE_ZOOM: { actions: ['toggleZoom'] },
-          SET_BOARD: { actions: ['setBoard'] },
-          SET_NODE_DATA: { actions: ['setNodeData'] },
-          SET_EDGE_DATA: { actions: ['setEdgeData'] },
-          EDIT: { actions: ['edit'] },
-          STOP_EDIT: { actions: ['stopEdit'] },
         },
       },
     },
   },
   {
     eventsMap: type(({ intersection, use, array, optional, custom }) => ({
-      CONFIGURE: {
-        nodes: array(intersection(use(nodeJSON), { id: 'string' })),
-        edges: array(intersection(use(edgeJSON), { id: 'string' })),
-        defaultData: optional(use(data)),
-      },
-
       SET_BOARD: use(board),
       CONFIGURE_EMPTY: 'never',
       MOVE: { id: 'string', x: 'number', y: 'number' },
@@ -134,9 +133,6 @@ export const machine = createMachine(
       EDIT: 'string',
       STOP_EDIT: 'never',
       ADD_EDGE: use(extremities),
-      START_NEW_EDGE: custom<
-        string | { from: string; position?: HandlePosition | string; index?: number }
-      >(),
       MOVE_NEW_EDGE: use(point),
       CLEAR_NEW_EDGE: 'never',
       ZOOM: 'number',
@@ -144,6 +140,16 @@ export const machine = createMachine(
       RESIZE: { id: 'string', size: { width: 'number', height: 'number' } },
       SET_NODE_DATA: { id: 'string', data: use(data) },
       SET_EDGE_DATA: { id: 'string', data: use(data) },
+
+      START_NEW_EDGE: custom<
+        string | { from: string; position?: HandlePosition | string; index?: number }
+      >(),
+
+      CONFIGURE: {
+        nodes: array(intersection(use(nodeJSON), { id: 'string' })),
+        edges: array(intersection(use(edgeJSON), { id: 'string' })),
+        defaultData: optional(use(data)),
+      },
     })),
 
     sync: true,

@@ -41,6 +41,24 @@ export const FlowChart = <N extends Data = Data, E extends Data = Data>(
   // Track the currently enlarged handle during edge drag
   let activeHandle: HTMLElement | null = null;
   onCleanup(service.pause);
+  const edgesAllowed = props.edgesAllowed;
+
+  if (edgesAllowed) {
+    service.addOptions(() => ({
+      guards: {
+        edgesAllowed: {
+          ADD_EDGE: ({ context: { data }, payload: { from, to } }) => {
+            const first: any = data?.nodes?.find(({ id }) => from === id);
+            const second: any = data?.nodes?.find(({ id }) => to === id);
+            const areUndefineds = first === undefined || second === undefined;
+
+            if (areUndefineds) return false;
+            return edgesAllowed(first, second);
+          },
+        },
+      },
+    }));
+  }
 
   onMount(() => {
     service.resume();

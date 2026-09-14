@@ -39,6 +39,11 @@ export type FlowProps<N extends Data = Data, E extends Data = Data> = {
 
   NodeSelected?: NodeComponentProps<N>['Selected'];
 
+  edgesAllowed?: (
+    first: NodeProps<N> & { id: string },
+    second: NodeProps<N> & { id: string },
+  ) => boolean;
+
   /** Custom edge component to render inside each flowchart edge. */
   Edge?: Component<EdgeProps<E>>;
 

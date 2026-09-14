@@ -54,7 +54,7 @@ export const nodeDataValue = type(({ union }) =>
 export const data = type(({ record, use }) => record(use(nodeDataValue)));
 
 /** Serialized node data dictionary type. */
-export type Data = Record<string, any>;
+export type Data = inferT<typeof data>;
 
 /** Schema definition for node connection handle classification. */
 export const handleType = type(({ litterals }) =>
@@ -67,31 +67,27 @@ export const handleType = type(({ litterals }) =>
  */
 export type HandleType = inferT<typeof handleType>;
 
+export const nodeHandles = type(({ use, partial, array }) => {
+  const top = array(use(handleType));
+  return partial({ top, right: top, left: top, bottom: top });
+});
+
 /**
  * Handle configurations per side of a node container.
  *
  * @see -- type {@linkcode HandleType}
  */
-export type NodeHandles_T = {
-  /** Handles placed on the top side. */
-  top?: Array<HandleType>;
-  /** Handles placed on the right side. */
-  right?: Array<HandleType>;
-  /** Handles placed on the bottom side. */
-  bottom?: Array<HandleType>;
-  /** Handles placed on the left side. */
-  left?: Array<HandleType>;
-};
+export type NodeHandles_T = inferT<typeof nodeHandles>;
 
 /**
  * Schema definition for a serialized flowchart node entity.
  *
  * @see {@linkcode point}, {@linkcode data}, -- type {@linkcode NodeHandles_T}
  */
-export const nodeJSON = type(({ use, optional, custom }) => ({
+export const nodeJSON = type(({ use, optional }) => ({
   position: use(point),
   data: use(data),
-  handles: optional(custom<NodeHandles_T>()),
+  handles: optional(use(nodeHandles)),
 }));
 
 /**
@@ -107,6 +103,35 @@ export type NodeProps<D extends Data = Data> = {
   data: D;
   handles?: NodeHandles_T;
 };
+
+/**
+ * Serialized flowchart node entity with identifier.
+ *
+ * @template | {@linkcode Data} `D` - Custom data properties type extending
+ *   {@linkcode Data}.
+ *
+ * @see -- type {@linkcode NodeProps}
+ */
+export type Node<D extends Data = Data> = NodeProps<D> & { id: string };
+
+/**
+ * Function predicate to determine whether an edge creation between two nodes should
+ * be excluded.
+ *
+ * @template | {@linkcode Data} `N` - Custom node data properties type extending
+ *   {@linkcode Data}.
+ *
+ * @param from - The source node entity of type {@linkcode Node}.
+ * @param to - The destination node entity of type {@linkcode Node}.
+ *
+ * @returns `true` if the edge creation should be excluded, `false` otherwise.
+ *
+ * @see -- type {@linkcode Node}
+ */
+export type ExcludeEdge<N extends Data = Data> = (
+  from: Node<N>,
+  to: Node<N>,
+) => boolean;
 
 /**
  * Schema definition for a serialized flowchart edge entity.
