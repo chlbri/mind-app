@@ -189,11 +189,26 @@ export const StateMachineEdgeMiddle: Component<
                 style={{ padding: '2px 8px', 'pointer-events': 'all' }}
                 onMouseDown={e => {
                   e.stopPropagation();
+
                   send({ type: 'SELECT', payload: props.id });
+                }}
+                onDblClick={e => {
+                  e.stopImmediatePropagation();
+                  e.stopPropagation();
+                  setActiveAddTransitionEdge({
+                    edgeId: props.id,
+                    from: edgeData()?.fromState ?? '',
+                    to: edgeData()?.toState ?? '',
+                    kind: t.kind,
+                    mode: 'edit',
+                    transitionId: t.id,
+                    initialData: t,
+                  });
                 }}
               >
                 <p
-                  class={`flex max-w-full min-w-0 items-center gap-1 rounded-full border px-2 py-1 font-mono text-[10px] font-bold shadow-sm ${conf().bg} ${conf().text}`}
+                  class={`flex max-w-full min-w-0 items-center gap-1 rounded-full border px-2 py-1 font-mono text-[10px] font-bold shadow-sm transition-all hover:shadow-md ${conf().bg} ${conf().text}`}
+                  title='Double-click to edit transition'
                 >
                   <span class='shrink-0'>{conf().icon}</span>
                   <span class='min-w-0 flex-1 truncate text-center'>
@@ -242,6 +257,7 @@ export const StateMachineEdgeMiddle: Component<
                   from: edgeData()?.fromState ?? '',
                   to: edgeData()?.toState ?? '',
                   kind: edgeData()?.kind ?? transitions()[0]?.kind,
+                  mode: 'add',
                 });
               }}
             >

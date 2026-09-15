@@ -6,7 +6,7 @@ import {
   type MouseOutParam,
 } from '@bemedev/mind-flow';
 import { nanoid } from 'nanoid';
-import { createSignal, onCleanup, onMount, Show, type Component } from 'solid-js';
+import { createEffect, createSignal, onCleanup, onMount, Show, type Component } from 'solid-js';
 
 import { activeAddTransitionEdge, setActiveAddTransitionEdge } from '../signals';
 import type { EdgeKind, StateMachineEdgeData, TransitionItem } from '../types';
@@ -22,8 +22,8 @@ declare module 'solid-js' {
 }
 
 /**
- * Panel dialog positioned at the left that allows users to add a new transition
- * (`on`, `after`, or `always`) to an edge connecting two states.
+ * Panel dialog positioned at the bottom-left that allows users to add a new transition
+ * or edit an existing transition (`on`, `after`, or `always`) connecting two states.
  */
 export const TransitionModal: Component = () => {
   void clickOutside;
@@ -48,6 +48,28 @@ export const TransitionModal: Component = () => {
   const [delay, setDelay] = createSignal('3000ms');
   const [guard, setGuard] = createSignal('');
   const [actionsInput, setActionsInput] = createSignal('');
+
+  const isEdit = () =>
+    activeEdge()?.mode === 'edit' || Boolean(activeEdge()?.transitionId);
+
+  // Synchronize form values whenever active edge / transition changes
+  createEffect(() => {
+    const target = activeEdge();
+    if (!target) return;
+
+    if (target.mode === 'edit' || target.transitionId) {
+      const init = target.initialData;
+      setEventName(init?.event ?? '');
+      setDelay(init?.delay ? String(init.delay) : '3000ms');
+      setGuard(init?.guard ?? '');
+      setActionsInput(init?.actions?.join(', ') ?? '');
+    } else {
+      setEventName('');
+      setDelay('3000ms');
+      setGuard('');
+      setActionsInput('');
+    }
+  });
 
   // Close on Escape key
   const handleKeyDown = (e: KeyboardEvent) => {
@@ -112,7 +134,7 @@ export const TransitionModal: Component = () => {
     }
   };
 
-  const handleAdd = () => {
+  const handleSave = () => {
     const target = activeEdge();
     if (!target) return;
 
@@ -120,7 +142,7 @@ export const TransitionModal: Component = () => {
     const existingData = (edge?.data ?? {}) as StateMachineEdgeData;
     const selectedKind = edgeKind();
 
-    const existingTransitions =
+    const existingTransitions: TransitionItem[] =
       existingData.transitions ??
       (existingData.kind
         ? [
@@ -158,17 +180,49 @@ export const TransitionModal: Component = () => {
       label = `child of ${target.to.split('/').pop()}`;
     }
 
-    const newTransition: TransitionItem = {
-      id: `transition:${selectedKind}:${nanoid(6)}`,
-      kind: selectedKind,
-      label,
-      event: ev,
-      delay: del,
-      guard: grd,
-      actions: actions.length > 0 ? actions : undefined,
-    };
+    let updatedTransitions: TransitionItem[];
 
-    const updatedTransitions = [...existingTransitions, newTransition];
+    if (isEdit() && target.transitionId) {
+      const exists = existingTransitions.some(t => t.id === target.transitionId);
+      if (exists) {
+        updatedTransitions = existingTransitions.map(t => {
+          if (t.id === target.transitionId) {
+            return {
+              ...t,
+              kind: selectedKind,
+              label,
+              event: ev,
+              delay: del,
+              guard: grd,
+              actions: actions.length > 0 ? actions : undefined,
+            };
+          }
+          return t;
+        });
+      } else {
+        const editedTransition: TransitionItem = {
+          id: target.transitionId,
+          kind: selectedKind,
+          label,
+          event: ev,
+          delay: del,
+          guard: grd,
+          actions: actions.length > 0 ? actions : undefined,
+        };
+        updatedTransitions = [...existingTransitions, editedTransition];
+      }
+    } else {
+      const newTransition: TransitionItem = {
+        id: `transition:${selectedKind}:${nanoid(6)}`,
+        kind: selectedKind,
+        label,
+        event: ev,
+        delay: del,
+        guard: grd,
+        actions: actions.length > 0 ? actions : undefined,
+      };
+      updatedTransitions = [...existingTransitions, newTransition];
+    }
 
     send({
       type: 'SET_EDGE_DATA',
@@ -213,10 +267,12 @@ export const TransitionModal: Component = () => {
           <div class='flex items-center justify-between border-b border-gray-100 bg-linear-to-r from-indigo-50/80 via-purple-50/80 to-white/80 px-4 py-3'>
             <div class='flex items-center gap-2.5'>
               <span class='flex h-7 w-7 items-center justify-center rounded-lg bg-indigo-600 text-sm font-bold text-white shadow-xs'>
-                +
+                {isEdit() ? '✏️' : '+'}
               </span>
               <div>
-                <h3 class='text-sm font-bold text-gray-900'>Add Transition</h3>
+                <h3 class='text-sm font-bold text-gray-900'>
+                  {isEdit() ? 'Edit Transition' : 'Add Transition'}
+                </h3>
                 <p class='font-mono text-[11px] text-gray-500'>
                   {target().from} <span class='text-indigo-600'>➔</span>{' '}
                   {target().to}
@@ -319,10 +375,10 @@ export const TransitionModal: Component = () => {
             </button>
             <button
               type='button'
-              onClick={handleAdd}
+              onClick={handleSave}
               class='cursor-pointer rounded-lg bg-indigo-600 px-3.5 py-1.5 text-xs font-semibold text-white shadow-xs hover:bg-indigo-700'
             >
-              Add Transition
+              {isEdit() ? 'Save Changes' : 'Add Transition'}
             </button>
           </div>
         </div>

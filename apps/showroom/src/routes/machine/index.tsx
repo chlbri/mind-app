@@ -3,6 +3,7 @@ import { createFileRoute } from '@tanstack/solid-router';
 
 import {
   TransitionModal,
+  StateMachineEditPanel,
   StateMachineEdge,
   StateMachineNode,
   StateMachineNodeSelected,
@@ -53,7 +54,10 @@ export const Route = createFileRoute('/machine/')({
             stateType: 'atomic',
           }}
 
-          panels={{ bottomLeft: TransitionModal }}
+          panels={{
+            bottomLeft: TransitionModal,
+            topLeft: StateMachineEditPanel,
+          }}
         ></Flow>
       </div>
     );
