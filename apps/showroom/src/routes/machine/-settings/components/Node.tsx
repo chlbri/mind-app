@@ -1,6 +1,5 @@
 import { Show, type Component } from 'solid-js';
 
-import { setActiveActorNode } from '../signals';
 import type { StateMachineNodeData } from '../types';
 
 /**
@@ -35,12 +34,8 @@ export const StateMachineNode: Component<StateMachineNodeData> = props => {
         <button
           type='button'
           title={`${actorCount()} actor(s) attached — Click to inspect details`}
-          class='absolute -top-3.5 -right-3.5 z-30 flex h-7 w-7 cursor-pointer items-center justify-center rounded-full bg-linear-to-tr from-purple-600 via-indigo-600 to-pink-500 text-white shadow-md ring-2 ring-white transition-transform duration-200 hover:scale-115 active:scale-95'
+          class='absolute -top-3.5 -left-3.5 z-30 flex h-7 w-7 cursor-pointer items-center justify-center rounded-full bg-linear-to-tr from-purple-600 via-indigo-600 to-pink-500 text-white shadow-md ring-2 ring-white transition-transform duration-200 hover:scale-115'
           onMouseDown={e => e.stopPropagation()}
-          onClick={e => {
-            e.stopPropagation();
-            setActiveActorNode(props);
-          }}
         >
           {/* Sparkle / Bot icon representation */}
           <svg
@@ -52,15 +47,12 @@ export const StateMachineNode: Component<StateMachineNodeData> = props => {
           </svg>
 
           {/* Actor count badge pill */}
-          <span class='absolute -bottom-1 -left-1 flex h-4 w-4 items-center justify-center rounded-full bg-slate-900 text-[9px] font-extrabold text-white ring-1 ring-white'>
-            {actorCount()}
-          </span>
-
-          {/* Pulsing indicator ring */}
-          <span class='absolute -top-0.5 -right-0.5 flex h-2 w-2'>
-            <span class='absolute inline-flex h-full w-full animate-ping rounded-full bg-pink-400 opacity-75'></span>
-            <span class='relative inline-flex h-2 w-2 rounded-full bg-pink-500'></span>
-          </span>
+          <div class='absolute -right-1 -bottom-1 flex size-3.5 items-center justify-center rounded-full text-[8px] font-extrabold text-gray-700 ring-1 ring-white'>
+            <span class='flex h-full w-full items-center justify-center rounded-full bg-pink-500 text-pink-50'>
+              {actorCount()}
+            </span>
+            <div class='absolute h-full w-full animate-ping rounded-full border-2 border-pink-400 bg-transparent'></div>
+          </div>
         </button>
       </Show>
 
@@ -107,28 +99,6 @@ export const StateMachineNode: Component<StateMachineNodeData> = props => {
           </span>
         </Show>
       </div>
-
-      {/* Actor Indicator Banner at bottom */}
-      <Show when={hasActors()}>
-        <div class='mt-2 flex items-center justify-between rounded border border-purple-200/60 bg-purple-50/70 px-2 py-1 text-[10px] text-purple-800'>
-          <span class='flex items-center gap-1 font-semibold'>
-            <span>⚡</span>
-            <span>
-              {actorCount()} Actor{actorCount() > 1 ? 's' : ''} attached
-            </span>
-          </span>
-          <button
-            type='button'
-            class='cursor-pointer text-[10px] font-bold text-purple-700 hover:underline'
-            onClick={e => {
-              e.stopPropagation();
-              setActiveActorNode(props);
-            }}
-          >
-            Details →
-          </button>
-        </div>
-      </Show>
     </div>
   );
 };

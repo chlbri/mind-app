@@ -1,7 +1,7 @@
 import type { NotUndefined } from '@bemedev/app/bemedev';
 import type { Component, JSX } from 'solid-js';
 
-import type { Edge } from '#services/main.machine.typings';
+import type { Edge, EdgeExtremeties } from '#services/main.machine.typings';
 
 import type { EdgeProps } from './edges/types';
 import type { Data, NodeProps } from './FlowChart';
@@ -42,6 +42,7 @@ export type FlowProps<N extends Data = Data, E extends Data = Data> = {
   edgesAllowed?: (
     first: NodeProps<N> & { id: string },
     second: NodeProps<N> & { id: string },
+    edge: EdgeExtremeties,
   ) => boolean;
 
   /** Custom edge component to render inside each flowchart edge. */

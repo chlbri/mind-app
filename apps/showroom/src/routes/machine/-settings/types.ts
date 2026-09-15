@@ -1,5 +1,5 @@
 import type { CommonConfig3 } from '@bemedev/app';
-import type { Data, Point } from '@bemedev/mind-flow';
+import type { Point } from '@bemedev/mind-flow';
 
 /** 2D coordinate position representing a node's location on the canvas. */
 export type Position = Point;
@@ -72,7 +72,7 @@ export type StateActorData = {
 };
 
 /** Flowchart node data structure representing a state in the state machine. */
-export type StateMachineNodeData = Data & {
+export type StateMachineNodeData = {
   /** Node identifier matching the state path (e.g. `/order/fulfillment/shipping`). */
   id: string;
   /** Display title (the state name, e.g. `shipping`). */
@@ -124,7 +124,7 @@ export type TransitionItem = {
 };
 
 /** Flowchart edge data structure representing transitions and hierarchy relations. */
-export type StateMachineEdgeData = Data & {
+export type StateMachineEdgeData = {
   /** The primary category of the edge. */
   kind?: EdgeKind;
   /** Display label shown on the edge midpoint tag. */

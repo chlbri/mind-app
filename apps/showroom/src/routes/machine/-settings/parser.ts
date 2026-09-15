@@ -423,16 +423,21 @@ export const parseMachineToGraph = <
     };
   });
 
-  // Group transitions by source and target nodes so that two nodes
-  // linked by multiple transitions (after, always, on) share a single edge
-  // with a collection of transitions.
+  // Group transitions by source, target, and kind so that edges
+  // strictly represent handle-specific connections (child_parent, after, always, on).
   const edgeGroups = new Map<
     string,
-    { id: string; from: string; to: string; transitions: TransitionItem[] }
+    {
+      id: string;
+      from: string;
+      to: string;
+      kind: EdgeKind;
+      transitions: TransitionItem[];
+    }
   >();
 
   rawEdges.forEach(e => {
-    const key = `${e.from}=>${e.to}`;
+    const key = `${e.kind}:${e.from}=>${e.to}`;
     const transitionItem: TransitionItem = {
       id: e.id,
       kind: e.kind,
@@ -447,10 +452,16 @@ export const parseMachineToGraph = <
     if (existing) {
       existing.transitions.push(transitionItem);
     } else {
+      const edgeId =
+        e.kind === 'child_parent'
+          ? `edge:hierarchy:${e.from}=>${e.to}`
+          : `edge:${e.kind}:${e.from}=>${e.to}`;
+
       edgeGroups.set(key, {
-        id: `edge:${key}`,
+        id: edgeId,
         from: e.from,
         to: e.to,
+        kind: e.kind,
         transitions: [transitionItem],
       });
     }
@@ -466,17 +477,17 @@ export const parseMachineToGraph = <
       let fromIndex: number | undefined = undefined;
       let toIndex: number | undefined = undefined;
 
-      if (primary.kind === 'child_parent') {
+      if (g.kind === 'child_parent') {
         fromPosition = 'top';
         toPosition = 'bottom';
         fromIndex = 0;
         toIndex = 0;
-      } else if (primary.kind === 'after') {
+      } else if (g.kind === 'after') {
         fromPosition = 'right';
         toPosition = 'left';
         fromIndex = 0;
         toIndex = 0;
-      } else if (primary.kind === 'always') {
+      } else if (g.kind === 'always') {
         fromPosition = 'right';
         toPosition = 'left';
         fromIndex = 1;
@@ -498,7 +509,7 @@ export const parseMachineToGraph = <
         fromIndex,
         toIndex,
         data: {
-          kind: primary.kind,
+          kind: g.kind,
           label: isMulti ? `${g.transitions.length} transitions` : primary.label,
           event: primary.event,
           delay: primary.delay,

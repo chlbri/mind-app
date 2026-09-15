@@ -41,6 +41,8 @@ export const extremities = type(({ optional, use }) => ({
   fromIndex: optional('number'),
 }));
 
+export type EdgeExtremeties = inferT<typeof extremities>;
+
 /** Schema definition for serialized node data dictionary. */
 export const data = type(({ record }) => record('any'));
 
@@ -67,14 +69,8 @@ export const handleConfig = type(({ use, optional }) => ({
 /** Handle configuration object with type and optional color styling. */
 export type HandleConfig = inferT<typeof handleConfig>;
 
-/** Schema definition for a handle item: a handle config object. */
-export const handleItem = handleConfig;
-
-/** Handle item definition specifying type and optional color. */
-export type HandleItem = HandleConfig;
-
 export const nodeHandles = type(({ use, partial, array }) => {
-  const top = array(use(handleItem));
+  const top = array(use(handleConfig));
   return partial({ top, right: top, left: top, bottom: top });
 });
 

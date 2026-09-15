@@ -5,8 +5,10 @@ import {
   useFlow,
   type EdgeProps,
 } from '@bemedev/mind-flow';
-import { Show, type Component } from 'solid-js';
+import { Show, splitProps, type Component } from 'solid-js';
 
+import { DASH_ARRAY } from '../data';
+import { getStrokeColor } from '../helpers';
 import type { StateMachineEdgeData } from '../types';
 import { StateMachineEdgeMiddle } from './Edge.middle';
 
@@ -25,37 +27,36 @@ export const StateMachineEdge: Component<
 
   const transitions = () => edgeData()?.transitions ?? [];
 
-  const isMulti = () => transitions().length > 1;
   const kind = () => {
-    return transitions()[0]?.kind ?? edgeData()?.kind ?? 'on';
-  };
+    const dataKind = edgeData()?.kind ?? transitions()[0]?.kind;
+    if (dataKind) return dataKind;
 
-  const strokeColor = () => {
-    if (isMulti()) return '#6366f1'; // Indigo for multi-transition connections
-    const k = kind();
-    switch (k) {
-      case 'child_parent':
-        return '#8b5cf6'; // Violet
-      case 'after':
-        return '#f59e0b'; // Amber
-      case 'always':
-        return '#10b981'; // Emerald
-      case 'on':
-      default:
-        return '#3b82f6'; // Blue
-    }
+    const fromPos = edgeRecord()?.fromPosition;
+    const toPos = edgeRecord()?.toPosition;
+    if (fromPos === 'top' || toPos === 'bottom') return 'child_parent';
+
+    const idx = edgeRecord()?.fromIndex ?? edgeRecord()?.toIndex;
+    if (idx === 0) return 'after';
+    if (idx === 1) return 'always';
+    if (idx === 2) return 'on';
+
+    return 'on';
   };
 
   const strokeDasharray = () => {
-    const k = transitions()[0]?.kind ?? edgeData()?.kind ?? 'on';
-    return k === 'child_parent' && !isMulti() ? '6 4' : undefined;
+    return kind() === 'child_parent' ? DASH_ARRAY : undefined;
   };
+
+  const strokeColor = () => getStrokeColor(kind());
+  const [, others] = splitProps(props, ['data']);
+  const data = () => ({ ...props.data, ...edgeData(), kind: kind() });
 
   return (
     <Show
       fallback={
         <EdgeCursive<StateMachineEdgeData>
-          {...props}
+          {...others}
+          data={data()}
           stroke={strokeColor()}
           strokeDasharray={strokeDasharray()}
           middle={StateMachineEdgeMiddle}
@@ -64,7 +65,8 @@ export const StateMachineEdge: Component<
       when={kind() === 'child_parent'}
     >
       <EdgeStraight<StateMachineEdgeData>
-        {...props}
+        {...others}
+        data={data()}
         stroke={strokeColor()}
         strokeDasharray={strokeDasharray()}
         middle={StateMachineEdgeMiddle}

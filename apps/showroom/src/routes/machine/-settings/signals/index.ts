@@ -5,7 +5,20 @@ import type { EdgeKind, StateMachineNodeData } from '../types';
 export const [activeActorNode, setActiveActorNode] =
   createSignal<StateMachineNodeData | null>(null);
 
-export type ActiveAddTransition = { edgeId: string; from: string; to: string };
+/**
+ * Payload data for the currently active edge being edited in the Add Transition
+ * modal.
+ */
+export type ActiveAddTransition = {
+  /** Unique edge identifier. */
+  edgeId: string;
+  /** Source state node identifier. */
+  from: string;
+  /** Target state node identifier. */
+  to: string;
+  /** Edge transition category matching handle type. */
+  kind?: EdgeKind;
+};
 
 export const [activeAddTransitionEdge, setActiveAddTransitionEdge] =
   createSignal<ActiveAddTransition | null>(null);

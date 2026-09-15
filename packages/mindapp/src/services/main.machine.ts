@@ -51,6 +51,7 @@ export const machine = createMachine(
     on: { SET_BOARD: { actions: ['setBoard'] } },
     states: {
       idle: {
+        
         on: {
           CONFIGURE: { actions: ['configure'], target: '/construction' },
           CONFIGURE_EMPTY: '/working',
@@ -215,8 +216,10 @@ export const machine = createMachine(
       assign('data', {
         CONFIGURE: ({ payload: { nodes, edges } }) => ({ nodes, edges }),
       }),
+
       assign('newEdge', () => undefined),
       assign('updatingUI', () => false),
+
       action(({ pContext }) => {
         pContext.generatedId = null;
       }),

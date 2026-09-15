@@ -95,3 +95,5 @@ export const config: ConfigFrom<StateMachineNodeData, StateMachineEdgeData> = {
   nodes: ORDER_GRAPH.nodes,
   edges: ORDER_GRAPH.edges,
 };
+
+export const DASH_ARRAY = '6 4';
