@@ -54,10 +54,7 @@ export const Route = createFileRoute('/machine/')({
             stateType: 'atomic',
           }}
 
-          panels={{
-            bottomLeft: TransitionModal,
-            topLeft: StateMachineEditPanel,
-          }}
+          panels={{ bottomLeft: TransitionModal, topLeft: StateMachineEditPanel }}
         ></Flow>
       </div>
     );

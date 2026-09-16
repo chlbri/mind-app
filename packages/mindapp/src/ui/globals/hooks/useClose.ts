@@ -10,21 +10,19 @@ export const useClose = ({ initial, close: _close, timers }: PanelHooks_P) => {
   const [closing, setClosing] = createSignal(false);
   const [hasEntered, setHasEntered] = createSignal(false);
 
-  let initialTimer: ReturnType<typeof setTimeout> | undefined;
+  let initialTimer: NodeJS.Timeout | undefined;
+  let allTimer: NodeJS.Timeout | undefined;
   let openedAt = 0;
 
   const clearTimer = () => {
-    if (initialTimer) {
-      clearTimeout(initialTimer);
-      initialTimer = undefined;
-    }
+    clearTimeout(allTimer);
+    clearTimeout(initialTimer);
   };
 
-  const intialTimer = timers?.initial ?? 10_000;
-  const allTimer = timers?.all ?? 250;
+  const _initialTimer = timers?.initial ?? 10_000;
+  const _allTimer = timers?.all ?? 250;
 
   const directClose = () => {
-    clearTimer();
     _close?.();
     setClosing(false);
     setHasEntered(false);
@@ -33,9 +31,9 @@ export const useClose = ({ initial, close: _close, timers }: PanelHooks_P) => {
   const close = () => {
     clearTimer();
     setClosing(true);
-    setTimeout(() => {
+    allTimer = setTimeout(() => {
       directClose();
-    }, allTimer);
+    }, _allTimer);
   };
 
   const handleMouseEnter = () => {
@@ -45,22 +43,22 @@ export const useClose = ({ initial, close: _close, timers }: PanelHooks_P) => {
 
   const handleClickOutside = () => {
     // Prevent immediate close on the same click event that opened the modal
-    if (Date.now() - openedAt < allTimer + allTimer / 5) return;
+    if (Date.now() - openedAt < _allTimer + _allTimer / 5) return;
     close();
   };
 
-  createEffect(() => {
+  const mount = () => {
     clearTimer();
-    if (!initial || initial()) {
+    const check = !initial || initial();
+    if (check) {
       openedAt = Date.now();
       setHasEntered(false);
       // 10-second timer on first opening before user reaches panel
-      initialTimer = setTimeout(() => {
-        close();
-      }, intialTimer);
+      initialTimer = setTimeout(() => close(), _initialTimer);
     }
-  });
+  };
 
+  createEffect(mount);
   onCleanup(clearTimer);
 
   return {

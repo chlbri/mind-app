@@ -48,7 +48,7 @@ export const EditPanel = <D extends Data = Data>(
           style={props.style}
           onMouseDown={e => e.stopPropagation()}
           use:clickOutside={hooks.handleClickOutside}
-          use:mouseOut={hooks.handleMouseEnter}
+          onMouseEnter={hooks.handleMouseEnter}
         >
           <div class='flex flex-col gap-3'>
             <Show

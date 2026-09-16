@@ -2,6 +2,8 @@ import { EditPanel, mouseOut, type MouseOutParam } from '@bemedev/mind-flow';
 import { Show, type Component } from 'solid-js';
 
 import type { StateMachineNodeData } from '../types';
+import { ActivityInputs } from './ActivityInputs';
+import { ActorInputs } from './ActorInputs';
 
 declare module 'solid-js' {
   // oxlint-disable-next-line typescript/no-namespace
@@ -30,7 +32,7 @@ export const StateMachineEditPanel: Component = () => {
 
   return (
     <EditPanel<StateMachineNodeData>
-      class='max-h-[85vh] w-80 overflow-y-auto transition-all ease-linear'
+      class='max-h-[85vh] w-96 overflow-y-auto transition-all ease-linear'
       classList={({ closing }) => ({
         'pointer-events-none scale-95 opacity-0 duration-250': closing(),
         'opacity-35 has-focus-within:opacity-100 hover:opacity-100 duration-150':
@@ -69,7 +71,10 @@ export const StateMachineEditPanel: Component = () => {
       )}
     >
       {({ editingNode: node, updateField, close }) => (
-        <div use:mouseOut={[close, 3_150]} class='flex flex-col gap-3 text-left text-xs'>
+        <div
+          use:mouseOut={[close, 3_150]}
+          class='flex flex-col gap-3 text-left text-xs'
+        >
           {/* State Title */}
           <div class='flex flex-col gap-1'>
             <label class='font-semibold text-gray-700'>
@@ -90,9 +95,7 @@ export const StateMachineEditPanel: Component = () => {
             <select
               class='w-full rounded-lg border border-gray-300 bg-white px-2.5 py-1.5 text-xs capitalize focus:border-indigo-500 focus:outline-none'
               value={node().data?.stateType ?? 'atomic'}
-              onChange={e =>
-                updateField('stateType', e.currentTarget.value as any)
-              }
+              onChange={e => updateField('stateType', e.currentTarget.value as any)}
             >
               <option value='atomic'>Atomic</option>
               <option value='compound'>Compound</option>
@@ -174,23 +177,18 @@ export const StateMachineEditPanel: Component = () => {
           </div>
 
           {/* Activities */}
-          <div class='flex flex-col gap-1'>
-            <label class='font-semibold text-gray-700'>
-              Activities <span class='text-gray-400'>(comma-separated)</span>
-            </label>
-            <input
-              type='text'
-              class='w-full rounded-lg border border-gray-300 bg-white px-2.5 py-1.5 font-mono text-xs focus:border-indigo-500 focus:outline-none'
-              value={node().data?.activities?.join(', ') ?? ''}
-              onInput={e =>
-                updateField('activities', toList(e.currentTarget.value))
-              }
-              placeholder='e.g. pollStatus, heartbeat'
-            />
-          </div>
+          <ActivityInputs
+            activities={() => node().data?.activities}
+            onChange={acts => updateField('activities', acts)}
+          />
+
+          {/* Actors */}
+          <ActorInputs
+            actors={() => node().data?.actors}
+            onChange={acts => updateField('actors', acts)}
+          />
         </div>
       )}
     </EditPanel>
   );
 };
-

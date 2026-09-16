@@ -4,6 +4,7 @@ import type {
   EdgeKind,
   MachineConfig,
   Position,
+  StateActivityData,
   StateActorData,
   StateMachineEdgeData,
   StateMachineNodeData,
@@ -46,6 +47,84 @@ const normalizeTarget = (raw: any): NormalizedTarget[] => {
   return [];
 };
 
+/** Helper to extract action string name whether given as string or describer object. */
+const toActionName = (action: any): string => {
+  if (typeof action === 'string') return action;
+  if (action && typeof action === 'object' && typeof action.name === 'string') {
+    return action.name;
+  }
+  return String(action ?? '');
+};
+
+/**
+ * Normalizes raw activities configured on a state into structured
+ * {@linkcode StateActivityData} entries matching `@bemedev/app`'s `ActivityConfig`.
+ */
+const extractActivities = (rawActivities?: any): StateActivityData[] => {
+  if (!rawActivities) return [];
+
+  // If already an array of structured StateActivityData objects
+  if (
+    Array.isArray(rawActivities) &&
+    rawActivities.every(item => typeof item === 'object' && 'delay' in item)
+  ) {
+    return rawActivities;
+  }
+
+  // If legacy array of string keys (e.g. ['pollStatus', 'heartbeat'])
+  if (
+    Array.isArray(rawActivities) &&
+    rawActivities.every(item => typeof item === 'string')
+  ) {
+    return rawActivities.map(delay => ({
+      delay,
+      actions: [delay],
+      description: `Periodic activity executed on '${delay}' interval`,
+    }));
+  }
+
+  // If ActivityConfig record: Record<string, ActivityArray>
+  if (typeof rawActivities === 'object') {
+    return Object.entries(rawActivities).flatMap(([delay, config]) => {
+      const configs = Array.isArray(config) ? config : [config];
+      return configs.map(item => {
+        if (typeof item === 'string') {
+          return {
+            delay,
+            actions: [item],
+            description: `Runs '${item}' action every ${delay}`,
+          };
+        }
+        if (item && typeof item === 'object') {
+          const rawActions = item.actions ?? item.name;
+          const actionsList = Array.isArray(rawActions)
+            ? rawActions.map(toActionName)
+            : rawActions
+              ? [toActionName(rawActions)]
+              : [delay];
+
+          const rawGuards = item.guards ?? item.guard;
+          const guardsList = Array.isArray(rawGuards)
+            ? rawGuards.map(g => (typeof g === 'string' ? g : (g?.name ?? '')))
+            : rawGuards
+              ? [typeof rawGuards === 'string' ? rawGuards : (rawGuards?.name ?? '')]
+              : undefined;
+
+          return {
+            delay,
+            actions: actionsList,
+            guards: guardsList?.filter(Boolean),
+            description: item.description,
+          };
+        }
+        return { delay, actions: [delay] };
+      });
+    });
+  }
+
+  return [];
+};
+
 /** Normalizes raw actors defined on a state into {@linkcode StateActorData} entries. */
 const extractActors = (rawActors?: Record<string, any>): StateActorData[] => {
   if (!rawActors || typeof rawActors !== 'object') return [];
@@ -65,53 +144,107 @@ const extractActors = (rawActors?: Record<string, any>): StateActorData[] => {
         : 'service';
 
     const emissions: StateActorData['emissions'] = {};
-    if (config.next) {
-      emissions.next = Array.isArray(config.next.actions)
-        ? config.next.actions
-        : config.next.actions
-          ? [config.next.actions]
-          : ['handleNext'];
-    }
-    if (config.error) {
-      emissions.error = Array.isArray(config.error.actions)
-        ? config.error.actions
-        : config.error.actions
-          ? [config.error.actions]
-          : ['handleError'];
-    }
-    if (config.complete) {
-      emissions.complete = Array.isArray(config.complete.actions)
-        ? config.complete.actions
-        : config.complete.actions
-          ? [config.complete.actions]
-          : ['handleComplete'];
-    }
+    const nextActions = Array.isArray(config?.next?.actions)
+      ? config.next.actions
+      : config?.next?.actions
+        ? [config.next.actions]
+        : typeof config?.next === 'string'
+          ? [config.next]
+          : config?.next
+            ? ['handleNext']
+            : undefined;
+
+    const errorActions = Array.isArray(config?.error?.actions)
+      ? config.error.actions
+      : config?.error?.actions
+        ? [config.error.actions]
+        : typeof config?.error === 'string'
+          ? [config.error]
+          : undefined;
+
+    const completeActions = Array.isArray(config?.complete?.actions)
+      ? config.complete.actions
+      : config?.complete?.actions
+        ? [config.complete.actions]
+        : typeof config?.complete === 'string'
+          ? [config.complete]
+          : undefined;
+
+    if (nextActions) emissions.next = nextActions;
+    if (errorActions) emissions.error = errorActions;
+    if (completeActions) emissions.complete = completeActions;
 
     const events: StateActorData['events'] = {};
-    if (config.on && typeof config.on === 'object') {
+    const childOnHandlers: Record<string, any> = {};
+
+    if (config?.on && typeof config.on === 'object') {
       Object.entries(config.on).forEach(([ev, handler]: [string, any]) => {
-        events[ev] = Array.isArray(handler?.actions)
+        const handlerActions = Array.isArray(handler?.actions)
           ? handler.actions
           : handler?.actions
             ? [handler.actions]
-            : [];
+            : typeof handler === 'string'
+              ? [handler]
+              : [];
+
+        events[ev] = handlerActions;
+        childOnHandlers[ev] = {
+          actions: handlerActions,
+          target: typeof handler?.target === 'string' ? handler.target : undefined,
+          guards: handler?.guards ? [].concat(handler.guards) : undefined,
+        };
       });
     }
 
     const description =
-      type === 'emitter'
+      config?.description ??
+      (type === 'emitter'
         ? `Reactive stream emitter subscribed on state entry, emits values to actions, stops on state exit.`
         : type === 'child'
           ? `Bi-directional child actor machine handling event delegation and parent context synchronization.`
-          : `Background service executed during the lifecycle of this state.`;
+          : `Background service executed during the lifecycle of this state.`);
 
     return {
       name,
       type,
       description,
+      emitter:
+        type === 'emitter'
+          ? {
+              next: {
+                actions: nextActions ?? ['handleNext'],
+                target: config?.next?.target,
+                guards: config?.next?.guards
+                  ? [].concat(config.next.guards)
+                  : undefined,
+              },
+              error: config?.error
+                ? {
+                    actions: errorActions,
+                    target: config.error.target,
+                    guards: config.error.guards
+                      ? [].concat(config.error.guards)
+                      : undefined,
+                  }
+                : undefined,
+              complete: config?.complete
+                ? {
+                    actions: completeActions,
+                    guards: config.complete.guards
+                      ? [].concat(config.complete.guards)
+                      : undefined,
+                    description: config.complete.description,
+                  }
+                : undefined,
+            }
+          : undefined,
+      child:
+        type === 'child'
+          ? { on: childOnHandlers, contexts: config?.contexts }
+          : undefined,
       emissions,
       events,
-      contexts: config.contexts,
+      contexts: config?.contexts,
       config,
     };
   });
@@ -174,7 +307,7 @@ export const parseMachineToGraph = <
     tags?: string[];
     entry?: string[];
     exit?: string[];
-    activities?: string[];
+    activities?: StateActivityData[];
     actors: StateActorData[];
     content?: string;
     rawState: any;
@@ -232,9 +365,7 @@ export const parseMachineToGraph = <
       : stateObj?.exit
         ? [stateObj.exit]
         : undefined;
-    const activities = stateObj?.activities
-      ? Object.keys(stateObj.activities)
-      : undefined;
+    const activities = extractActivities(stateObj?.activities);
 
     const nodeIndex = rawNodes.length;
     rawNodes.push({
@@ -249,7 +380,7 @@ export const parseMachineToGraph = <
       tags: stateObj?.tags ? [].concat(stateObj.tags) : undefined,
       entry,
       exit,
-      activities,
+      activities: activities.length > 0 ? activities : undefined,
       actors,
       content: stateObj?.description,
       rawState: stateObj,

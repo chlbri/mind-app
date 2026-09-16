@@ -17,10 +17,7 @@ describe('#01 => parseMachineToGraph', () => {
             active: {},
           },
         },
-        {
-          '/idle': { x: 0, y: 0 },
-          '/active': { x: 300, y: 0 },
-        },
+        { '/idle': { x: 0, y: 0 }, '/active': { x: 300, y: 0 } },
       );
 
       expect(graph.edges).toHaveLength(3);
@@ -73,10 +70,7 @@ describe('#01 => parseMachineToGraph', () => {
             success: {},
           },
         },
-        {
-          '/check': { x: 0, y: 0 },
-          '/success': { x: 300, y: 0 },
-        },
+        { '/check': { x: 0, y: 0 }, '/success': { x: 300, y: 0 } },
       );
 
       expect(graph.edges).toHaveLength(1);
@@ -99,19 +93,9 @@ describe('#01 => parseMachineToGraph', () => {
       const graph = parseMachineToGraph(
         {
           initial: 'parent',
-          states: {
-            parent: {
-              initial: 'child',
-              states: {
-                child: {},
-              },
-            },
-          },
+          states: { parent: { initial: 'child', states: { child: {} } } },
         },
-        {
-          '/parent': { x: 0, y: 0 },
-          '/parent/child': { x: 0, y: 200 },
-        },
+        { '/parent': { x: 0, y: 0 }, '/parent/child': { x: 0, y: 200 } },
       );
 
       const hierarchyEdge = graph.edges.find(e => e.data?.kind === 'child_parent');
@@ -172,5 +156,79 @@ describe('#01 => parseMachineToGraph', () => {
       expect(onEdge?.data?.transitions?.[0].kind).toBe('on');
     });
   });
-});
 
+  describe('#05 => Activity extraction from ActivityConfig', () => {
+    it('#05 => should extract activities with delay, actions, and guards', () => {
+      const graph = parseMachineToGraph(
+        {
+          initial: 'active',
+          states: {
+            active: {
+              activities: {
+                POLL: {
+                  actions: ['refresh', 'logHeartbeat'],
+                  guards: 'isOnline',
+                  description: 'Periodic poll interval',
+                },
+              },
+            },
+          },
+        },
+        { '/active': { x: 0, y: 0 } },
+      );
+
+      const node = graph.nodes.find(n => n.id === '/active');
+      expect(node).toBeDefined();
+      expect(node?.data?.activities).toHaveLength(1);
+      const activity = node?.data?.activities?.[0];
+      expect(activity?.delay).toBe('POLL');
+      expect(activity?.actions).toEqual(['refresh', 'logHeartbeat']);
+      expect(activity?.guards).toEqual(['isOnline']);
+      expect(activity?.description).toBe('Periodic poll interval');
+    });
+  });
+
+  describe('#06 => Actor extraction from ActorConfig', () => {
+    it('#06 => should extract emitter and child actors correctly', () => {
+      const graph = parseMachineToGraph(
+        {
+          initial: 'active',
+          states: {
+            active: {
+              actors: {
+                stream: {
+                  next: { actions: ['onData'], target: '/active' },
+                  error: { actions: ['onError'] },
+                  complete: { actions: ['onDone'] },
+                },
+                worker: {
+                  on: { FINISHED: { actions: ['onFinished'] } },
+                  contexts: { '.': 'workerContext' },
+                },
+              },
+            },
+          },
+        },
+        { '/active': { x: 0, y: 0 } },
+      );
+
+      const node = graph.nodes.find(n => n.id === '/active');
+      expect(node).toBeDefined();
+      expect(node?.data?.actors).toHaveLength(2);
+
+      const emitter = node?.data?.actors?.find(a => a.name === 'stream');
+      expect(emitter).toBeDefined();
+      expect(emitter?.type).toBe('emitter');
+      expect(emitter?.emitter?.next.actions).toEqual(['onData']);
+      expect(emitter?.emitter?.next.target).toBe('/active');
+      expect(emitter?.emitter?.error?.actions).toEqual(['onError']);
+      expect(emitter?.emitter?.complete?.actions).toEqual(['onDone']);
+
+      const child = node?.data?.actors?.find(a => a.name === 'worker');
+      expect(child).toBeDefined();
+      expect(child?.type).toBe('child');
+      expect(child?.child?.on?.FINISHED?.actions).toEqual(['onFinished']);
+      expect(child?.child?.contexts).toEqual({ '.': 'workerContext' });
+    });
+  });
+});

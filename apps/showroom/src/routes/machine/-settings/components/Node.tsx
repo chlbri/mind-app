@@ -1,4 +1,5 @@
-import { Show, type Component } from 'solid-js';
+import { useFlow } from '@bemedev/mind-flow';
+import { For, Show, type Component } from 'solid-js';
 
 import type { StateMachineNodeData } from '../types';
 
@@ -9,6 +10,7 @@ import type { StateMachineNodeData } from '../types';
  * bubble at the top-right corner if the state has actors attached.
  */
 export const StateMachineNode: Component<StateMachineNodeData> = props => {
+  const { send } = useFlow();
   const actorCount = () => props.actors?.length ?? 0;
   const hasActors = () => actorCount() > 0;
 
@@ -36,6 +38,10 @@ export const StateMachineNode: Component<StateMachineNodeData> = props => {
           title={`${actorCount()} actor(s) attached — Click to inspect details`}
           class='absolute -top-3.5 -left-3.5 z-30 flex h-7 w-7 cursor-pointer items-center justify-center rounded-full bg-linear-to-tr from-purple-600 via-indigo-600 to-pink-500 text-white shadow-md ring-2 ring-white transition-transform duration-200 hover:scale-115'
           onMouseDown={e => e.stopPropagation()}
+          onClick={e => {
+            e.stopPropagation();
+            send({ type: 'EDIT', payload: props.id });
+          }}
         >
           {/* Sparkle / Bot icon representation */}
           <svg
@@ -97,6 +103,18 @@ export const StateMachineNode: Component<StateMachineNodeData> = props => {
           <span class='rounded bg-amber-50 px-1.5 py-0.5 font-mono text-[10px] text-amber-700'>
             exit: {props.exit?.join(', ')}
           </span>
+        </Show>
+        <Show when={props.activities && props.activities.length > 0}>
+          <For each={props.activities}>
+            {act => (
+              <span
+                class='rounded bg-purple-50 px-1.5 py-0.5 font-mono text-[10px] text-purple-700'
+                title={`Activity '${act.delay}': ${act.actions.join(', ')}${act.description ? ` (${act.description})` : ''}`}
+              >
+                ⏱️ {act.delay}: {act.actions.join(', ')}
+              </span>
+            )}
+          </For>
         </Show>
       </div>
     </div>

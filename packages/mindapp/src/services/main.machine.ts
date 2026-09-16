@@ -51,7 +51,6 @@ export const machine = createMachine(
     on: { SET_BOARD: { actions: ['setBoard'] } },
     states: {
       idle: {
-        
         on: {
           CONFIGURE: { actions: ['configure'], target: '/construction' },
           CONFIGURE_EMPTY: '/working',

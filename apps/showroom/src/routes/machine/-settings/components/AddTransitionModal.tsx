@@ -6,7 +6,14 @@ import {
   type MouseOutParam,
 } from '@bemedev/mind-flow';
 import { nanoid } from 'nanoid';
-import { createEffect, createSignal, onCleanup, onMount, Show, type Component } from 'solid-js';
+import {
+  createEffect,
+  createSignal,
+  onCleanup,
+  onMount,
+  Show,
+  type Component,
+} from 'solid-js';
 
 import { activeAddTransitionEdge, setActiveAddTransitionEdge } from '../signals';
 import type { EdgeKind, StateMachineEdgeData, TransitionItem } from '../types';
@@ -22,8 +29,9 @@ declare module 'solid-js' {
 }
 
 /**
- * Panel dialog positioned at the bottom-left that allows users to add a new transition
- * or edit an existing transition (`on`, `after`, or `always`) connecting two states.
+ * Panel dialog positioned at the bottom-left that allows users to add a new
+ * transition or edit an existing transition (`on`, `after`, or `always`) connecting
+ * two states.
  */
 export const TransitionModal: Component = () => {
   void clickOutside;

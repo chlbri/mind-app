@@ -29,6 +29,7 @@ export const useHook = <D extends Data = Data, E extends Data = Data>(
   const { hooks, sender, send } = useFlow();
   const senderNodeData = sender('SET_NODE_DATA');
   const senderEdgeData = sender('SET_EDGE_DATA');
+  const initial = hooks.state({ selector: ({ context: { editing } }) => !!editing });
 
   const {
     closing,
@@ -37,7 +38,11 @@ export const useHook = <D extends Data = Data, E extends Data = Data>(
     handleMouseEnter,
     close,
     directClose,
-  } = useClose({ close: () => send('STOP_EDIT'), timers: { all: timeout } });
+  } = useClose({
+    close: () => send('STOP_EDIT'),
+    timers: { all: timeout },
+    initial,
+  });
 
   const _editingNode = hooks.state({
     selector: ({ context }) => {
