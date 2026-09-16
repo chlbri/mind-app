@@ -68,7 +68,10 @@ const extractActivities = (rawActivities?: any): StateActivityData[] => {
     Array.isArray(rawActivities) &&
     rawActivities.every(item => typeof item === 'object' && 'delay' in item)
   ) {
-    return rawActivities;
+    return rawActivities.map((item, i) => ({
+      ...item,
+      id: item.id ?? item.delay ?? String(i),
+    }));
   }
 
   // If legacy array of string keys (e.g. ['pollStatus', 'heartbeat'])
@@ -77,6 +80,7 @@ const extractActivities = (rawActivities?: any): StateActivityData[] => {
     rawActivities.every(item => typeof item === 'string')
   ) {
     return rawActivities.map(delay => ({
+      id: delay,
       delay,
       actions: [delay],
       description: `Periodic activity executed on '${delay}' interval`,
@@ -87,9 +91,10 @@ const extractActivities = (rawActivities?: any): StateActivityData[] => {
   if (typeof rawActivities === 'object') {
     return Object.entries(rawActivities).flatMap(([delay, config]) => {
       const configs = Array.isArray(config) ? config : [config];
-      return configs.map(item => {
+      return configs.map((item, i) => {
         if (typeof item === 'string') {
           return {
+            id: delay,
             delay,
             actions: [item],
             description: `Runs '${item}' action every ${delay}`,
@@ -111,13 +116,14 @@ const extractActivities = (rawActivities?: any): StateActivityData[] => {
               : undefined;
 
           return {
+            id: item.id ?? `${delay}_${i}`,
             delay,
             actions: actionsList,
             guards: guardsList?.filter(Boolean),
             description: item.description,
           };
         }
-        return { delay, actions: [delay] };
+        return { id: `${delay}_${i}`, delay, actions: [delay] };
       });
     });
   }
@@ -205,6 +211,7 @@ const extractActors = (rawActors?: Record<string, any>): StateActorData[] => {
           : `Background service executed during the lifecycle of this state.`);
 
     return {
+      id: config?.id ?? name,
       name,
       type,
       description,

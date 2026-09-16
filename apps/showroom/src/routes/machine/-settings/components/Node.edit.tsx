@@ -1,9 +1,9 @@
 import { EditPanel, mouseOut, type MouseOutParam } from '@bemedev/mind-flow';
-import { createMemo, Show, type Component } from 'solid-js';
+import { Show, type Component } from 'solid-js';
 
 import type { StateMachineNodeData } from '../types';
-import { ActivityInputs } from './ActivityInputs';
-import { ActorInputs } from './ActorInputs';
+import { ActorInputs } from './actors';
+import { ActivityInputs } from './activities';
 
 declare module 'solid-js' {
   // oxlint-disable-next-line typescript/no-namespace
@@ -177,16 +177,10 @@ export const StateMachineEditPanel: Component = () => {
           </div>
 
           {/* Activities */}
-          <ActivityInputs
-            activities={createMemo(() => node().data.activities)}
-            onChange={acts => updateField('activities', acts)}
-          />
+          <ActivityInputs updateField={updateField} />
 
           {/* Actors */}
-          <ActorInputs
-            actors={() => node().data?.actors}
-            onChange={acts => updateField('actors', acts)}
-          />
+          <ActorInputs updateField={updateField} />
         </div>
       )}
     </EditPanel>

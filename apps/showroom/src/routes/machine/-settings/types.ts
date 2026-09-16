@@ -55,6 +55,8 @@ export type EdgeKind = 'child_parent' | 'after' | 'always' | 'on';
 
 /** Structured activity configuration running periodically on a state node. */
 export type StateActivityData = {
+  /** Optional unique identifier for stable rendering and editing. */
+  id?: string;
   /** Identifier or timer key (e.g. `POLL`, `HEARTBEAT`, `3000ms`). */
   delay: string;
   /** Action names fired periodically on each interval tick. */
@@ -87,6 +89,8 @@ export type StateActorChildEventHandler = {
 
 /** Detailed configuration and lifecycle metadata for an actor attached to a state. */
 export type StateActorData = {
+  /** Optional unique identifier for stable rendering and editing. */
+  id?: string;
   /** Identifier name of the actor. */
   name: string;
   /** Classification of the actor in `@bemedev/app`. */

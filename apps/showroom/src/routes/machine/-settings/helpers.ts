@@ -54,3 +54,11 @@ export const getStrokeColor = (k: EdgeKind) => {
       return '#3b82f6'; // Blue
   }
 };
+
+/** Helper to split comma-separated strings into cleaned array. */
+export const toList = (val: string): string[] => {
+  return val
+    .split(',')
+    .map(s => s.trim())
+    .filter(Boolean);
+};
