@@ -40,6 +40,23 @@ export const ActivityInputs: Component<ActivityInputsProps> = props => {
     props.onChange(updated.length > 0 ? updated : undefined);
   };
 
+  const hasError = (index: number) => {
+    const error = () => {
+      const _list = activitiesList();
+
+      const filtereds = _list
+        .filter((_, i) => i !== index)
+        .map(({ delay }) => delay)
+        .filter(data => data !== undefined);
+
+      const current = _list[index].delay;
+      const contains = !!current && filtereds.includes(current);
+      if (contains) return `delay ('${current}') duplicated`;
+    };
+
+    return error;
+  };
+
   const updateActivity = (index: number, patch: Partial<StateActivityData>) => {
     const current = activitiesList();
     const updated = current.map((item, i) => {
@@ -103,109 +120,116 @@ export const ActivityInputs: Component<ActivityInputsProps> = props => {
         <div class='flex flex-col gap-2'>
           {/* <Index each={activitiesList()}></Index> */}
           <Index each={activitiesList()}>
-            {(activity, index) => (
-              <div class='relative flex flex-col gap-1.5 rounded-lg border border-purple-200/80 bg-white p-2 shadow-xs'>
-                {/* Item Top Bar */}
-                <div class='flex items-center justify-between border-b border-gray-100 pb-1.5'>
-                  <div class='flex items-center gap-1.5'>
-                    <span class='text-xs'>⏱️</span>
-                    <span class='font-mono text-[11px] font-bold text-purple-900'>
-                      {activity().delay || 'UNNAMED'}
-                    </span>
+            {(activity, index) => {
+              const error = hasError(index);
+              return (
+                <div class='relative flex flex-col gap-1.5 rounded-lg border border-purple-200/80 bg-white p-2 shadow-xs'>
+                  {/* Item Top Bar */}
+                  <div class='flex items-center justify-between border-b border-gray-100 pb-1.5'>
+                    <div class='flex items-center gap-1.5'>
+                      <span class='text-xs'>⏱️</span>
+                      <span class='font-mono text-[11px] font-bold text-purple-900'>
+                        {activity().delay || 'UNNAMED'}
+                      </span>
+                    </div>
+
+                    <button
+                      type='button'
+                      title='Remove activity'
+                      onClick={() => removeActivity(index)}
+                      class='cursor-pointer rounded p-1 text-gray-400 hover:bg-red-50 hover:text-red-600'
+                    >
+                      <svg
+                        class='size-3.5'
+                        viewBox='0 0 24 24'
+                        fill='none'
+                        stroke='currentColor'
+                        stroke-width='2'
+                      >
+                        <path d='M18 6L6 18M6 6l12 12' />
+                      </svg>
+                    </button>
                   </div>
 
-                  <button
-                    type='button'
-                    title='Remove activity'
-                    onClick={() => removeActivity(index)}
-                    class='cursor-pointer rounded p-1 text-gray-400 hover:bg-red-50 hover:text-red-600'
-                  >
-                    <svg
-                      class='size-3.5'
-                      viewBox='0 0 24 24'
-                      fill='none'
-                      stroke='currentColor'
-                      stroke-width='2'
-                    >
-                      <path d='M18 6L6 18M6 6l12 12' />
-                    </svg>
-                  </button>
-                </div>
+                  {/* Delay Input */}
+                  <div class='flex flex-col gap-0.5'>
+                    <label class='text-[10px] font-semibold text-gray-600'>
+                      Delay / Interval Key <span class='text-red-500'>*</span>
+                    </label>
+                    <input
+                      type='text'
 
-                {/* Delay Input */}
-                <div class='flex flex-col gap-0.5'>
-                  <label class='text-[10px] font-semibold text-gray-600'>
-                    Delay / Interval Key <span class='text-red-500'>*</span>
-                  </label>
-                  <input
-                    type='text'
-                    class='w-full rounded border border-gray-200 bg-white px-2 py-1 font-mono text-xs focus:border-purple-500 focus:outline-none'
-                    value={activity().delay}
-                    placeholder='e.g. POLL, 3000ms, HEARTBEAT'
-                    onInput={e =>
-                      updateActivity(index, { delay: e.currentTarget.value })
-                    }
-                  />
-                </div>
+                      class='w-full rounded border border-gray-200 bg-white px-2 py-1 font-mono text-xs focus:border-purple-500 focus:outline-none'
+                      value={activity().delay}
+                      placeholder='e.g. POLL, 3000ms, HEARTBEAT'
+                      onInput={e => {
+                        updateActivity(index, { delay: e.currentTarget.value });
+                      }}
+                    />
+                    <Show when={error()}>
+                      {error => <div class='text-xs text-red-500'>{error()}</div>}
+                    </Show>
+                  </div>
 
-                {/* Actions Input */}
-                <div class='flex flex-col gap-0.5'>
-                  <label class='text-[10px] font-semibold text-gray-600'>
-                    Actions <span class='text-gray-400'>(comma-separated)</span>{' '}
-                    <span class='text-red-500'>*</span>
-                  </label>
-                  <input
-                    type='text'
-                    class='w-full rounded border border-gray-200 bg-white px-2 py-1 font-mono text-xs focus:border-purple-500 focus:outline-none'
-                    value={activity().actions.join(', ')}
-                    placeholder='e.g. refreshData, logHeartbeat'
-                    onInput={e =>
-                      updateActivity(index, {
-                        actions: toList(e.currentTarget.value),
-                      })
-                    }
-                  />
-                </div>
+                  {/* Actions Input */}
+                  <div class='flex flex-col gap-0.5'>
+                    <label class='text-[10px] font-semibold text-gray-600'>
+                      Actions <span class='text-gray-400'>(comma-separated)</span>{' '}
+                      <span class='text-red-500'>*</span>
+                    </label>
+                    <input
+                      type='text'
+                      class='w-full rounded border border-gray-200 bg-white px-2 py-1 font-mono text-xs focus:border-purple-500 focus:outline-none'
+                      value={activity().actions.join(', ')}
+                      placeholder='e.g. refreshData, logHeartbeat'
+                      onInput={e =>
+                        updateActivity(index, {
+                          actions: toList(e.currentTarget.value),
+                        })
+                      }
+                    />
+                  </div>
 
-                {/* Guards Input */}
-                <div class='flex flex-col gap-0.5'>
-                  <label class='text-[10px] font-semibold text-gray-600'>
-                    Guards{' '}
-                    <span class='text-gray-400'>(optional condition names)</span>
-                  </label>
-                  <input
-                    type='text'
-                    class='w-full rounded border border-gray-200 bg-white px-2 py-1 font-mono text-xs focus:border-purple-500 focus:outline-none'
-                    value={activity().guards?.join(', ') ?? ''}
-                    placeholder='e.g. isOnline, hasCredentials'
-                    onInput={e => {
-                      const guards = toList(e.currentTarget.value);
-                      updateActivity(index, {
-                        guards: guards.length > 0 ? guards : undefined,
-                      });
-                    }}
-                  />
-                </div>
+                  {/* Guards Input */}
+                  <div class='flex flex-col gap-0.5'>
+                    <label class='text-[10px] font-semibold text-gray-600'>
+                      Guards{' '}
+                      <span class='text-gray-400'>(optional condition names)</span>
+                    </label>
+                    <input
+                      type='text'
+                      class='w-full rounded border border-gray-200 bg-white px-2 py-1 font-mono text-xs focus:border-purple-500 focus:outline-none'
+                      value={activity().guards?.join(', ') ?? ''}
+                      placeholder='e.g. isOnline, hasCredentials'
+                      onInput={e => {
+                        const guards = toList(e.currentTarget.value);
+                        updateActivity(index, {
+                          guards: guards.length > 0 ? guards : undefined,
+                        });
+                      }}
+                    />
+                  </div>
 
-                {/* Description Input */}
-                <div class='flex flex-col gap-0.5'>
-                  <label class='text-[10px] font-semibold text-gray-600'>
-                    Description <span class='text-gray-400'>(optional)</span>
-                  </label>
-                  <input
-                    type='text'
-                    class='w-full rounded border border-gray-200 bg-white px-2 py-1 text-xs focus:border-purple-500 focus:outline-none'
-                    value={activity().description ?? ''}
-                    placeholder='e.g. Ping GPS coordinates every 3s'
-                    onInput={e =>
-                      updateActivity(index, {
-                        description: e.currentTarget.value || undefined,
-                      })
-                    }
-                  />
+                  {/* Description Input */}
+                  <div class='flex flex-col gap-0.5'>
+                    <label class='text-[10px] font-semibold text-gray-600'>
+                      Description <span class='text-gray-400'>(optional)</span>
+                    </label>
+                    <input
+                      type='text'
+                      class='w-full rounded border border-gray-200 bg-white px-2 py-1 text-xs focus:border-purple-500 focus:outline-none'
+                      value={activity().description ?? ''}
+                      placeholder='e.g. Ping GPS coordinates every 3s'
+                      onInput={e =>
+                        updateActivity(index, {
+                          description: e.currentTarget.value || undefined,
+                        })
+                      }
+                    />
+                  </div>
                 </div>
-              </div>
-            )}
+              );
+            }}
           </Index>
         </div>
       </Show>

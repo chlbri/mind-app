@@ -1,4 +1,5 @@
-import { For, Index, Show, createSignal, type Component } from 'solid-js';
+import { identify } from '@bemedev/app';
+import { Index, Show, createSignal, type Component } from 'solid-js';
 
 import type { StateActorData } from '../types';
 
@@ -248,40 +249,6 @@ export const ActorInputs: Component<ActorInputsProps> = props => {
                             }
                           />
                         </div>
-
-                        <div class='flex flex-col gap-0.5'>
-                          <label class='text-[10px] font-semibold text-gray-600'>
-                            Actor Type
-                          </label>
-                          <select
-                            class='w-full rounded border border-gray-200 bg-white px-2 py-1 text-xs capitalize focus:border-indigo-500 focus:outline-none'
-                            value={actor().type}
-                            onChange={e => {
-                              const newType = e.currentTarget.value as
-                                | 'emitter'
-                                | 'child';
-                              if (newType === 'emitter') {
-                                updateActor(index, {
-                                  type: 'emitter',
-                                  emitter: actor().emitter ?? {
-                                    next: { actions: ['handleNext'] },
-                                  },
-                                });
-                              } else {
-                                updateActor(index, {
-                                  type: 'child',
-                                  child: actor().child ?? {
-                                    on: { DONE: { actions: ['onDone'] } },
-                                    contexts: { '.': 'childContext' },
-                                  },
-                                });
-                              }
-                            }}
-                          >
-                            <option value='emitter'>Emitter (Stream)</option>
-                            <option value='child'>Child Machine</option>
-                          </select>
-                        </div>
                       </div>
 
                       {/* Description */}
@@ -514,19 +481,20 @@ export const ActorInputs: Component<ActorInputsProps> = props => {
                           </div>
 
                           <div class='flex flex-col gap-1.5'>
-                            <For each={Object.entries(actor().child?.on ?? {})}>
-                              {([eventName, handler]) => (
+                            <Index each={identify(actor().child?.on)}>
+                              {event => (
                                 <div class='flex flex-col gap-1 rounded border border-gray-200 bg-white p-1.5 shadow-2xs'>
                                   <div class='flex items-center justify-between'>
                                     <input
                                       type='text'
                                       class='rounded border border-indigo-200 bg-indigo-50/40 px-1.5 py-0.5 font-mono text-[10px] font-bold text-indigo-900 focus:border-indigo-500 focus:outline-none'
-                                      value={eventName}
+                                      value={event().__id}
                                       onBlur={e => {
                                         const newKey = e.currentTarget.value.trim();
-                                        if (!newKey || newKey === eventName) return;
-                                        const currentChild = actor().child ?? {};
-                                        const { [eventName]: old, ...rest } =
+                                        if (!newKey || newKey === event().__id)
+                                          return;
+                                        const currentChild = actor().config ?? {};
+                                        const { [event().__id]: old, ...rest } =
                                           currentChild.on ?? {};
                                         updateActor(index, {
                                           child: {
@@ -542,7 +510,7 @@ export const ActorInputs: Component<ActorInputsProps> = props => {
                                       title='Delete event handler'
                                       onClick={() => {
                                         const currentChild = actor().child ?? {};
-                                        const { [eventName]: _, ...rest } =
+                                        const { [event().__id]: _, ...rest } =
                                           currentChild.on ?? {};
                                         updateActor(index, {
                                           child: { ...currentChild, on: rest },
@@ -569,7 +537,7 @@ export const ActorInputs: Component<ActorInputsProps> = props => {
                                     <input
                                       type='text'
                                       class='w-full rounded border border-gray-200 px-1.5 py-0.5 font-mono text-[11px] focus:border-indigo-500 focus:outline-none'
-                                      value={handler.actions?.join(', ') ?? ''}
+                                      value={event().actions?.join(', ') ?? ''}
                                       placeholder='e.g. notifyParent, syncStatus'
                                       onInput={e => {
                                         const actions = toList(
@@ -582,7 +550,10 @@ export const ActorInputs: Component<ActorInputsProps> = props => {
                                             ...currentChild,
                                             on: {
                                               ...currentOn,
-                                              [eventName]: { ...handler, actions },
+                                              [event().__id]: {
+                                                ...event(),
+                                                actions,
+                                              },
                                             },
                                           },
                                         });
@@ -598,7 +569,7 @@ export const ActorInputs: Component<ActorInputsProps> = props => {
                                       <input
                                         type='text'
                                         class='w-full rounded border border-gray-200 px-1.5 py-0.5 font-mono text-[11px] focus:border-indigo-500 focus:outline-none'
-                                        value={handler.target ?? ''}
+                                        value={event().target ?? ''}
                                         placeholder='e.g. /approved'
                                         onInput={e => {
                                           const currentChild = actor().child ?? {};
@@ -608,8 +579,8 @@ export const ActorInputs: Component<ActorInputsProps> = props => {
                                               ...currentChild,
                                               on: {
                                                 ...currentOn,
-                                                [eventName]: {
-                                                  ...handler,
+                                                [event().__id]: {
+                                                  ...event(),
                                                   target:
                                                     e.currentTarget.value ||
                                                     undefined,
@@ -628,7 +599,7 @@ export const ActorInputs: Component<ActorInputsProps> = props => {
                                       <input
                                         type='text'
                                         class='w-full rounded border border-gray-200 px-1.5 py-0.5 font-mono text-[11px] focus:border-indigo-500 focus:outline-none'
-                                        value={handler.guards?.join(', ') ?? ''}
+                                        value={event().guards?.join(', ') ?? ''}
                                         placeholder='e.g. isValid'
                                         onInput={e => {
                                           const guards = toList(
@@ -641,8 +612,8 @@ export const ActorInputs: Component<ActorInputsProps> = props => {
                                               ...currentChild,
                                               on: {
                                                 ...currentOn,
-                                                [eventName]: {
-                                                  ...handler,
+                                                [event().__id]: {
+                                                  ...event(),
                                                   guards:
                                                     guards.length > 0
                                                       ? guards
@@ -657,7 +628,7 @@ export const ActorInputs: Component<ActorInputsProps> = props => {
                                   </div>
                                 </div>
                               )}
-                            </For>
+                            </Index>
                           </div>
 
                           {/* Contexts mapping */}
@@ -689,21 +660,21 @@ export const ActorInputs: Component<ActorInputsProps> = props => {
                           </div>
 
                           <div class='flex flex-col gap-1'>
-                            <For
+                            <Index
                               each={Object.entries(actor().child?.contexts ?? {})}
                             >
-                              {([childPath, parentPath]) => (
+                              {entry => (
                                 <div class='flex items-center gap-1.5 rounded border border-gray-200 bg-white p-1 shadow-2xs'>
                                   <input
                                     type='text'
                                     title='Child context path (e.g. . or user.id)'
                                     class='w-1/2 rounded border border-gray-200 px-1 py-0.5 font-mono text-[10px] focus:border-indigo-500 focus:outline-none'
-                                    value={childPath}
+                                    value={entry()[0]}
                                     onBlur={e => {
                                       const newKey = e.currentTarget.value.trim();
-                                      if (!newKey || newKey === childPath) return;
+                                      if (!newKey || newKey === entry()[0]) return;
                                       const currentChild = actor().child ?? {};
-                                      const { [childPath]: oldVal, ...rest } =
+                                      const { [entry()[0]]: oldVal, ...rest } =
                                         currentChild.contexts ?? {};
                                       updateActor(index, {
                                         child: {
@@ -718,7 +689,7 @@ export const ActorInputs: Component<ActorInputsProps> = props => {
                                     type='text'
                                     title='Parent pContext path (e.g. fraudScore)'
                                     class='w-1/2 rounded border border-gray-200 px-1 py-0.5 font-mono text-[10px] focus:border-indigo-500 focus:outline-none'
-                                    value={parentPath}
+                                    value={entry()[1]}
                                     onInput={e => {
                                       const currentChild = actor().child ?? {};
                                       const currentContexts =
@@ -728,7 +699,7 @@ export const ActorInputs: Component<ActorInputsProps> = props => {
                                           ...currentChild,
                                           contexts: {
                                             ...currentContexts,
-                                            [childPath]: e.currentTarget.value,
+                                            [entry()[0]]: e.currentTarget.value,
                                           },
                                         },
                                       });
@@ -740,7 +711,7 @@ export const ActorInputs: Component<ActorInputsProps> = props => {
                                     title='Delete mapping'
                                     onClick={() => {
                                       const currentChild = actor().child ?? {};
-                                      const { [childPath]: _, ...rest } =
+                                      const { [entry()[0]]: _, ...rest } =
                                         currentChild.contexts ?? {};
                                       updateActor(index, {
                                         child: { ...currentChild, contexts: rest },
@@ -760,7 +731,7 @@ export const ActorInputs: Component<ActorInputsProps> = props => {
                                   </button>
                                 </div>
                               )}
-                            </For>
+                            </Index>
                           </div>
                         </div>
                       </Show>

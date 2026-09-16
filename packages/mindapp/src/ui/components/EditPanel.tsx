@@ -46,7 +46,7 @@ export const EditPanel = <D extends Data = Data>(
             'pointer-events-all! z-50': !!hooks.editingNode(),
           }}
           style={props.style}
-          onMouseDown={e => e.stopPropagation()}
+          // onMouseDown={e => e.stopPropagation()}
           use:clickOutside={hooks.handleClickOutside}
           onMouseEnter={hooks.handleMouseEnter}
         >
