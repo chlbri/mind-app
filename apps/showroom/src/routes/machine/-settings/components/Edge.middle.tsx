@@ -1,21 +1,13 @@
 import { deepEqual } from '@bemedev/app/utils';
-import { clamp, useFlow, type Vector } from '@bemedev/mind-flow';
-import { For, Show, type Accessor, type Component } from 'solid-js';
+import { clamp, cn, useFlow, type EdgeMiddleProps } from '@bemedev/mind-flow';
+import { For, Show, type Component } from 'solid-js';
 
 import { monoLength } from '../helpers';
 import { setActiveAddTransitionEdge } from '../signals';
 import type { EdgeKind, StateMachineEdgeData } from '../types';
 
-/** Properties received by the custom edge middle component. */
-export type StateMachineEdgeMiddleProps = {
-  vector: Accessor<Vector | undefined>;
-  id: string;
-  data?: StateMachineEdgeData;
-  selected?: Accessor<boolean>;
-};
-
 export const StateMachineEdgeMiddle: Component<
-  StateMachineEdgeMiddleProps
+  EdgeMiddleProps<StateMachineEdgeData>
 > = props => {
   const { hooks, send } = useFlow();
 
@@ -44,35 +36,43 @@ export const StateMachineEdgeMiddle: Component<
     return [];
   };
 
+  const addColors = () => getKindConfig(props.data?.kind);
+
   const getKindConfig = (k?: EdgeKind) => {
     switch (k) {
       case 'child_parent':
         return {
           bg: 'bg-purple-600',
-          border: 'border-purple-300',
+          add: 'bg-purple-500',
+          ring: 'rounded-xl ring-2 ring-offset-4 ring-purple-600',
+          border: 'border-purple-800',
           text: 'text-white',
-          fill: '#7c3aed',
+          fill: '#8b5cf6',
           stroke: '#c4b5fd',
           icon: '⮑',
           name: 'Child-to-Parent',
         };
       case 'after':
         return {
-          bg: 'bg-amber-600',
-          border: 'border-amber-200',
+          bg: 'bg-orange-500',
+          add: 'bg-orange-400',
+          ring: 'rounded-xl ring-2 ring-offset-8 ring-orange-600',
+          border: 'border-orange-800',
           text: 'text-white',
-          fill: '#d97706',
-          stroke: '#fde68a',
+          fill: '#f97316',
+          stroke: '#fed7aa',
           icon: '⏱',
           name: 'After',
         };
       case 'always':
         return {
-          bg: 'bg-emerald-600',
-          border: 'border-emerald-200',
+          bg: 'bg-green-600',
+          add: 'bg-green-700',
+          ring: 'rounded-xl ring-2 ring-offset-8 ring-green-600',
+          border: 'border-green-800',
           text: 'text-white',
-          fill: '#059669',
-          stroke: '#a7f3d0',
+          fill: '#22c55e',
+          stroke: '#bbf7d0',
           icon: '⚡',
           name: 'Always',
         };
@@ -80,9 +80,11 @@ export const StateMachineEdgeMiddle: Component<
       default:
         return {
           bg: 'bg-blue-600',
-          border: 'border-blue-200',
+          add: 'bg-blue-500',
+          ring: 'rounded-xl ring-2 ring-offset-8 ring-blue-600',
+          border: 'border-blue-800',
           text: 'text-white',
-          fill: '#2563eb',
+          fill: '#3b82f6',
           stroke: '#bfdbfe',
           icon: '🔀',
           name: 'On',
@@ -150,6 +152,11 @@ export const StateMachineEdgeMiddle: Component<
     return selected();
   };
 
+  const ring = () => {
+    const kind = getKindConfig(props.data?.kind);
+    return kind.ring;
+  };
+
   return (
     <foreignObject
       x={-badgeWidth() / 2}
@@ -160,18 +167,16 @@ export const StateMachineEdgeMiddle: Component<
       class='z-100'
     >
       <div
-        class={`flex cursor-pointer flex-col items-center justify-center gap-px border-none select-none`}
+        class={cn(
+          `flex cursor-pointer flex-col items-center justify-center gap-px border-none select-none`,
+          selected() && ring(),
+        )}
         style={{
           width: '100%',
           height: `${totalHeight()}px`,
           'pointer-events': 'none',
         }}
-        classList={{
-          'rounded-xl ring-2 ring-offset-8 ring-indigo-400': showAdd(),
-          'rounded-xl ring-2 ring-offset-2 ring-purple-600':
-            !showAdd() && selected(),
-          'bg-gray-50/80': selected(),
-        }}
+        classList={{ 'bg-gray-50/80': selected() }}
       >
         {/* Stacked Transition Badges */}
         <For each={transitions()}>
@@ -184,11 +189,26 @@ export const StateMachineEdgeMiddle: Component<
                 style={{ padding: '2px 8px', 'pointer-events': 'all' }}
                 onMouseDown={e => {
                   e.stopPropagation();
+
                   send({ type: 'SELECT', payload: props.id });
+                }}
+                onDblClick={e => {
+                  e.stopImmediatePropagation();
+                  e.stopPropagation();
+                  setActiveAddTransitionEdge({
+                    edgeId: props.id,
+                    from: edgeData()?.fromState ?? '',
+                    to: edgeData()?.toState ?? '',
+                    kind: t.kind,
+                    mode: 'edit',
+                    transitionId: t.id,
+                    initialData: t,
+                  });
                 }}
               >
                 <p
-                  class={`flex max-w-full min-w-0 items-center gap-1 rounded-full border px-2 py-1 font-mono text-[10px] font-bold shadow-sm ${conf().bg} ${conf().text}`}
+                  class={`flex max-w-full min-w-0 items-center gap-1 rounded-full border px-2 py-1 font-mono text-[10px] font-bold shadow-sm transition-all hover:shadow-md ${conf().bg} ${conf().text}`}
+                  title='Double-click to edit transition'
                 >
                   <span class='shrink-0'>{conf().icon}</span>
                   <span class='min-w-0 flex-1 truncate text-center'>
@@ -223,7 +243,12 @@ export const StateMachineEdgeMiddle: Component<
           >
             <button
               type='button'
-              class='flex max-w-fit cursor-pointer items-center justify-center rounded-full border border-indigo-200 bg-indigo-600 px-2 py-1 text-[9.5px] font-bold text-white shadow-sm hover:bg-indigo-700'
+              class={cn(
+                'flex cursor-pointer items-center justify-center rounded-full border px-2 py-1 text-[9.5px] font-bold shadow-sm mx-2',
+                addColors().add,
+                addColors().text,
+                addColors().border,
+              )}
               style={{ width: '100%' }}
               onMouseDown={e => {
                 e.stopPropagation();
@@ -231,10 +256,12 @@ export const StateMachineEdgeMiddle: Component<
                   edgeId: props.id,
                   from: edgeData()?.fromState ?? '',
                   to: edgeData()?.toState ?? '',
+                  kind: edgeData()?.kind ?? transitions()[0]?.kind,
+                  mode: 'add',
                 });
               }}
             >
-              + Add transition
+              + Add
             </button>
             <Show when={transitions().length === 0}>
               <button

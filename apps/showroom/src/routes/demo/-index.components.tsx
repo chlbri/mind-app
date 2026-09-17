@@ -67,7 +67,7 @@ export const ShowroomEditPanel: Component = () => {
           !closing(),
       })}
     >
-      {({ editing: node, updateField, close }) => {
+      {({ editingNode: node, updateField, close }) => {
         return (
           <div use:mouseOut={[close, 3_150]} class='flex flex-col gap-3'>
             <div class='flex flex-col gap-1'>

@@ -109,10 +109,6 @@ export const mouseOut = (
     triggerLeave(event);
   };
 
-  const onFocusIn = () => {
-    clear();
-  };
-
   const onFocusOut = (event: FocusEvent) => {
     const nextTarget = event.relatedTarget as Node | null;
     const stillHasFocus = !!nextTarget && el.contains(nextTarget);
@@ -123,15 +119,15 @@ export const mouseOut = (
   };
 
   el.addEventListener('mouseleave', onMouseLeave as EventListener);
-  el.addEventListener('mouseenter', onMouseEnter as EventListener);
-  el.addEventListener('focusin', onFocusIn as EventListener);
+  el.addEventListener('mouseenter', onMouseEnter);
+  el.addEventListener('focusin', clear);
   el.addEventListener('focusout', onFocusOut as EventListener);
 
   onCleanup(() => {
     clear();
     el.removeEventListener('mouseleave', onMouseLeave as EventListener);
-    el.removeEventListener('mouseenter', onMouseEnter as EventListener);
-    el.removeEventListener('focusin', onFocusIn as EventListener);
+    el.removeEventListener('mouseenter', onMouseEnter);
+    el.removeEventListener('focusin', clear);
     el.removeEventListener('focusout', onFocusOut as EventListener);
   });
 };

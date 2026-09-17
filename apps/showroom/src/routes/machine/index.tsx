@@ -2,8 +2,8 @@ import { Flow } from '@bemedev/mind-flow';
 import { createFileRoute } from '@tanstack/solid-router';
 
 import {
-  ActorDetailModal,
-  AddTransitionModal,
+  TransitionModal,
+  StateMachineEditPanel,
   StateMachineEdge,
   StateMachineNode,
   StateMachineNodeSelected,
@@ -25,29 +25,37 @@ export const Route = createFileRoute('/machine/')({
           Node={StateMachineNode}
           NodeSelected={StateMachineNodeSelected}
           Edge={StateMachineEdge}
-          edgesAllowed={(from, to) => {
-            // A child state cannot transition to its parent
-            const isChild =
-              from.data?.parentPath === to.data?.path ||
-              from.data?.parentPath === to.id ||
-              (Boolean(to.data?.path) &&
-                Boolean(from.data?.path) &&
-                from?.data?.path.startsWith(`${to?.data?.path}/`));
-            return !isChild;
+          edgesAllowed={(from, to, edge) => {
+            const fromPath = from.data?.path;
+            const toPath = to.data?.path;
+            if (!fromPath || !toPath) return false;
+
+            const none =
+              ['bottom', 'top'].includes(edge.fromPosition as any) ||
+              ['bottom', 'top'].includes(edge.toPosition as any);
+
+            if (none) return false;
+
+            if (edge.fromPosition === 'right') {
+              const isChildOf =
+                from.data?.parentPath === to.data?.path ||
+                from.data?.parentPath === to.id ||
+                fromPath.startsWith(`${toPath}/`);
+
+              return !isChildOf && edge.fromIndex === edge.toIndex;
+            }
+            return false;
           }}
+
           defaultData={{
             id: 'new-state',
             title: 'New State',
             path: '/new-state',
             stateType: 'atomic',
           }}
-        >
-          {/* Modal Window for inspecting state actors when bubble is clicked */}
-          <ActorDetailModal />
 
-          {/* Modal Window for adding transitions to an edge */}
-          <AddTransitionModal />
-        </Flow>
+          panels={{ bottomLeft: TransitionModal, topLeft: StateMachineEditPanel }}
+        ></Flow>
       </div>
     );
   },

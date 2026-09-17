@@ -3,7 +3,7 @@ import { type JSX, Show } from 'solid-js';
 
 import type { Data } from '#services/main.machine.typings';
 
-import { clickOutside } from '../globals/directives';
+import { clickOutside, mouseOut } from '../globals/directives';
 import { useHook } from './EditPanel.hooks';
 import type { EditPanelProps } from './EditPanel.types';
 
@@ -25,6 +25,8 @@ export const EditPanel = <D extends Data = Data>(
   props: EditPanelProps<D>,
 ): JSX.Element => {
   void clickOutside;
+  void mouseOut;
+
   // const editing
   const hooks = useHook<D>(props.timeout);
   const classList = () =>
@@ -44,8 +46,9 @@ export const EditPanel = <D extends Data = Data>(
             'pointer-events-all! z-50': !!hooks.editingNode(),
           }}
           style={props.style}
-          onMouseDown={e => e.stopPropagation()}
-          use:clickOutside={hooks.close}
+          // onMouseDown={e => e.stopPropagation()}
+          use:clickOutside={hooks.handleClickOutside}
+          onMouseEnter={hooks.handleMouseEnter}
         >
           <div class='flex flex-col gap-3'>
             <Show

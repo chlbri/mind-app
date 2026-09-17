@@ -29,7 +29,14 @@ import type { FlowPanels } from '../FlowChart.types';
 import { Panels } from '../Panels';
 import { NodeComponent, type NodeComponentProps } from './Node';
 
-/** Properties for the {@linkcode NodesBoard} component. */
+/**
+ * Properties for the {@linkcode NodesBoard} component.
+ *
+ * @template | {@linkcode Data} `N` - Custom node data dictionary type extending
+ *   {@linkcode Data}.
+ * @template | {@linkcode Data} `E` - Custom edge data dictionary type extending
+ *   {@linkcode Data}.
+ */
 export type NodesBoardProps<N extends Data = Data, E extends Data = Data> = {
   /** Optional custom node component. */
   Node?: Component<N>;
@@ -46,6 +53,8 @@ export type NodesBoardProps<N extends Data = Data, E extends Data = Data> = {
  * panning gestures, and rendered nodes/edges.
  *
  * @template | {@linkcode Data} `N` - Custom node data dictionary type extending
+ *   {@linkcode Data}.
+ * @template | {@linkcode Data} `E` - Custom edge data dictionary type extending
  *   {@linkcode Data}.
  *
  * @param props - Board component properties of type {@linkcode NodesBoardProps}.

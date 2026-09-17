@@ -1,5 +1,5 @@
 import type { CommonConfig3 } from '@bemedev/app';
-import type { Data, Point } from '@bemedev/mind-flow';
+import type { Point } from '@bemedev/mind-flow';
 
 /** 2D coordinate position representing a node's location on the canvas. */
 export type Position = Point;
@@ -53,26 +53,84 @@ export type StateNodePositions<T> = Record<StateNodeKeys<T>, Position>;
 /** Four distinct edge categories in the state machine diagram. */
 export type EdgeKind = 'child_parent' | 'after' | 'always' | 'on';
 
+/** Structured activity configuration running periodically on a state node. */
+export type StateActivityData = {
+  /** Optional unique identifier for stable rendering and editing. */
+  id?: string;
+  /** Identifier or timer key (e.g. `POLL`, `HEARTBEAT`, `3000ms`). */
+  delay: string;
+  /** Action names fired periodically on each interval tick. */
+  actions: string[];
+  /** Optional guard condition names checked before firing actions. */
+  guards?: string[];
+  /** Optional human-readable description of the activity. */
+  description?: string;
+};
+
+/** Emission transition / action handler for stream emitters in `@bemedev/app`. */
+export type StateActorEmissionHandler = {
+  /** Action names executed upon this emission. */
+  actions?: string[];
+  /** Optional state target to transition to. */
+  target?: string;
+  /** Optional guards evaluated before executing actions or transitioning. */
+  guards?: string[];
+};
+
+/** Event transition / action handler for child machines in `@bemedev/app`. */
+export type StateActorChildEventHandler = {
+  /** Action names executed upon receiving this event from child machine. */
+  actions?: string[];
+  /** Optional state target in parent machine to transition to. */
+  target?: string;
+  /** Optional guards evaluated before executing actions or transitioning. */
+  guards?: string[];
+};
+
 /** Detailed configuration and lifecycle metadata for an actor attached to a state. */
 export type StateActorData = {
+  /** Optional unique identifier for stable rendering and editing. */
+  id?: string;
   /** Identifier name of the actor. */
   name: string;
   /** Classification of the actor in `@bemedev/app`. */
   type: 'emitter' | 'child' | 'service';
   /** Human-readable description of what this actor does. */
   description?: string;
-  /** Handled emissions (e.g. `next`, `error`, `complete`) for stream emitters. */
+  /** Emitter actor configuration when type is 'emitter'. */
+  emitter?: {
+    /** Handler for next value emissions. */
+    next: StateActorEmissionHandler;
+    /** Handler for stream error emissions. */
+    error?: StateActorEmissionHandler;
+    /** Handler for stream completion. */
+    complete?: { actions?: string[]; guards?: string[]; description?: string };
+  };
+  /** Child actor configuration when type is 'child'. */
+  child?: {
+    /** Handled bubbled events from child machine to parent actions/targets. */
+    on?: Record<string, StateActorChildEventHandler>;
+    /** One-way context projection mapping child context paths to parent pContext. */
+    contexts?: Record<string, string>;
+  };
+  /**
+   * Handled emissions (e.g. `next`, `error`, `complete`) for stream emitters
+   * (backward-compatibility).
+   */
   emissions?: { next?: string[]; error?: string[]; complete?: string[] };
-  /** Forwarded events from child machine to parent. */
+  /** Forwarded events from child machine to parent (backward-compatibility). */
   events?: Record<string, string[]>;
-  /** Context mappings (e.g. child context mapped to parent `pContext`). */
+  /**
+   * Context mappings (e.g. child context mapped to parent `pContext`)
+   * (backward-compatibility).
+   */
   contexts?: Record<string, string>;
   /** Raw configuration or options for this actor. */
   config?: Record<string, any>;
 };
 
 /** Flowchart node data structure representing a state in the state machine. */
-export type StateMachineNodeData = Data & {
+export type StateMachineNodeData = {
   /** Node identifier matching the state path (e.g. `/order/fulfillment/shipping`). */
   id: string;
   /** Display title (the state name, e.g. `shipping`). */
@@ -92,7 +150,7 @@ export type StateMachineNodeData = Data & {
   /** Exit action names executed upon state exit. */
   exit?: string[];
   /** Activities running while this state is active. */
-  activities?: string[];
+  activities?: StateActivityData[];
   /** Actors (emitters or child actors) attached to this state. */
   actors?: StateActorData[];
   /** Optional summary or note. */
@@ -124,7 +182,7 @@ export type TransitionItem = {
 };
 
 /** Flowchart edge data structure representing transitions and hierarchy relations. */
-export type StateMachineEdgeData = Data & {
+export type StateMachineEdgeData = {
   /** The primary category of the edge. */
   kind?: EdgeKind;
   /** Display label shown on the edge midpoint tag. */

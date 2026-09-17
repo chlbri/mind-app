@@ -33,7 +33,7 @@ export type HandleItemProps = {
  *
  * @returns The rendered handle element.
  *
- * @see {@linkcode HANDLE_SIZE}, -- type {@linkcode HandlePosition}
+ * @see {@linkcode HANDLE_SIZE}
  */
 export const HandleItem: Component<HandleItemProps> = props => {
   const isInput = props.type === 'input';
@@ -88,7 +88,7 @@ export const HandleItem: Component<HandleItemProps> = props => {
 export type NodeHandlesProps = {
   /**
    * Accessor providing the resolved node handles configuration of type
-   * {@linkcode NodeHandles}.
+   * {@linkcode NodeHandles_T}.
    */
   resolvedHandles: Accessor<NodeHandles_T>;
   /** Unique identifier of the node. */
@@ -107,7 +107,7 @@ export type NodeHandlesProps = {
  *
  * @returns The rendered node handles element.
  *
- * @see {@linkcode HandleItem}, -- type {@linkcode NodeHandles}
+ * @see {@linkcode HandleItem}, -- type {@linkcode NodeHandles_T}
  */
 export const NodeHandles: Component<NodeHandlesProps> = props => (
   <>

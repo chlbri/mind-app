@@ -1,7 +1,7 @@
 import type { NotUndefined } from '@bemedev/app/bemedev';
 import type { Component, JSX } from 'solid-js';
 
-import type { Edge } from '#services/main.machine.typings';
+import type { Edge, EdgeExtremeties } from '#services/main.machine.typings';
 
 import type { EdgeProps } from './edges/types';
 import type { Data, NodeProps } from './FlowChart';
@@ -21,8 +21,10 @@ export type FlowPanels = {
  * Configuration options and callback handlers for the {@linkcode FlowChart}
  * component.
  *
- * @template | Type {@linkcode Data} `D` - Custom node data dictionary type extending
- *   type {@linkcode Data}.
+ * @template | {@linkcode Data} `N` - Custom node data dictionary type extending type
+ *   {@linkcode Data}.
+ * @template | {@linkcode Data} `E` - Custom edge data dictionary type extending type
+ *   {@linkcode Data}.
  */
 export type FlowProps<N extends Data = Data, E extends Data = Data> = {
   /** Optional child elements rendered inside the flowchart context provider. */
@@ -37,11 +39,24 @@ export type FlowProps<N extends Data = Data, E extends Data = Data> = {
   /** Custom node component to render inside each flowchart node. */
   Node?: Component<N>;
 
+  /** Custom component rendered above the selected node for contextual actions. */
   NodeSelected?: NodeComponentProps<N>['Selected'];
 
+  /**
+   * Custom predicate determining whether an edge connection between two nodes is
+   * permitted.
+   *
+   * @param first - The source node object.
+   * @param second - The target node object.
+   * @param edge - Edge extremities specifying connection points and handle indices
+   *   of type {@linkcode EdgeExtremeties}.
+   *
+   * @returns `true` if the edge connection is allowed, `false` otherwise.
+   */
   edgesAllowed?: (
     first: NodeProps<N> & { id: string },
     second: NodeProps<N> & { id: string },
+    edge: EdgeExtremeties,
   ) => boolean;
 
   /** Custom edge component to render inside each flowchart edge. */
@@ -80,10 +95,10 @@ export type FlowProps<N extends Data = Data, E extends Data = Data> = {
 /**
  * Type alias extracting the non-undefined flowchart configuration object.
  *
- * @template | Type {@linkcode Data} `N` - Custom node data dictionary type extending
- *   type {@linkcode Data}.
- * @template | Type {@linkcode Data} `E` - Custom edge data dictionary type extending
- *   type {@linkcode Data}.
+ * @template | {@linkcode Data} `N` - Custom node data dictionary type extending type
+ *   {@linkcode Data}.
+ * @template | {@linkcode Data} `E` - Custom edge data dictionary type extending type
+ *   {@linkcode Data}.
  */
 export type ConfigFrom<N extends Data = Data, E extends Data = Data> = NotUndefined<
   FlowProps<N, E>['config']
@@ -93,8 +108,8 @@ export type ConfigFrom<N extends Data = Data, E extends Data = Data> = NotUndefi
  * Type alias extracting the non-undefined list of nodes from flowchart
  * configuration.
  *
- * @template | Type {@linkcode Data} `N` - Custom node data dictionary type extending
- *   type {@linkcode Data}.
+ * @template | {@linkcode Data} `N` - Custom node data dictionary type extending type
+ *   {@linkcode Data}.
  */
 export type NodesFrom<N extends Data = Data> = NotUndefined<
   ConfigFrom<N, any>['nodes']
@@ -104,8 +119,8 @@ export type NodesFrom<N extends Data = Data> = NotUndefined<
  * Type alias extracting the non-undefined list of edges from flowchart
  * configuration.
  *
- * @template | Type {@linkcode Data} `E` - Custom edge data dictionary type extending
- *   type {@linkcode Data}.
+ * @template | {@linkcode Data} `E` - Custom edge data dictionary type extending type
+ *   {@linkcode Data}.
  */
 export type EdgesFrom<E extends Data = Data> = NotUndefined<
   ConfigFrom<any, E>['edges']

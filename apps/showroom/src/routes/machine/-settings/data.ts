@@ -15,6 +15,13 @@ const ORDER_GRAPH = parseMachineToGraph(
 
       payment: {
         description: 'Awaiting payment confirmation via payment gateway.',
+        activities: {
+          CHECK_GATEWAY: {
+            actions: 'pollGatewayStatus',
+            guards: 'isGatewayConnected',
+            description: 'Periodically checks gateway payment authorization',
+          },
+        },
         actors: {
           stripeGateway: {
             next: { actions: ['onPaymentAuthorized', 'storeReceipt'] },
@@ -54,6 +61,12 @@ const ORDER_GRAPH = parseMachineToGraph(
           },
           shipping: {
             description: 'Carrier transit with real-time GPS tracking stream.',
+            activities: {
+              '5000ms': {
+                actions: ['pingGpsLocation', 'logTransitProgress'],
+                description: 'Periodic GPS ping during shipment transit',
+              },
+            },
             actors: {
               gpsTracker: {
                 next: { actions: ['updateLiveCoordinates'] },
@@ -95,3 +108,5 @@ export const config: ConfigFrom<StateMachineNodeData, StateMachineEdgeData> = {
   nodes: ORDER_GRAPH.nodes,
   edges: ORDER_GRAPH.edges,
 };
+
+export const DASH_ARRAY = '6 4';

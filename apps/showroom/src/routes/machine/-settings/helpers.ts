@@ -1,3 +1,5 @@
+import type { EdgeKind } from './types';
+
 /**
  * Width in pixels of a capitalized (uppercase) character in HTML monospace font at
  * 10px.
@@ -38,3 +40,25 @@ export function monoLength(text?: string | null): number {
 
   return total;
 }
+
+export const getStrokeColor = (k: EdgeKind) => {
+  switch (k) {
+    case 'child_parent':
+      return '#8b5cf6'; // Violet
+    case 'after':
+      return '#f97316'; // Orange
+    case 'always':
+      return '#22c55e'; // Green
+    case 'on':
+    default:
+      return '#3b82f6'; // Blue
+  }
+};
+
+/** Helper to split comma-separated strings into cleaned array. */
+export const toList = (val: string): string[] => {
+  return val
+    .split(',')
+    .map(s => s.trim())
+    .filter(Boolean);
+};

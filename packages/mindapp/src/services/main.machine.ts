@@ -215,8 +215,10 @@ export const machine = createMachine(
       assign('data', {
         CONFIGURE: ({ payload: { nodes, edges } }) => ({ nodes, edges }),
       }),
+
       assign('newEdge', () => undefined),
       assign('updatingUI', () => false),
+
       action(({ pContext }) => {
         pContext.generatedId = null;
       }),

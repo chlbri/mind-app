@@ -1,7 +1,8 @@
 import { deepEqual } from '@bemedev/app';
 import { isDefined } from '@bemedev/app/bemedev';
-import { createSignal, type Accessor } from 'solid-js';
+import { type Accessor } from 'solid-js';
 
+import { useClose } from '../globals/hooks/useClose';
 import type { Data } from './FlowChart';
 import { useFlow } from './FlowChart.context';
 
@@ -26,10 +27,22 @@ export const useHook = <D extends Data = Data, E extends Data = Data>(
   timeout = 270,
 ) => {
   const { hooks, sender, send } = useFlow();
-  const directClose = () => send('STOP_EDIT');
-  const [closing, setClosing] = createSignal(false);
   const senderNodeData = sender('SET_NODE_DATA');
   const senderEdgeData = sender('SET_EDGE_DATA');
+  const initial = hooks.state({ selector: ({ context: { editing } }) => !!editing });
+
+  const {
+    closing,
+    hasEntered,
+    handleClickOutside,
+    handleMouseEnter,
+    close,
+    directClose,
+  } = useClose({
+    close: () => send('STOP_EDIT'),
+    timers: { all: timeout },
+    initial,
+  });
 
   const _editingNode = hooks.state({
     selector: ({ context }) => {
@@ -58,15 +71,6 @@ export const useHook = <D extends Data = Data, E extends Data = Data>(
 
     equals: deepEqual<any>,
   });
-
-  const close = () => {
-    setClosing(true);
-
-    setTimeout(() => {
-      directClose();
-      setClosing(false);
-    }, timeout);
-  };
 
   const updateNodeData = (data: Partial<D>) => {
     const current = _editingNode();
@@ -111,5 +115,8 @@ export const useHook = <D extends Data = Data, E extends Data = Data>(
     close,
     closing,
     directClose,
+    hasEntered,
+    handleClickOutside,
+    handleMouseEnter,
   };
 };
