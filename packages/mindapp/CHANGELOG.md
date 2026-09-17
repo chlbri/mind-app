@@ -3,6 +3,34 @@
 <details>
 <summary>
 
+## **[1.5.3] - 17/09/2026** => _01:10_
+
+</summary>
+
+- Add `edgesAllowed` predicate prop to `FlowProps` and state machine guard for
+  conditional edge creation
+- Add `NodeSelected` customizable component prop to `FlowProps` for selected node
+  actions
+- Add `useClose` hook and `PanelHooks_P` type for overlay dismissal and hover timeout
+  management
+- Add `EdgeExtremeties` type and `nodeHandles` schema for connection endpoint typing
+- Add color styling and structured object configuration to node handles
+- Enhance `DefaultNodeSelected` component with improved SVG styling and toolbar
+  triggers
+- Enhance comprehensive JSDoc documentation across types, hooks, and flowchart
+  components
+- Refactor `DEFAULT_HANDLES` and `NodeHandles_T` to use `{ type, color }` handle
+  objects
+- Refactor `EditPanel.hooks` to delegate dismissal logic to `useClose`
+- <u>Test coverage **_100%_**</u>
+
+</details>
+
+<br/>
+
+<details>
+<summary>
+
 ## **[1.5.2] - 12/09/2026** => _00:44_
 
 </summary>

@@ -22,7 +22,9 @@ export type { Data, HandlePosition, HandleType, NodeHandles_T, NodeProps };
  * Flowchart board canvas component that renders interactive nodes, edges, pan/zoom,
  * and toolbar controls.
  *
- * @template | {@linkcode Data} `D` - Custom node data dictionary type extending
+ * @template | {@linkcode Data} `N` - Custom node data dictionary type extending
+ *   {@linkcode Data}.
+ * @template | {@linkcode Data} `E` - Custom edge data dictionary type extending
  *   {@linkcode Data}.
  *
  * @param props - Flowchart configuration and event handlers of type

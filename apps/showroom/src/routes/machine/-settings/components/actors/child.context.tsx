@@ -1,6 +1,6 @@
 import { deepEqual } from '@bemedev/app';
 import { useFlow } from '@bemedev/mind-flow';
-import { type Component } from 'solid-js';
+import { createMemo, type Component } from 'solid-js';
 
 import type { StateActorData, StateMachineNodeData } from '../../types';
 
@@ -69,11 +69,11 @@ export const ActorChildContextItem: Component<
     props.updateField('actors', updated);
   };
 
-  const currentActor = () => {
+  const currentActor = createMemo(() => {
     return allActors().find(
       (a, i) => (a.id ?? a.name ?? String(i)) === props.actorId,
     );
-  };
+  });
 
   const renameKey = (newKey: string) => {
     const trimmed = newKey.trim();
@@ -117,8 +117,6 @@ export const ActorChildContextItem: Component<
         }}
         onKeyDown={e => {
           if (e.key === 'Enter') {
-            renameKey(e.currentTarget.value);
-            e.currentTarget.value = props.contextKey;
             e.currentTarget.blur();
           }
         }}

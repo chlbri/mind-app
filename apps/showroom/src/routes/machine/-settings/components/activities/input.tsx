@@ -55,18 +55,17 @@ export const ActivityItem: Component<ActivityItemProps> = props => {
   };
 
   const renameDelay = (newDelay: string) => {
-    const trimmed = newDelay.trim();
+    const delay = newDelay.trim();
     const currentDelay = activity()?.delay;
-    if (!trimmed || trimmed === currentDelay) return;
+    if (!delay || delay === currentDelay) return;
 
     const others = allActivities()
       .filter((item, i) => (item.id ?? item.delay ?? String(i)) !== props.id)
       .map(({ delay }) => delay)
       .filter(Boolean);
 
-    if (others.includes(trimmed)) return;
-
-    updateActivity({ delay: trimmed });
+    if (others.includes(delay)) return;
+    updateActivity({ delay });
   };
 
   // const error = () => {
@@ -133,8 +132,6 @@ export const ActivityItem: Component<ActivityItemProps> = props => {
                 }}
                 onKeyDown={e => {
                   if (e.key === 'Enter') {
-                    renameDelay(e.currentTarget.value);
-                    e.currentTarget.value = activity()?.delay ?? '';
                     e.currentTarget.blur();
                   }
                 }}

@@ -26,7 +26,10 @@ export type NodeComponentProps<D extends Data = Data> = {
   children?: Component<D>;
   /** Custom component rendered for node selection action controls. */
   Selected: Component<{ id: string }>;
-  /** Optional handle configurations overriding default node handles of type */
+  /**
+   * Optional handle configurations overriding default node handles of type
+   * {@linkcode NodeHandles_T}.
+   */
   handles?: NodeHandles_T;
 };
 
@@ -41,7 +44,7 @@ export type NodeComponentProps<D extends Data = Data> = {
  *
  * @returns The rendered Solid component.
  *
- * @see {@linkcode useFlow},  -- type {@linkcode NodeHandles}, {@linkcode getHandleOffsetPercent}
+ * @see {@linkcode useFlow}, -- type {@linkcode NodeHandles_T}, {@linkcode getHandleOffsetPercent}
  */
 export const NodeComponent = <D extends Data = Data>(
   props: NodeComponentProps<D>,

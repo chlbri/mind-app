@@ -138,10 +138,18 @@ export const CustomFlow = () => {
   interaction.
 - **`useEdge`**: Hook providing reactive state, computed vectors, and styling for
   edges.
+- **`useClose`**, **`PanelHooks_P`**: Hook and options for managing panel closing
+  transitions, hover timeouts, and outside-click dismissal.
 - **`NodeProps`**: Generic type definition for node elements (`NodeProps<D>`).
+- **`NodeHandles_T`**, **`nodeHandles`**: Type and schema for configuring node
+  handles per side with custom colors and types.
+- **`DefaultNodeSelected`**, **`DefaultNodeSelected_Props`**: Floating action toolbar
+  component and prop types for selected nodes.
 - **`EdgeProps`**: Type definition for edge connections (`EdgeProps<D>`).
 - **`EdgeMiddleProps`**: Type definition for edge middle overlay components
   (`EdgeMiddleProps<D>`).
+- **`EdgeExtremeties`**: Type representing edge connection endpoints with handle
+  positions and indices.
 - **`FlowProps`**: Generic props configuration type for `Flow` and `FlowChart`.
 - **`EditPanelProps`**, **`EditPanelChildProps`**: Types for `EditPanel` and its
   children accessor helpers.

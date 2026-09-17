@@ -127,8 +127,6 @@ export const ActorChildEventItem: Component<ActorChildEventItemProps> = props =>
               }}
               onKeyDown={e => {
                 if (e.key === 'Enter') {
-                  renameEventKey(e.currentTarget.value);
-                  e.currentTarget.value = props.eventKey;
                   e.currentTarget.blur();
                 }
               }}

@@ -1,11 +1,34 @@
 import { createEffect, createSignal, onCleanup, type Accessor } from 'solid-js';
 
+/** Configuration options for the {@linkcode useClose} hook. */
 export type PanelHooks_P = {
+  /**
+   * Optional reactive boolean accessor determining when the panel is initially
+   * opened.
+   */
   initial?: Accessor<boolean>;
+  /** Callback invoked to close the panel. */
   close?: () => void;
-  timers?: { initial?: number; all?: number };
+  /** Optional timer configuration in milliseconds. */
+  timers?: {
+    /**
+     * Delay before automatically closing on initial open before user interaction.
+     * Defaults to `10_000`.
+     */
+    initial?: number;
+    /** Delay before closing after mouse leave or trigger. Defaults to `250`. */
+    all?: number;
+  };
 };
 
+/**
+ * Hook managing panel closing state with timeout delays, mouse hover detection, and
+ * click-outside handling.
+ *
+ * @param options - Configuration options of type {@linkcode PanelHooks_P}.
+ *
+ * @returns An object containing closing states and event handler callbacks.
+ */
 export const useClose = ({ initial, close: _close, timers }: PanelHooks_P) => {
   const [closing, setClosing] = createSignal(false);
   const [hasEntered, setHasEntered] = createSignal(false);
