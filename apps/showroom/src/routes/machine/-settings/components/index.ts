@@ -1,4 +1,4 @@
-export * from './AddTransitionModal';
+export * from './TransitionModal';
 export * from './Edge';
 export * from './Edge.middle';
 export * from './Node';

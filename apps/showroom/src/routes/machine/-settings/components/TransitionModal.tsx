@@ -1,5 +1,6 @@
 import {
   clickOutside,
+  cn,
   mouseOut,
   useFlow,
   useClose,
@@ -15,6 +16,11 @@ import {
   type Component,
 } from 'solid-js';
 
+import {
+  checkTransitionConflict,
+  getTransitionsFromState,
+  toList,
+} from '../helpers';
 import { activeAddTransitionEdge, setActiveAddTransitionEdge } from '../signals';
 import type { EdgeKind, StateMachineEdgeData, TransitionItem } from '../types';
 
@@ -37,7 +43,7 @@ export const TransitionModal: Component = () => {
   void clickOutside;
   void mouseOut;
 
-  const { service, send } = useFlow();
+  const { send, hooks } = useFlow();
   const activeEdge = activeAddTransitionEdge;
 
   const {
@@ -52,6 +58,9 @@ export const TransitionModal: Component = () => {
     close: () => setActiveAddTransitionEdge(null),
   });
 
+  const allEdges = hooks.state({
+    selector: ({ context: { data } }) => data?.edges ?? [],
+  });
   const [eventName, setEventName] = createSignal('');
   const [delay, setDelay] = createSignal('3000ms');
   const [guard, setGuard] = createSignal('');
@@ -69,7 +78,7 @@ export const TransitionModal: Component = () => {
       const init = target.initialData;
       setEventName(init?.event ?? '');
       setDelay(init?.delay ? String(init.delay) : '3000ms');
-      setGuard(init?.guard ?? '');
+      setGuard(init?.guards?.join(', ') ?? '');
       setActionsInput(init?.actions?.join(', ') ?? '');
     } else {
       setEventName('');
@@ -94,7 +103,21 @@ export const TransitionModal: Component = () => {
   const targetEdge = () => {
     const target = activeEdge();
     if (!target) return undefined;
-    return service.state.context.data?.edges?.find(e => e.id === target.edgeId);
+    return allEdges().find(e => e.id === target.edgeId);
+  };
+
+  const fromState = () => {
+    const target = activeEdge();
+    const edge = targetEdge();
+    const data = edge?.data as StateMachineEdgeData | undefined;
+    return target?.from || data?.fromState || edge?.from || '';
+  };
+
+  const toState = () => {
+    const target = activeEdge();
+    const edge = targetEdge();
+    const data = edge?.data as StateMachineEdgeData | undefined;
+    return target?.to || data?.toState || edge?.to || '';
   };
 
   const edgeKind = (): EdgeKind => {
@@ -142,9 +165,41 @@ export const TransitionModal: Component = () => {
     }
   };
 
+  const conflict = () => {
+    const target = activeEdge();
+    if (!target) return { hasConflict: false };
+
+    const source = fromState();
+    if (!source) return { hasConflict: false };
+
+    const selectedKind = edgeKind();
+    const ev = selectedKind === 'on' ? eventName().trim() || 'NEXT' : undefined;
+    const del = selectedKind === 'after' ? delay().trim() || '3000ms' : undefined;
+    const grd = guard().trim() || undefined;
+
+    const fromTransitions = getTransitionsFromState(allEdges(), source);
+
+    return checkTransitionConflict(
+      {
+        id: isEdit() ? target.transitionId : undefined,
+        from: source,
+        kind: selectedKind,
+        event: ev,
+        delay: del,
+        guards: grd ? toList(grd) : undefined,
+      },
+      fromTransitions,
+    );
+  };
+
   const handleSave = () => {
     const target = activeEdge();
     if (!target) return;
+
+    // Check conflict against existing transitions from the same state
+    // (matches child.context.tsx model: if already exists, return)
+    const conf = conflict();
+    if (conf.hasConflict) return;
 
     const edge = targetEdge();
     const existingData = (edge?.data ?? {}) as StateMachineEdgeData;
@@ -160,7 +215,7 @@ export const TransitionModal: Component = () => {
               label: existingData.label ?? existingData.kind,
               event: existingData.event,
               delay: existingData.delay,
-              guard: existingData.guard,
+              guards: existingData.guards,
               actions: existingData.actions,
             },
           ]
@@ -175,15 +230,17 @@ export const TransitionModal: Component = () => {
     let ev: string | undefined = undefined;
     let del: string | undefined = undefined;
     const grd = guard().trim() || undefined;
+    const grds = grd ? toList(grd) : undefined;
+    const guardLabel = grds && grds.length > 0 ? ` [${grds.join(', ')}]` : '';
 
     if (selectedKind === 'on') {
       ev = eventName().trim() || 'NEXT';
-      label = `on: ${ev}${grd ? ` [${grd}]` : ''}`;
+      label = `on: ${ev}${guardLabel}`;
     } else if (selectedKind === 'after') {
       del = delay().trim() || '3000ms';
-      label = `after: ${del}${grd ? ` [${grd}]` : ''}`;
+      label = `after: ${del}${guardLabel}`;
     } else if (selectedKind === 'always') {
-      label = `always${grd ? ` [${grd}]` : ''}`;
+      label = `always${guardLabel}`;
     } else {
       label = `child of ${target.to.split('/').pop()}`;
     }
@@ -201,7 +258,7 @@ export const TransitionModal: Component = () => {
               label,
               event: ev,
               delay: del,
-              guard: grd,
+              guards: grds,
               actions: actions.length > 0 ? actions : undefined,
             };
           }
@@ -214,7 +271,7 @@ export const TransitionModal: Component = () => {
           label,
           event: ev,
           delay: del,
-          guard: grd,
+          guards: grds,
           actions: actions.length > 0 ? actions : undefined,
         };
         updatedTransitions = [...existingTransitions, editedTransition];
@@ -226,7 +283,7 @@ export const TransitionModal: Component = () => {
         label,
         event: ev,
         delay: del,
-        guard: grd,
+        guards: grds,
         actions: actions.length > 0 ? actions : undefined,
       };
       updatedTransitions = [...existingTransitions, newTransition];
@@ -238,6 +295,8 @@ export const TransitionModal: Component = () => {
         id: target.edgeId,
         data: {
           ...existingData,
+          fromState: fromState(),
+          toState: toState(),
           kind: selectedKind,
           transitions: updatedTransitions,
           label:
@@ -257,140 +316,152 @@ export const TransitionModal: Component = () => {
 
   return (
     <Show when={activeEdge()}>
-      {target => (
-        <div
-          class='pointer-events-all! relative flex w-80 max-w-md flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white/95 shadow-xl backdrop-blur-md transition-all ease-linear'
-          classList={{
-            'pointer-events-none scale-95 opacity-0 duration-250': closing(),
-            'opacity-100 duration-150': !closing() && !hasEntered(),
-            'opacity-35 has-focus-within:opacity-100 hover:opacity-100 duration-150':
-              !closing() && hasEntered(),
-          }}
-          onMouseEnter={handleMouseEnter}
-          use:mouseOut={[close, 3_150]}
-          use:clickOutside={handleClickOutside}
-          onMouseDown={e => e.stopPropagation()}
-        >
-          {/* Header */}
-          <div class='flex items-center justify-between border-b border-gray-100 bg-linear-to-r from-indigo-50/80 via-purple-50/80 to-white/80 px-4 py-3'>
-            <div class='flex items-center gap-2.5'>
-              <span class='flex h-7 w-7 items-center justify-center rounded-lg bg-indigo-600 text-sm font-bold text-white shadow-xs'>
-                {isEdit() ? '✏️' : '+'}
-              </span>
-              <div>
-                <h3 class='text-sm font-bold text-gray-900'>
-                  {isEdit() ? 'Edit Transition' : 'Add Transition'}
-                </h3>
-                <p class='font-mono text-[11px] text-gray-500'>
-                  {target().from} <span class='text-indigo-600'>➔</span>{' '}
-                  {target().to}
-                </p>
-              </div>
-            </div>
-
-            <button
-              type='button'
-              onClick={close}
-              aria-label='Close'
-              class='cursor-pointer rounded-lg p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-700'
-            >
-              ✕
-            </button>
-          </div>
-
-          {/* Form */}
-          <div class='space-y-3.5 p-4 text-left text-xs'>
-            {/* Kind indicator banner */}
+      <div
+        class='pointer-events-all! relative flex w-80 max-w-md flex-col overflow-hidden rounded-2xl border border-gray-200 bg-white/95 shadow-xl backdrop-blur-md transition-all ease-linear'
+        classList={{
+          'pointer-events-none scale-95 opacity-0 duration-250': closing(),
+          'opacity-100 duration-150': !closing() && !hasEntered(),
+          'opacity-35 has-focus-within:opacity-100 hover:opacity-100 duration-150':
+            !closing() && hasEntered(),
+        }}
+        onMouseEnter={handleMouseEnter}
+        use:mouseOut={[close, 3_150]}
+        use:clickOutside={handleClickOutside}
+        onMouseDown={e => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div class='flex items-center justify-between border-b border-gray-100 bg-linear-to-r from-indigo-50/80 via-purple-50/80 to-white/80 px-4 py-3'>
+          <div class='flex items-center gap-2.5'>
+            <span class='flex h-7 w-7 items-center justify-center rounded-lg bg-indigo-600 text-sm font-bold text-white shadow-xs'>
+              {isEdit() ? '✏️' : '+'}
+            </span>
             <div>
-              <label class='mb-1 block font-semibold text-gray-700'>
-                Transition Type (Matched to Edge Handle)
-              </label>
-              <div
-                class={`flex items-center gap-2 rounded-lg border p-2 ${kindInfo().badgeClass}`}
-              >
-                <span class='text-base'>{kindInfo().icon}</span>
-                <span class='font-bold'>{kindInfo().title}</span>
-              </div>
-            </div>
-
-            {/* Specific inputs */}
-            <Show when={edgeKind() === 'on'}>
-              <div>
-                <label class='mb-1 block font-semibold text-gray-700'>
-                  Event Name <span class='text-red-500'>*</span>
-                </label>
-                <input
-                  type='text'
-                  placeholder='e.g. SUBMIT, RETRY, CANCEL'
-                  value={eventName()}
-                  onInput={e => setEventName(e.currentTarget.value.toUpperCase())}
-                  class='w-full rounded-lg border border-gray-300 bg-white px-3 py-1.5 font-mono text-xs focus:border-indigo-500 focus:outline-none'
-                />
-              </div>
-            </Show>
-
-            <Show when={edgeKind() === 'after'}>
-              <div>
-                <label class='mb-1 block font-semibold text-gray-700'>
-                  Delay Duration / Identifier <span class='text-red-500'>*</span>
-                </label>
-                <input
-                  type='text'
-                  placeholder='e.g. 3000ms, 5s, TIMEOUT'
-                  value={delay()}
-                  onInput={e => setDelay(e.currentTarget.value)}
-                  class='w-full rounded-lg border border-gray-300 bg-white px-3 py-1.5 font-mono text-xs focus:border-indigo-500 focus:outline-none'
-                />
-              </div>
-            </Show>
-
-            <div>
-              <label class='mb-1 block font-semibold text-gray-700'>
-                Guard Condition <span class='text-gray-400'>(optional)</span>
-              </label>
-              <input
-                type='text'
-                placeholder='e.g. isValid, isApproved'
-                value={guard()}
-                onInput={e => setGuard(e.currentTarget.value)}
-                class='w-full rounded-lg border border-gray-300 bg-white px-3 py-1.5 font-mono text-xs focus:border-indigo-500 focus:outline-none'
-              />
-            </div>
-
-            <div>
-              <label class='mb-1 block font-semibold text-gray-700'>
-                Actions{' '}
-                <span class='text-gray-400'>(optional, comma-separated)</span>
-              </label>
-              <input
-                type='text'
-                placeholder='e.g. notifyUser, logTransition'
-                value={actionsInput()}
-                onInput={e => setActionsInput(e.currentTarget.value)}
-                class='w-full rounded-lg border border-gray-300 bg-white px-3 py-1.5 font-mono text-xs focus:border-indigo-500 focus:outline-none'
-              />
+              <h3 class='text-sm font-bold text-gray-900'>
+                {isEdit() ? 'Edit Transition' : 'Add Transition'}
+              </h3>
+              <p class='font-mono text-[11px] text-gray-500'>
+                {fromState()} <span class='text-indigo-600'>➔</span> {toState()}
+              </p>
             </div>
           </div>
 
-          {/* Footer */}
-          <div class='flex justify-end gap-2 border-t border-gray-100 bg-gray-50/80 px-4 py-2.5'>
-            <button
-              type='button'
-              onClick={close}
-              class='cursor-pointer rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50'
-            >
-              Cancel
-            </button>
-            <button
-              type='button'
-              onClick={handleSave}
-              class='cursor-pointer rounded-lg bg-indigo-600 px-3.5 py-1.5 text-xs font-semibold text-white shadow-xs hover:bg-indigo-700'
-            >
-              {isEdit() ? 'Save Changes' : 'Add Transition'}
-            </button>
-          </div>
+          <button
+            type='button'
+            onClick={close}
+            aria-label='Close'
+            class='cursor-pointer rounded-lg p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-700'
+          >
+            ✕
+          </button>
         </div>
-      )}
+
+        {/* Form */}
+        <div class='space-y-3.5 p-4 text-left text-xs'>
+          {/* Kind indicator banner */}
+          <div>
+            <label class='mb-1 block font-semibold text-gray-700'>
+              Transition Type (Matched to Edge Handle)
+            </label>
+            <div
+              class={`flex items-center gap-2 rounded-lg border p-2 ${kindInfo().badgeClass}`}
+            >
+              <span class='text-base'>{kindInfo().icon}</span>
+              <span class='font-bold'>{kindInfo().title}</span>
+            </div>
+          </div>
+
+          {/* Specific inputs */}
+          <Show when={edgeKind() === 'on'}>
+            <div>
+              <label class='mb-1 block font-semibold text-gray-700'>
+                Event Name <span class='text-red-500'>*</span>
+              </label>
+              <input
+                type='text'
+                placeholder='e.g. SUBMIT, RETRY, CANCEL'
+                value={eventName()}
+                onInput={e => setEventName(e.currentTarget.value.toUpperCase())}
+                class='w-full rounded-lg border border-gray-300 bg-white px-3 py-1.5 font-mono text-xs focus:border-indigo-500 focus:outline-none'
+              />
+            </div>
+          </Show>
+
+          <Show when={edgeKind() === 'after'}>
+            <div>
+              <label class='mb-1 block font-semibold text-gray-700'>
+                Delay Duration / Identifier <span class='text-red-500'>*</span>
+              </label>
+              <input
+                type='text'
+                placeholder='e.g. 3000ms, 5s, TIMEOUT'
+                value={delay()}
+                onInput={e => setDelay(e.currentTarget.value)}
+                class='w-full rounded-lg border border-gray-300 bg-white px-3 py-1.5 font-mono text-xs focus:border-indigo-500 focus:outline-none'
+              />
+            </div>
+          </Show>
+
+          <div>
+            <label class='mb-1 block font-semibold text-gray-700'>
+              Guard Condition <span class='text-gray-400'>(optional)</span>
+            </label>
+            <input
+              type='text'
+              placeholder='e.g. isValid, isApproved'
+              value={guard()}
+              onInput={e => setGuard(e.currentTarget.value)}
+              class='w-full rounded-lg border border-gray-300 bg-white px-3 py-1.5 font-mono text-xs focus:border-indigo-500 focus:outline-none'
+            />
+          </div>
+
+          <div>
+            <label class='mb-1 block font-semibold text-gray-700'>
+              Actions <span class='text-gray-400'>(optional, comma-separated)</span>
+            </label>
+            <input
+              type='text'
+              placeholder='e.g. notifyUser, logTransition'
+              value={actionsInput()}
+              onInput={e => setActionsInput(e.currentTarget.value)}
+              class='w-full rounded-lg border border-gray-300 bg-white px-3 py-1.5 font-mono text-xs focus:border-indigo-500 focus:outline-none'
+            />
+          </div>
+
+          {/* Conflict Warning Alert */}
+          <Show when={conflict().hasConflict}>
+            <div class='rounded-lg border border-red-200 bg-red-50 p-2.5 text-xs text-red-700 shadow-2xs'>
+              <div class='flex items-start gap-1.5'>
+                <span class='font-bold text-red-600'>⚠️ Conflict:</span>
+                <span class='flex-1 leading-tight'>{conflict().reason}</span>
+              </div>
+            </div>
+          </Show>
+        </div>
+
+        {/* Footer */}
+        <div class='flex justify-end gap-2 border-t border-gray-100 bg-gray-50/80 px-4 py-2.5'>
+          <button
+            type='button'
+            onClick={close}
+            class='cursor-pointer rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50'
+          >
+            Cancel
+          </button>
+          <button
+            type='button'
+            onClick={handleSave}
+            disabled={conflict().hasConflict}
+            class={cn(
+              'cursor-pointer rounded-lg px-3.5 py-1.5 text-xs font-semibold shadow-xs transition-colors',
+              conflict().hasConflict
+                ? 'cursor-not-allowed bg-gray-300 text-gray-500 hover:bg-gray-300'
+                : 'bg-indigo-600 text-white hover:bg-indigo-700',
+            )}
+          >
+            {isEdit() ? 'Save Changes' : 'Add Transition'}
+          </button>
+        </div>
+      </div>
     </Show>
   );
 };

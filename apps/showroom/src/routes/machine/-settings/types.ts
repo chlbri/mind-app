@@ -175,8 +175,8 @@ export type TransitionItem = {
    * `PAYMENT_TIMEOUT`).
    */
   delay?: string | number;
-  /** Guard condition expression or name (e.g. `isValid`, `isFraud`). */
-  guard?: string;
+  /** Guard condition expression names when guards are specified. */
+  guards?: string[];
   /** Actions triggered during this transition. */
   actions?: string[];
 };
@@ -196,8 +196,8 @@ export type StateMachineEdgeData = {
    * `PAYMENT_TIMEOUT`).
    */
   delay?: string | number;
-  /** Guard condition expression or name (e.g. `isValid`, `isFraud`). */
-  guard?: string;
+  /** Guard condition expression names when multiple guards are specified. */
+  guards?: string[];
   /** Actions triggered during this transition. */
   actions?: string[];
   /** Source state path. */

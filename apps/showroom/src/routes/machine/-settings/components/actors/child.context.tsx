@@ -116,9 +116,7 @@ export const ActorChildContextItem: Component<
           e.currentTarget.value = props.contextKey;
         }}
         onKeyDown={e => {
-          if (e.key === 'Enter') {
-            e.currentTarget.blur();
-          }
+          if (e.key === 'Enter') e.currentTarget.blur();
         }}
       />
       <span class='text-xs text-gray-400'>→</span>

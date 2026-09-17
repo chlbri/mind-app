@@ -62,3 +62,5 @@ export const toList = (val: string): string[] => {
     .map(s => s.trim())
     .filter(Boolean);
 };
+
+export * from './transition.validator';

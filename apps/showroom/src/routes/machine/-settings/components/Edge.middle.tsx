@@ -195,10 +195,11 @@ export const StateMachineEdgeMiddle: Component<
                 onDblClick={e => {
                   e.stopImmediatePropagation();
                   e.stopPropagation();
+                  const edge = edgeRecord();
                   setActiveAddTransitionEdge({
                     edgeId: props.id,
-                    from: edgeData()?.fromState ?? '',
-                    to: edgeData()?.toState ?? '',
+                    from: edgeData()?.fromState || edge?.from || '',
+                    to: edgeData()?.toState || edge?.to || '',
                     kind: t.kind,
                     mode: 'edit',
                     transitionId: t.id,
@@ -252,11 +253,20 @@ export const StateMachineEdgeMiddle: Component<
               style={{ width: '100%' }}
               onMouseDown={e => {
                 e.stopPropagation();
+                const edge = edgeRecord();
+                const from = edgeData()?.fromState || edge?.from || '';
+                const to = edgeData()?.toState || edge?.to || '';
+                const fromIdx = edge?.fromIndex ?? edge?.toIndex;
+                const inferredKind: EdgeKind =
+                  edgeData()?.kind ??
+                  transitions()[0]?.kind ??
+                  (fromIdx === 0 ? 'after' : fromIdx === 1 ? 'always' : 'on');
+
                 setActiveAddTransitionEdge({
                   edgeId: props.id,
-                  from: edgeData()?.fromState ?? '',
-                  to: edgeData()?.toState ?? '',
-                  kind: edgeData()?.kind ?? transitions()[0]?.kind,
+                  from,
+                  to,
+                  kind: inferredKind,
                   mode: 'add',
                 });
               }}

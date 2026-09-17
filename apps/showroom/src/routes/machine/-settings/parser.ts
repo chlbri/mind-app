@@ -22,7 +22,12 @@ const INITIAL_X = 80;
 const INITIAL_Y = 100;
 
 /** Normalizes a raw transition target or candidate into structured properties. */
-type NormalizedTarget = { target: string; guard?: string; actions?: string[] };
+type NormalizedTarget = {
+  target: string;
+  guard?: string;
+  guards?: string[];
+  actions?: string[];
+};
 
 const normalizeTarget = (raw: any): NormalizedTarget[] => {
   if (!raw) return [];
@@ -33,15 +38,19 @@ const normalizeTarget = (raw: any): NormalizedTarget[] => {
   if (typeof raw === 'object') {
     const target = raw.target ?? raw.state;
     if (typeof target === 'string') {
-      const guard = raw.guards ?? raw.guard;
+      const rawGuards = raw.guards ?? raw.guard;
+      const guards = Array.isArray(rawGuards)
+        ? rawGuards.map(String)
+        : typeof rawGuards === 'string'
+          ? [rawGuards]
+          : undefined;
+      const guard = guards ? guards.join(', ') : undefined;
       const actions = Array.isArray(raw.actions)
         ? raw.actions
         : raw.actions
           ? [raw.actions]
           : undefined;
-      return [
-        { target, guard: typeof guard === 'string' ? guard : undefined, actions },
-      ];
+      return [{ target, guard, guards, actions }];
     }
   }
   return [];
@@ -331,6 +340,7 @@ export const parseMachineToGraph = <
     event?: string;
     delay?: string | number;
     guard?: string;
+    guards?: string[];
     actions?: string[];
   }> = [];
 
@@ -452,7 +462,7 @@ export const parseMachineToGraph = <
     if (s.after && typeof s.after === 'object') {
       Object.entries(s.after).forEach(([delay, targetRaw]) => {
         const targets = normalizeTarget(targetRaw);
-        targets.forEach(({ target, guard, actions }, idx) => {
+        targets.forEach(({ target, guard, guards, actions }, idx) => {
           const toId = resolveTargetId(target, node.path);
           const edgeId = `edge:after:${node.id}=>${toId}:${delay}:${idx}`;
           rawEdges.push({
@@ -463,6 +473,7 @@ export const parseMachineToGraph = <
             label: `after: ${delay}`,
             delay,
             guard,
+            guards,
             actions,
           });
         });
@@ -472,7 +483,7 @@ export const parseMachineToGraph = <
     // 3. Edge for 'always' transition
     if (s.always) {
       const targets = normalizeTarget(s.always);
-      targets.forEach(({ target, guard, actions }, idx) => {
+      targets.forEach(({ target, guard, guards, actions }, idx) => {
         const toId = resolveTargetId(target, node.path);
         const edgeId = `edge:always:${node.id}=>${toId}:${idx}`;
         const guardLabel = guard ? ` [${guard}]` : '';
@@ -483,6 +494,7 @@ export const parseMachineToGraph = <
           kind: 'always',
           label: `always${guardLabel}`,
           guard,
+          guards,
           actions,
         });
       });
@@ -492,7 +504,7 @@ export const parseMachineToGraph = <
     if (s.on && typeof s.on === 'object') {
       Object.entries(s.on).forEach(([event, targetRaw]) => {
         const targets = normalizeTarget(targetRaw);
-        targets.forEach(({ target, guard, actions }, idx) => {
+        targets.forEach(({ target, guard, guards, actions }, idx) => {
           const toId = resolveTargetId(target, node.path);
           const edgeId = `edge:on:${node.id}=>${toId}:${event}:${idx}`;
           const guardLabel = guard ? ` [${guard}]` : '';
@@ -504,6 +516,7 @@ export const parseMachineToGraph = <
             label: `on: ${event}${guardLabel}`,
             event,
             guard,
+            guards,
             actions,
           });
         });
@@ -582,7 +595,7 @@ export const parseMachineToGraph = <
       label: e.label,
       event: e.event,
       delay: e.delay,
-      guard: e.guard,
+      guards: e.guards,
       actions: e.actions,
     };
 
@@ -651,7 +664,7 @@ export const parseMachineToGraph = <
           label: isMulti ? `${g.transitions.length} transitions` : primary.label,
           event: primary.event,
           delay: primary.delay,
-          guard: primary.guard,
+          guards: primary.guards,
           actions: primary.actions,
           fromState: g.from,
           toState: g.to,
