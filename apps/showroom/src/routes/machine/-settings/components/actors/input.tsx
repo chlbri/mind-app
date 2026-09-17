@@ -459,4 +459,3 @@ export const ActorItem: Component<ActorItemProps> = props => {
     </Show>
   );
 };
-

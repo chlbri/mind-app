@@ -167,4 +167,3 @@ export const ActorInputs: Component<ActorInputsProps> = props => {
     </div>
   );
 };
-

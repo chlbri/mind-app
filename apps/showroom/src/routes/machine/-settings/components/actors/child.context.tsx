@@ -18,7 +18,9 @@ export type ActorChildContextItemProps = {
  * (`child.contexts`). Retrieves its target context reactively from the state
  * machine.
  */
-export const ActorChildContextItem: Component<ActorChildContextItemProps> = props => {
+export const ActorChildContextItem: Component<
+  ActorChildContextItemProps
+> = props => {
   const { hooks } = useFlow();
 
   const allActors = hooks.state({
@@ -127,4 +129,3 @@ export const ActorChildContextItem: Component<ActorChildContextItemProps> = prop
     </div>
   );
 };
-

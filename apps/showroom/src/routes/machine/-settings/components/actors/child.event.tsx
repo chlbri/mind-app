@@ -177,4 +177,3 @@ export const ActorChildEventItem: Component<ActorChildEventItemProps> = props =>
     </Show>
   );
 };
-

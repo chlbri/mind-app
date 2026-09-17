@@ -2,8 +2,8 @@ import { EditPanel, mouseOut, type MouseOutParam } from '@bemedev/mind-flow';
 import { Show, type Component } from 'solid-js';
 
 import type { StateMachineNodeData } from '../types';
-import { ActorInputs } from './actors';
 import { ActivityInputs } from './activities';
+import { ActorInputs } from './actors';
 
 declare module 'solid-js' {
   // oxlint-disable-next-line typescript/no-namespace

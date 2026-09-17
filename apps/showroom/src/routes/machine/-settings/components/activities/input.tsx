@@ -54,21 +54,36 @@ export const ActivityItem: Component<ActivityItemProps> = props => {
     props.updateField('activities', updated);
   };
 
-  const error = () => {
-    const act = activity();
-    if (!act) return undefined;
-    const currentDelay = act.delay;
-    if (!currentDelay) return undefined;
+  const renameDelay = (newDelay: string) => {
+    const trimmed = newDelay.trim();
+    const currentDelay = activity()?.delay;
+    if (!trimmed || trimmed === currentDelay) return;
 
     const others = allActivities()
       .filter((item, i) => (item.id ?? item.delay ?? String(i)) !== props.id)
       .map(({ delay }) => delay)
       .filter(Boolean);
 
-    if (others.includes(currentDelay)) {
-      return `delay ('${currentDelay}') duplicated`;
-    }
+    if (others.includes(trimmed)) return;
+
+    updateActivity({ delay: trimmed });
   };
+
+  // const error = () => {
+  //   const act = activity();
+  //   if (!act) return undefined;
+  //   const currentDelay = act.delay;
+  //   if (!currentDelay) return undefined;
+
+  //   const others = allActivities()
+  //     .filter((item, i) => (item.id ?? item.delay ?? String(i)) !== props.id)
+  //     .map(({ delay }) => delay)
+  //     .filter(Boolean);
+
+  //   if (others.includes(currentDelay)) {
+  //     return `delay ('${currentDelay}') duplicated`;
+  //   }
+  // };
 
   return (
     <Show when={activity()}>
@@ -112,13 +127,18 @@ export const ActivityItem: Component<ActivityItemProps> = props => {
                 class='w-full rounded border border-gray-200 bg-white px-2 py-1 font-mono text-xs focus:border-purple-500 focus:outline-none'
                 value={act().delay}
                 placeholder='e.g. POLL, 3000ms, HEARTBEAT'
-                onInput={e => {
-                  updateActivity({ delay: e.currentTarget.value });
+                onBlur={e => {
+                  renameDelay(e.currentTarget.value);
+                  e.currentTarget.value = activity()?.delay ?? '';
+                }}
+                onKeyDown={e => {
+                  if (e.key === 'Enter') {
+                    renameDelay(e.currentTarget.value);
+                    e.currentTarget.value = activity()?.delay ?? '';
+                    e.currentTarget.blur();
+                  }
                 }}
               />
-              <Show when={error()} keyed>
-                {error => <div class='text-xs text-red-500'>{error}</div>}
-              </Show>
             </div>
 
             {/* Actions Input */}
