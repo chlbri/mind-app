@@ -381,7 +381,11 @@ export const ActorItem: Component<ActorItemProps> = props => {
                       onClick={() => {
                         const currentChild = act().child ?? {};
                         const currentOn = currentChild.on ?? {};
-                        const evKey = `EVENT_${Object.keys(currentOn).length + 1}`;
+                        let nextIndex = Object.keys(currentOn).length + 1;
+                        while (`EVENT_${nextIndex}` in currentOn) {
+                          nextIndex++;
+                        }
+                        const evKey = `EVENT_${nextIndex}`;
                         updateActor({
                           child: {
                             ...currentChild,
@@ -422,7 +426,10 @@ export const ActorItem: Component<ActorItemProps> = props => {
                       onClick={() => {
                         const currentChild = act().child ?? {};
                         const currentContexts = currentChild.contexts ?? {};
-                        const nextIndex = Object.keys(currentContexts).length + 1;
+                        let nextIndex = Object.keys(currentContexts).length + 1;
+                        while (`.path_${nextIndex}` in currentContexts) {
+                          nextIndex++;
+                        }
                         updateActor({
                           child: {
                             ...currentChild,

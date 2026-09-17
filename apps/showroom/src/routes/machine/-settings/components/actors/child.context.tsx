@@ -69,11 +69,23 @@ export const ActorChildContextItem: Component<
     props.updateField('actors', updated);
   };
 
+  const currentActor = () => {
+    return allActors().find(
+      (a, i) => (a.id ?? a.name ?? String(i)) === props.actorId,
+    );
+  };
+
   const renameKey = (newKey: string) => {
     const trimmed = newKey.trim();
     if (!trimmed || trimmed === props.contextKey) return;
+
+    const currentContexts = currentActor()?.child?.contexts ?? {};
+    if (trimmed in currentContexts) return;
+
     updateChild(child => {
-      const { [props.contextKey]: oldVal, ...rest } = child.contexts ?? {};
+      const contexts = child.contexts ?? {};
+      if (trimmed in contexts) return child;
+      const { [props.contextKey]: oldVal, ...rest } = contexts;
       return { ...child, contexts: { ...rest, [trimmed]: oldVal ?? '' } };
     });
   };
@@ -99,7 +111,17 @@ export const ActorChildContextItem: Component<
         title='Child context path (e.g. . or user.id)'
         class='w-1/2 rounded border border-gray-200 px-1 py-0.5 font-mono text-[10px] focus:border-indigo-500 focus:outline-none'
         value={props.contextKey}
-        onBlur={e => renameKey(e.currentTarget.value)}
+        onBlur={e => {
+          renameKey(e.currentTarget.value);
+          e.currentTarget.value = props.contextKey;
+        }}
+        onKeyDown={e => {
+          if (e.key === 'Enter') {
+            renameKey(e.currentTarget.value);
+            e.currentTarget.value = props.contextKey;
+            e.currentTarget.blur();
+          }
+        }}
       />
       <span class='text-xs text-gray-400'>→</span>
       <input

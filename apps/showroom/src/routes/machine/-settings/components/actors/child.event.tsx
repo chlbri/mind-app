@@ -76,6 +76,12 @@ export const ActorChildEventItem: Component<ActorChildEventItemProps> = props =>
     props.updateField('actors', updated);
   };
 
+  const currentActor = () => {
+    return allActors().find(
+      (a, i) => (a.id ?? a.name ?? String(i)) === props.actorId,
+    );
+  };
+
   const updateHandler = (patch: Partial<StateActorChildEventHandler>) => {
     updateChild(child => {
       const on = child.on ?? {};
@@ -87,8 +93,14 @@ export const ActorChildEventItem: Component<ActorChildEventItemProps> = props =>
   const renameEventKey = (newKey: string) => {
     const trimmed = newKey.trim();
     if (!trimmed || trimmed === props.eventKey) return;
+
+    const currentOn = currentActor()?.child?.on ?? {};
+    if (trimmed in currentOn) return;
+
     updateChild(child => {
-      const { [props.eventKey]: old, ...rest } = child.on ?? {};
+      const on = child.on ?? {};
+      if (trimmed in on) return child;
+      const { [props.eventKey]: old, ...rest } = on;
       return { ...child, on: { ...rest, [trimmed]: old ?? { actions: [] } } };
     });
   };
@@ -109,7 +121,17 @@ export const ActorChildEventItem: Component<ActorChildEventItemProps> = props =>
               type='text'
               class='rounded border border-indigo-200 bg-indigo-50/40 px-1.5 py-0.5 font-mono text-[10px] font-bold text-indigo-900 focus:border-indigo-500 focus:outline-none'
               value={props.eventKey}
-              onBlur={e => renameEventKey(e.currentTarget.value)}
+              onBlur={e => {
+                renameEventKey(e.currentTarget.value);
+                e.currentTarget.value = props.eventKey;
+              }}
+              onKeyDown={e => {
+                if (e.key === 'Enter') {
+                  renameEventKey(e.currentTarget.value);
+                  e.currentTarget.value = props.eventKey;
+                  e.currentTarget.blur();
+                }
+              }}
             />
 
             <button
