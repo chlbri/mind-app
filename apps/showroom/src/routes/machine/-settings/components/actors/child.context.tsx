@@ -4,9 +4,13 @@ import { createMemo, type Component } from 'solid-js';
 
 import type { StateActorData, StateMachineNodeData } from '../../types';
 
+/** Properties for the {@linkcode ActorChildContextItem} component. */
 export type ActorChildContextItemProps = {
+  /** Stable identifier of the parent actor. */
   actorId: string;
+  /** Context key name projected into the child machine. */
   contextKey: string;
+  /** Callback for updating a field on the state machine node data. */
   updateField: <K extends keyof StateMachineNodeData>(
     field: K,
     value: StateMachineNodeData[K],
@@ -17,6 +21,11 @@ export type ActorChildContextItemProps = {
  * Child item component representing a single context projection mapping
  * (`child.contexts`). Retrieves its target context reactively from the state
  * machine.
+ *
+ * @param props - Component properties of type
+ *   {@linkcode ActorChildContextItemProps}.
+ *
+ * @returns The rendered Solid component.
  */
 export const ActorChildContextItem: Component<
   ActorChildContextItemProps

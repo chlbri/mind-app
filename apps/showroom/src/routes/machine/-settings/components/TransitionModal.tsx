@@ -1,9 +1,10 @@
+import type { GuardConfig } from '@bemedev/app';
 import {
   clickOutside,
   cn,
   mouseOut,
-  useFlow,
   useClose,
+  useFlow,
   type MouseOutParam,
 } from '@bemedev/mind-flow';
 import { nanoid } from 'nanoid';
@@ -18,11 +19,13 @@ import {
 
 import {
   checkTransitionConflict,
+  formatGuards,
   getTransitionsFromState,
-  toList,
+  normalizeGuards,
 } from '../helpers';
 import { activeAddTransitionEdge, setActiveAddTransitionEdge } from '../signals';
 import type { EdgeKind, StateMachineEdgeData, TransitionItem } from '../types';
+import { GuardsInput } from './guards';
 
 declare module 'solid-js' {
   // oxlint-disable-next-line typescript/no-namespace
@@ -38,6 +41,8 @@ declare module 'solid-js' {
  * Panel dialog positioned at the bottom-left that allows users to add a new
  * transition or edit an existing transition (`on`, `after`, or `always`) connecting
  * two states.
+ *
+ * @returns The rendered Solid component or `null` when no transition is active.
  */
 export const TransitionModal: Component = () => {
   void clickOutside;
@@ -63,7 +68,7 @@ export const TransitionModal: Component = () => {
   });
   const [eventName, setEventName] = createSignal('');
   const [delay, setDelay] = createSignal('3000ms');
-  const [guard, setGuard] = createSignal('');
+  const [guards, setGuards] = createSignal<GuardConfig[] | undefined>(undefined);
   const [actionsInput, setActionsInput] = createSignal('');
 
   const isEdit = () =>
@@ -78,12 +83,18 @@ export const TransitionModal: Component = () => {
       const init = target.initialData;
       setEventName(init?.event ?? '');
       setDelay(init?.delay ? String(init.delay) : '3000ms');
-      setGuard(init?.guards?.join(', ') ?? '');
+      setGuards(
+        init?.guards
+          ? Array.isArray(init.guards)
+            ? init.guards
+            : [init.guards]
+          : undefined,
+      );
       setActionsInput(init?.actions?.join(', ') ?? '');
     } else {
       setEventName('');
       setDelay('3000ms');
-      setGuard('');
+      setGuards(undefined);
       setActionsInput('');
     }
   });
@@ -175,7 +186,6 @@ export const TransitionModal: Component = () => {
     const selectedKind = edgeKind();
     const ev = selectedKind === 'on' ? eventName().trim() || 'NEXT' : undefined;
     const del = selectedKind === 'after' ? delay().trim() || '3000ms' : undefined;
-    const grd = guard().trim() || undefined;
 
     const fromTransitions = getTransitionsFromState(allEdges(), source);
 
@@ -186,7 +196,7 @@ export const TransitionModal: Component = () => {
         kind: selectedKind,
         event: ev,
         delay: del,
-        guards: grd ? toList(grd) : undefined,
+        guards: guards(),
       },
       fromTransitions,
     );
@@ -229,9 +239,8 @@ export const TransitionModal: Component = () => {
     let label = '';
     let ev: string | undefined = undefined;
     let del: string | undefined = undefined;
-    const grd = guard().trim() || undefined;
-    const grds = grd ? toList(grd) : undefined;
-    const guardLabel = grds && grds.length > 0 ? ` [${grds.join(', ')}]` : '';
+    const grds = guards() ? normalizeGuards(guards()) : [];
+    const guardLabel = grds.length > 0 ? ` [${formatGuards(grds)}]` : '';
 
     if (selectedKind === 'on') {
       ev = eventName().trim() || 'NEXT';
@@ -242,7 +251,7 @@ export const TransitionModal: Component = () => {
     } else if (selectedKind === 'always') {
       label = `always${guardLabel}`;
     } else {
-      label = `child of ${target.to.split('/').pop()}`;
+      label = `child of ${(target.to || toState()).split('/').pop() || ''}`;
     }
 
     let updatedTransitions: TransitionItem[];
@@ -258,7 +267,7 @@ export const TransitionModal: Component = () => {
               label,
               event: ev,
               delay: del,
-              guards: grds,
+              guards: grds.length > 0 ? grds : undefined,
               actions: actions.length > 0 ? actions : undefined,
             };
           }
@@ -271,7 +280,7 @@ export const TransitionModal: Component = () => {
           label,
           event: ev,
           delay: del,
-          guards: grds,
+          guards: grds.length > 0 ? grds : undefined,
           actions: actions.length > 0 ? actions : undefined,
         };
         updatedTransitions = [...existingTransitions, editedTransition];
@@ -283,7 +292,7 @@ export const TransitionModal: Component = () => {
         label,
         event: ev,
         delay: del,
-        guards: grds,
+        guards: grds.length > 0 ? grds : undefined,
         actions: actions.length > 0 ? actions : undefined,
       };
       updatedTransitions = [...existingTransitions, newTransition];
@@ -309,7 +318,7 @@ export const TransitionModal: Component = () => {
 
     // Reset inputs & close
     setEventName('');
-    setGuard('');
+    setGuards(undefined);
     setActionsInput('');
     directClose();
   };
@@ -401,18 +410,7 @@ export const TransitionModal: Component = () => {
             </div>
           </Show>
 
-          <div>
-            <label class='mb-1 block font-semibold text-gray-700'>
-              Guard Condition <span class='text-gray-400'>(optional)</span>
-            </label>
-            <input
-              type='text'
-              placeholder='e.g. isValid, isApproved'
-              value={guard()}
-              onInput={e => setGuard(e.currentTarget.value)}
-              class='w-full rounded-lg border border-gray-300 bg-white px-3 py-1.5 font-mono text-xs focus:border-indigo-500 focus:outline-none'
-            />
-          </div>
+          <GuardsInput value={guards()} onChange={setGuards} />
 
           <div>
             <label class='mb-1 block font-semibold text-gray-700'>

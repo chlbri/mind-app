@@ -1,5 +1,7 @@
+import type { GuardConfig } from '@bemedev/app';
 import type { EdgesFrom, NodeHandles_T, NodesFrom } from '@bemedev/mind-flow';
 
+import { formatGuards, normalizeGuards } from './helpers';
 import type {
   EdgeKind,
   MachineConfig,
@@ -24,8 +26,7 @@ const INITIAL_Y = 100;
 /** Normalizes a raw transition target or candidate into structured properties. */
 type NormalizedTarget = {
   target: string;
-  guard?: string;
-  guards?: string[];
+  guards?: GuardConfig[];
   actions?: string[];
 };
 
@@ -39,18 +40,14 @@ const normalizeTarget = (raw: any): NormalizedTarget[] => {
     const target = raw.target ?? raw.state;
     if (typeof target === 'string') {
       const rawGuards = raw.guards ?? raw.guard;
-      const guards = Array.isArray(rawGuards)
-        ? rawGuards.map(String)
-        : typeof rawGuards === 'string'
-          ? [rawGuards]
-          : undefined;
-      const guard = guards ? guards.join(', ') : undefined;
+      const normalized = normalizeGuards(rawGuards);
+      const guards = normalized.length > 0 ? normalized : undefined;
       const actions = Array.isArray(raw.actions)
         ? raw.actions
         : raw.actions
           ? [raw.actions]
           : undefined;
-      return [{ target, guard, guards, actions }];
+      return [{ target, guards, actions }];
     }
   }
   return [];
@@ -118,17 +115,13 @@ const extractActivities = (rawActivities?: any): StateActivityData[] => {
               : [delay];
 
           const rawGuards = item.guards ?? item.guard;
-          const guardsList = Array.isArray(rawGuards)
-            ? rawGuards.map(g => (typeof g === 'string' ? g : (g?.name ?? '')))
-            : rawGuards
-              ? [typeof rawGuards === 'string' ? rawGuards : (rawGuards?.name ?? '')]
-              : undefined;
+          const guardsList = normalizeGuards(rawGuards);
 
           return {
             id: item.id ?? `${delay}_${i}`,
             delay,
             actions: actionsList,
-            guards: guardsList?.filter(Boolean),
+            guards: guardsList.length > 0 ? guardsList : undefined,
             description: item.description,
           };
         }
@@ -206,7 +199,7 @@ const extractActors = (rawActors?: Record<string, any>): StateActorData[] => {
         childOnHandlers[ev] = {
           actions: handlerActions,
           target: typeof handler?.target === 'string' ? handler.target : undefined,
-          guards: handler?.guards ? [].concat(handler.guards) : undefined,
+          guards: handler?.guards ? normalizeGuards(handler.guards) : undefined,
         };
       });
     }
@@ -231,7 +224,7 @@ const extractActors = (rawActors?: Record<string, any>): StateActorData[] => {
                 actions: nextActions ?? ['handleNext'],
                 target: config?.next?.target,
                 guards: config?.next?.guards
-                  ? [].concat(config.next.guards)
+                  ? normalizeGuards(config.next.guards)
                   : undefined,
               },
               error: config?.error
@@ -239,7 +232,7 @@ const extractActors = (rawActors?: Record<string, any>): StateActorData[] => {
                     actions: errorActions,
                     target: config.error.target,
                     guards: config.error.guards
-                      ? [].concat(config.error.guards)
+                      ? normalizeGuards(config.error.guards)
                       : undefined,
                   }
                 : undefined,
@@ -247,7 +240,7 @@ const extractActors = (rawActors?: Record<string, any>): StateActorData[] => {
                 ? {
                     actions: completeActions,
                     guards: config.complete.guards
-                      ? [].concat(config.complete.guards)
+                      ? normalizeGuards(config.complete.guards)
                       : undefined,
                     description: config.complete.description,
                   }
@@ -339,8 +332,7 @@ export const parseMachineToGraph = <
     label: string;
     event?: string;
     delay?: string | number;
-    guard?: string;
-    guards?: string[];
+    guards?: GuardConfig[];
     actions?: string[];
   }> = [];
 
@@ -462,17 +454,18 @@ export const parseMachineToGraph = <
     if (s.after && typeof s.after === 'object') {
       Object.entries(s.after).forEach(([delay, targetRaw]) => {
         const targets = normalizeTarget(targetRaw);
-        targets.forEach(({ target, guard, guards, actions }, idx) => {
+        targets.forEach(({ target, guards, actions }, idx) => {
           const toId = resolveTargetId(target, node.path);
           const edgeId = `edge:after:${node.id}=>${toId}:${delay}:${idx}`;
+          const guardLabel =
+            guards && guards.length > 0 ? ` [${formatGuards(guards)}]` : '';
           rawEdges.push({
             id: edgeId,
             from: node.id,
             to: toId,
             kind: 'after',
-            label: `after: ${delay}`,
+            label: `after: ${delay}${guardLabel}`,
             delay,
-            guard,
             guards,
             actions,
           });
@@ -483,17 +476,17 @@ export const parseMachineToGraph = <
     // 3. Edge for 'always' transition
     if (s.always) {
       const targets = normalizeTarget(s.always);
-      targets.forEach(({ target, guard, guards, actions }, idx) => {
+      targets.forEach(({ target, guards, actions }, idx) => {
         const toId = resolveTargetId(target, node.path);
         const edgeId = `edge:always:${node.id}=>${toId}:${idx}`;
-        const guardLabel = guard ? ` [${guard}]` : '';
+        const guardLabel =
+          guards && guards.length > 0 ? ` [${formatGuards(guards)}]` : '';
         rawEdges.push({
           id: edgeId,
           from: node.id,
           to: toId,
           kind: 'always',
           label: `always${guardLabel}`,
-          guard,
           guards,
           actions,
         });
@@ -504,10 +497,11 @@ export const parseMachineToGraph = <
     if (s.on && typeof s.on === 'object') {
       Object.entries(s.on).forEach(([event, targetRaw]) => {
         const targets = normalizeTarget(targetRaw);
-        targets.forEach(({ target, guard, guards, actions }, idx) => {
+        targets.forEach(({ target, guards, actions }, idx) => {
           const toId = resolveTargetId(target, node.path);
           const edgeId = `edge:on:${node.id}=>${toId}:${event}:${idx}`;
-          const guardLabel = guard ? ` [${guard}]` : '';
+          const guardLabel =
+            guards && guards.length > 0 ? ` [${formatGuards(guards)}]` : '';
           rawEdges.push({
             id: edgeId,
             from: node.id,
@@ -515,7 +509,6 @@ export const parseMachineToGraph = <
             kind: 'on',
             label: `on: ${event}${guardLabel}`,
             event,
-            guard,
             guards,
             actions,
           });

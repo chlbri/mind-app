@@ -1,4 +1,4 @@
-import type { CommonConfig3 } from '@bemedev/app';
+import type { CommonConfig3, GuardConfig } from '@bemedev/app';
 import type { Point } from '@bemedev/mind-flow';
 
 /** 2D coordinate position representing a node's location on the canvas. */
@@ -61,8 +61,8 @@ export type StateActivityData = {
   delay: string;
   /** Action names fired periodically on each interval tick. */
   actions: string[];
-  /** Optional guard condition names checked before firing actions. */
-  guards?: string[];
+  /** Optional guard conditions checked before firing actions. */
+  guards?: GuardConfig | GuardConfig[];
   /** Optional human-readable description of the activity. */
   description?: string;
 };
@@ -74,7 +74,7 @@ export type StateActorEmissionHandler = {
   /** Optional state target to transition to. */
   target?: string;
   /** Optional guards evaluated before executing actions or transitioning. */
-  guards?: string[];
+  guards?: GuardConfig | GuardConfig[];
 };
 
 /** Event transition / action handler for child machines in `@bemedev/app`. */
@@ -84,7 +84,7 @@ export type StateActorChildEventHandler = {
   /** Optional state target in parent machine to transition to. */
   target?: string;
   /** Optional guards evaluated before executing actions or transitioning. */
-  guards?: string[];
+  guards?: GuardConfig | GuardConfig[];
 };
 
 /** Detailed configuration and lifecycle metadata for an actor attached to a state. */
@@ -104,7 +104,11 @@ export type StateActorData = {
     /** Handler for stream error emissions. */
     error?: StateActorEmissionHandler;
     /** Handler for stream completion. */
-    complete?: { actions?: string[]; guards?: string[]; description?: string };
+    complete?: {
+      actions?: string[];
+      guards?: GuardConfig | GuardConfig[];
+      description?: string;
+    };
   };
   /** Child actor configuration when type is 'child'. */
   child?: {
@@ -175,8 +179,8 @@ export type TransitionItem = {
    * `PAYMENT_TIMEOUT`).
    */
   delay?: string | number;
-  /** Guard condition expression names when guards are specified. */
-  guards?: string[];
+  /** Guard condition expression or array of guard conditions. */
+  guards?: GuardConfig | GuardConfig[];
   /** Actions triggered during this transition. */
   actions?: string[];
 };
@@ -196,8 +200,8 @@ export type StateMachineEdgeData = {
    * `PAYMENT_TIMEOUT`).
    */
   delay?: string | number;
-  /** Guard condition expression names when multiple guards are specified. */
-  guards?: string[];
+  /** Guard condition expression or array of guard conditions. */
+  guards?: GuardConfig | GuardConfig[];
   /** Actions triggered during this transition. */
   actions?: string[];
   /** Source state path. */

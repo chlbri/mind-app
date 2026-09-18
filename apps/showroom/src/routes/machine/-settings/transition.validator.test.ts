@@ -1,3 +1,4 @@
+import type { GuardConfig } from '@bemedev/app';
 import { describe, expect, it } from 'vitest';
 
 import {
@@ -36,8 +37,8 @@ describe('#01 => transition.validator', () => {
       ]);
     });
 
-    it('#05 => should combine guard string and guards array', () => {
-      expect(normalizeGuards('isValid', ['isApproved', 'hasStock'])).toEqual([
+    it('#05 => should sort array of multiple guard strings', () => {
+      expect(normalizeGuards(['isValid', 'isApproved', 'hasStock'])).toEqual([
         'hasStock',
         'isApproved',
         'isValid',
@@ -85,10 +86,16 @@ describe('#01 => transition.validator', () => {
         from: '/cart',
         kind: 'on',
         event: 'CHECKOUT',
-        guard: 'isValid',
+        guards: 'isValid',
       };
       const existing: TransitionCheckItem[] = [
-        { id: 't1', from: '/cart', kind: 'on', event: 'CHECKOUT', guard: 'isValid' },
+        {
+          id: 't1',
+          from: '/cart',
+          kind: 'on',
+          event: 'CHECKOUT',
+          guards: 'isValid',
+        },
       ];
 
       const result = checkTransitionConflict(candidate, existing);
@@ -109,7 +116,7 @@ describe('#01 => transition.validator', () => {
           from: '/cart',
           kind: 'on',
           event: 'CHECKOUT',
-          guard: 'hasStock, isValid',
+          guards: 'hasStock, isValid',
         },
       ];
 
@@ -123,7 +130,7 @@ describe('#01 => transition.validator', () => {
         from: '/cart',
         kind: 'on',
         event: 'CHECKOUT',
-        guard: 'isValid',
+        guards: 'isValid',
       };
       const existing: TransitionCheckItem[] = [
         { id: 't1', from: '/cart', kind: 'on', event: 'CHECKOUT' },
@@ -138,7 +145,7 @@ describe('#01 => transition.validator', () => {
         from: '/cart',
         kind: 'on',
         event: 'CHECKOUT',
-        guard: 'isAdmin',
+        guards: 'isAdmin',
       };
       const existing: TransitionCheckItem[] = [
         {
@@ -146,7 +153,7 @@ describe('#01 => transition.validator', () => {
           from: '/cart',
           kind: 'on',
           event: 'CHECKOUT',
-          guard: 'isCustomer',
+          guards: 'isCustomer',
         },
       ];
 
@@ -190,7 +197,7 @@ describe('#01 => transition.validator', () => {
         from: '/payment',
         kind: 'after',
         delay: '5000ms',
-        guard: 'isTimeout',
+        guards: 'isTimeout',
       };
       const existing: TransitionCheckItem[] = [
         {
@@ -198,7 +205,7 @@ describe('#01 => transition.validator', () => {
           from: '/payment',
           kind: 'after',
           delay: '5000ms',
-          guard: 'isTimeout',
+          guards: 'isTimeout',
         },
       ];
 
@@ -212,7 +219,7 @@ describe('#01 => transition.validator', () => {
         from: '/payment',
         kind: 'after',
         delay: '3000ms',
-        guard: 'isTimeout',
+        guards: 'isTimeout',
       };
       const existing: TransitionCheckItem[] = [
         { id: 't1', from: '/payment', kind: 'after', delay: '3000ms' },
@@ -227,7 +234,7 @@ describe('#01 => transition.validator', () => {
         from: '/payment',
         kind: 'after',
         delay: '3000ms',
-        guard: 'guardA',
+        guards: 'guardA',
       };
       const existing: TransitionCheckItem[] = [
         {
@@ -235,7 +242,7 @@ describe('#01 => transition.validator', () => {
           from: '/payment',
           kind: 'after',
           delay: '3000ms',
-          guard: 'guardB',
+          guards: 'guardB',
         },
       ];
 
@@ -279,10 +286,10 @@ describe('#01 => transition.validator', () => {
       const candidate: TransitionCheckCandidate = {
         from: '/validation',
         kind: 'always',
-        guard: 'isApproved',
+        guards: 'isApproved',
       };
       const existing: TransitionCheckItem[] = [
-        { id: 't1', from: '/validation', kind: 'always', guard: 'isApproved' },
+        { id: 't1', from: '/validation', kind: 'always', guards: 'isApproved' },
       ];
 
       const result = checkTransitionConflict(candidate, existing);
@@ -294,7 +301,7 @@ describe('#01 => transition.validator', () => {
       const candidate: TransitionCheckCandidate = {
         from: '/validation',
         kind: 'always',
-        guard: 'isApproved',
+        guards: 'isApproved',
       };
       const existing: TransitionCheckItem[] = [
         { id: 't1', from: '/validation', kind: 'always' },
@@ -308,10 +315,10 @@ describe('#01 => transition.validator', () => {
       const candidate: TransitionCheckCandidate = {
         from: '/validation',
         kind: 'always',
-        guard: 'isApproved',
+        guards: 'isApproved',
       };
       const existing: TransitionCheckItem[] = [
-        { id: 't1', from: '/validation', kind: 'always', guard: 'isRejected' },
+        { id: 't1', from: '/validation', kind: 'always', guards: 'isRejected' },
       ];
 
       const result = checkTransitionConflict(candidate, existing);
@@ -379,7 +386,7 @@ describe('#01 => transition.validator', () => {
                 kind: 'on' as const,
                 label: 'on: NEXT [isVip]',
                 event: 'NEXT',
-                guard: 'isVip',
+                guards: 'isVip',
               },
             ],
           },
@@ -441,6 +448,366 @@ describe('#01 => transition.validator', () => {
       expect(result.reason).toContain(
         "An unguarded transition for event 'CHECKOUT' already exists",
       );
+    });
+  });
+
+  describe('#08 => normalizeGuards with GuardAnd and GuardOr objects', () => {
+    it('#01 => should normalize simple GuardAnd object with sorted operands', () => {
+      const guards: GuardConfig = { and: ['b', 'a'] };
+      expect(normalizeGuards(guards)).toEqual([{ and: ['a', 'b'] }]);
+    });
+
+    it('#02 => should normalize simple GuardOr object with sorted operands', () => {
+      const guards: GuardConfig = { or: ['y', 'x'] };
+      expect(normalizeGuards(guards)).toEqual([{ or: ['x', 'y'] }]);
+    });
+
+    it('#03 => should normalize nested and/or objects recursively', () => {
+      const guards: GuardConfig = { and: ['b', { or: ['d', 'c'] }, 'a'] };
+      expect(normalizeGuards(guards)).toEqual([
+        { and: [{ or: ['c', 'd'] }, 'a', 'b'] },
+      ]);
+    });
+
+    it('#04 => should deduplicate identical guard objects in guards array', () => {
+      const guards: GuardConfig[] = [{ and: ['a', 'b'] }, { and: ['b', 'a'] }];
+      expect(normalizeGuards(guards)).toEqual([{ and: ['a', 'b'] }]);
+    });
+
+    it('#05 => should parse and normalize guard object from JSON string', () => {
+      const jsonGuard = '{"and": ["b", "a"]}';
+      expect(normalizeGuards(jsonGuard)).toEqual([{ and: ['a', 'b'] }]);
+    });
+
+    it('#06 => should normalize guard with describer object', () => {
+      const guards: GuardConfig = {
+        name: 'checkAge',
+        description: 'Check if adult',
+      };
+      expect(normalizeGuards(guards)).toEqual([
+        { name: 'checkAge', description: 'Check if adult' },
+      ]);
+    });
+  });
+
+  describe('#09 => areGuardsEqual with complex GuardConfig (deepEqual)', () => {
+    it('#01 => should return true for identical GuardAnd objects', () => {
+      const g1: GuardConfig = { and: ['a', 'b'] };
+      const g2: GuardConfig = { and: ['a', 'b'] };
+      expect(areGuardsEqual(g1, g2)).toBe(true);
+    });
+
+    it('#02 => should return true for GuardAnd objects with different operand ordering', () => {
+      const g1: GuardConfig = { and: ['a', 'b'] };
+      const g2: GuardConfig = { and: ['b', 'a'] };
+      expect(areGuardsEqual(g1, g2)).toBe(true);
+    });
+
+    it('#03 => should return true for GuardOr objects with different operand ordering', () => {
+      const g1: GuardConfig = { or: ['y', 'x'] };
+      const g2: GuardConfig = { or: ['x', 'y'] };
+      expect(areGuardsEqual(g1, g2)).toBe(true);
+    });
+
+    it('#04 => should return false for GuardAnd vs GuardOr with same operands', () => {
+      const g1: GuardConfig = { and: ['a', 'b'] };
+      const g2: GuardConfig = { or: ['a', 'b'] };
+      expect(areGuardsEqual(g1, g2)).toBe(false);
+    });
+
+    it('#05 => should return false for GuardAnd with different operands', () => {
+      const g1: GuardConfig = { and: ['a', 'b'] };
+      const g2: GuardConfig = { and: ['a', 'c'] };
+      expect(areGuardsEqual(g1, g2)).toBe(false);
+    });
+
+    it('#06 => should return true for nested GuardAnd/GuardOr with commutative inner order', () => {
+      const g1: GuardConfig = { and: ['b', { or: ['d', 'c'] }, 'a'] };
+      const g2: GuardConfig = { and: [{ or: ['c', 'd'] }, 'a', 'b'] };
+      expect(areGuardsEqual(g1, g2)).toBe(true);
+    });
+
+    it('#07 => should return true when comparing JSON string and object representations', () => {
+      const g1 = '{"and": ["b", "a"]}';
+      const g2: GuardConfig = { and: ['a', 'b'] };
+      expect(areGuardsEqual(g1, g2)).toBe(true);
+    });
+
+    it('#08 => should return false when comparing guarded transition with unguarded transition', () => {
+      const g1: GuardConfig = { and: ['a', 'b'] };
+      expect(areGuardsEqual(g1, undefined)).toBe(false);
+      expect(areGuardsEqual(undefined, g1)).toBe(false);
+    });
+  });
+
+  describe('#10 => on transitions collision check with complex GuardConfig', () => {
+    it('#01 => should detect conflict when eventName and GuardAnd match with different operand order', () => {
+      const candidate: TransitionCheckCandidate = {
+        from: '/cart',
+        kind: 'on',
+        event: 'SUBMIT',
+        guards: { and: ['b', 'a'] },
+      };
+      const existing: TransitionCheckItem[] = [
+        {
+          id: 't1',
+          from: '/cart',
+          kind: 'on',
+          event: 'SUBMIT',
+          guards: { and: ['a', 'b'] },
+        },
+      ];
+
+      const result = checkTransitionConflict(candidate, existing);
+      expect(result.hasConflict).toBe(true);
+      expect(result.reason).toContain('and(a, b)');
+    });
+
+    it('#02 => should detect conflict when eventName and GuardOr match', () => {
+      const candidate: TransitionCheckCandidate = {
+        from: '/cart',
+        kind: 'on',
+        event: 'SUBMIT',
+        guards: { or: ['x', 'y'] },
+      };
+      const existing: TransitionCheckItem[] = [
+        {
+          id: 't1',
+          from: '/cart',
+          kind: 'on',
+          event: 'SUBMIT',
+          guards: { or: ['y', 'x'] },
+        },
+      ];
+
+      const result = checkTransitionConflict(candidate, existing);
+      expect(result.hasConflict).toBe(true);
+      expect(result.reason).toContain('or(x, y)');
+    });
+
+    it('#03 => should not detect conflict when eventName matches but GuardAnd vs GuardOr differ', () => {
+      const candidate: TransitionCheckCandidate = {
+        from: '/cart',
+        kind: 'on',
+        event: 'SUBMIT',
+        guards: { and: ['a', 'b'] },
+      };
+      const existing: TransitionCheckItem[] = [
+        {
+          id: 't1',
+          from: '/cart',
+          kind: 'on',
+          event: 'SUBMIT',
+          guards: { or: ['a', 'b'] },
+        },
+      ];
+
+      const result = checkTransitionConflict(candidate, existing);
+      expect(result.hasConflict).toBe(false);
+    });
+
+    it('#04 => should not detect conflict when eventName matches but operands differ', () => {
+      const candidate: TransitionCheckCandidate = {
+        from: '/cart',
+        kind: 'on',
+        event: 'SUBMIT',
+        guards: { and: ['a', 'b'] },
+      };
+      const existing: TransitionCheckItem[] = [
+        {
+          id: 't1',
+          from: '/cart',
+          kind: 'on',
+          event: 'SUBMIT',
+          guards: { and: ['a', 'c'] },
+        },
+      ];
+
+      const result = checkTransitionConflict(candidate, existing);
+      expect(result.hasConflict).toBe(false);
+    });
+
+    it('#05 => should detect conflict when candidate has JSON string and existing has object', () => {
+      const candidate: TransitionCheckCandidate = {
+        from: '/cart',
+        kind: 'on',
+        event: 'SUBMIT',
+        guards: '{"and": ["b", "a"]}',
+      };
+      const existing: TransitionCheckItem[] = [
+        {
+          id: 't1',
+          from: '/cart',
+          kind: 'on',
+          event: 'SUBMIT',
+          guards: { and: ['a', 'b'] },
+        },
+      ];
+
+      const result = checkTransitionConflict(candidate, existing);
+      expect(result.hasConflict).toBe(true);
+      expect(result.reason).toContain('and(a, b)');
+    });
+  });
+
+  describe('#11 => after transitions collision check with complex GuardConfig', () => {
+    it('#01 => should detect conflict when delay and GuardAnd match regardless of operand ordering', () => {
+      const candidate: TransitionCheckCandidate = {
+        from: '/idle',
+        kind: 'after',
+        delay: '5000ms',
+        guards: { and: ['isInactive', 'isOffline'] },
+      };
+      const existing: TransitionCheckItem[] = [
+        {
+          id: 't1',
+          from: '/idle',
+          kind: 'after',
+          delay: '5000ms',
+          guards: { and: ['isOffline', 'isInactive'] },
+        },
+      ];
+
+      const result = checkTransitionConflict(candidate, existing);
+      expect(result.hasConflict).toBe(true);
+      expect(result.reason).toContain("delay '5000ms'");
+      expect(result.reason).toContain('and(isInactive, isOffline)');
+    });
+
+    it('#02 => should detect conflict when delay and GuardOr match', () => {
+      const candidate: TransitionCheckCandidate = {
+        from: '/idle',
+        kind: 'after',
+        delay: '5000ms',
+        guards: { or: ['isTimedOut', 'isCancelled'] },
+      };
+      const existing: TransitionCheckItem[] = [
+        {
+          id: 't1',
+          from: '/idle',
+          kind: 'after',
+          delay: '5000ms',
+          guards: { or: ['isCancelled', 'isTimedOut'] },
+        },
+      ];
+
+      const result = checkTransitionConflict(candidate, existing);
+      expect(result.hasConflict).toBe(true);
+      expect(result.reason).toContain("delay '5000ms'");
+      expect(result.reason).toContain('or(isCancelled, isTimedOut)');
+    });
+
+    it('#03 => should not detect conflict when delay matches but guards differ', () => {
+      const candidate: TransitionCheckCandidate = {
+        from: '/idle',
+        kind: 'after',
+        delay: '5000ms',
+        guards: { and: ['a', 'b'] },
+      };
+      const existing: TransitionCheckItem[] = [
+        {
+          id: 't1',
+          from: '/idle',
+          kind: 'after',
+          delay: '5000ms',
+          guards: { and: ['a', 'c'] },
+        },
+      ];
+
+      const result = checkTransitionConflict(candidate, existing);
+      expect(result.hasConflict).toBe(false);
+    });
+
+    it('#04 => should detect conflict between unguarded after transitions with same delay', () => {
+      const candidate: TransitionCheckCandidate = {
+        from: '/idle',
+        kind: 'after',
+        delay: '5000ms',
+      };
+      const existing: TransitionCheckItem[] = [
+        { id: 't1', from: '/idle', kind: 'after', delay: '5000ms' },
+      ];
+
+      const result = checkTransitionConflict(candidate, existing);
+      expect(result.hasConflict).toBe(true);
+      expect(result.reason).toContain("delay '5000ms'");
+    });
+  });
+
+  describe('#12 => always transitions collision check with complex GuardConfig', () => {
+    it('#01 => should detect conflict when GuardAnd matches regardless of operand ordering', () => {
+      const candidate: TransitionCheckCandidate = {
+        from: '/loading',
+        kind: 'always',
+        guards: { and: ['isReady', 'hasToken'] },
+      };
+      const existing: TransitionCheckItem[] = [
+        {
+          id: 't1',
+          from: '/loading',
+          kind: 'always',
+          guards: { and: ['hasToken', 'isReady'] },
+        },
+      ];
+
+      const result = checkTransitionConflict(candidate, existing);
+      expect(result.hasConflict).toBe(true);
+      expect(result.reason).toContain("always' transition");
+      expect(result.reason).toContain('and(hasToken, isReady)');
+    });
+
+    it('#02 => should detect conflict when GuardOr matches', () => {
+      const candidate: TransitionCheckCandidate = {
+        from: '/loading',
+        kind: 'always',
+        guards: { or: ['retryExceeded', 'fatalError'] },
+      };
+      const existing: TransitionCheckItem[] = [
+        {
+          id: 't1',
+          from: '/loading',
+          kind: 'always',
+          guards: { or: ['fatalError', 'retryExceeded'] },
+        },
+      ];
+
+      const result = checkTransitionConflict(candidate, existing);
+      expect(result.hasConflict).toBe(true);
+      expect(result.reason).toContain("always' transition");
+      expect(result.reason).toContain('or(fatalError, retryExceeded)');
+    });
+
+    it('#03 => should not detect conflict when always transitions have different guards', () => {
+      const candidate: TransitionCheckCandidate = {
+        from: '/loading',
+        kind: 'always',
+        guards: { and: ['isReady', 'hasToken'] },
+      };
+      const existing: TransitionCheckItem[] = [
+        {
+          id: 't1',
+          from: '/loading',
+          kind: 'always',
+          guards: { or: ['isReady', 'hasToken'] },
+        },
+      ];
+
+      const result = checkTransitionConflict(candidate, existing);
+      expect(result.hasConflict).toBe(false);
+    });
+
+    it('#04 => should detect conflict between unguarded always transitions', () => {
+      const candidate: TransitionCheckCandidate = {
+        from: '/loading',
+        kind: 'always',
+      };
+      const existing: TransitionCheckItem[] = [
+        { id: 't1', from: '/loading', kind: 'always' },
+      ];
+
+      const result = checkTransitionConflict(candidate, existing);
+      expect(result.hasConflict).toBe(true);
+      expect(result.reason).toContain("unguarded 'always' transition");
     });
   });
 });

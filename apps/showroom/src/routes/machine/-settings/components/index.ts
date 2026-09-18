@@ -4,3 +4,4 @@ export * from './Edge.middle';
 export * from './Node';
 export * from './Node.edit';
 export * from './NodeSelected';
+export * from './guards';

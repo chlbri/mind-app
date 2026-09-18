@@ -10,9 +10,9 @@ import { useFlow } from './FlowChart.context';
  * Hook providing reactive state and mutation helpers for editing flowchart node and
  * edge data.
  *
- * @template | {@linkcode Data} `D` - Custom node data dictionary type extending
+ * @template | {@linkcode Data} `D` - Custom node data dictionary type extending type
  *   {@linkcode Data}.
- * @template | {@linkcode Data} `E` - Custom edge data dictionary type extending
+ * @template | {@linkcode Data} `E` - Custom edge data dictionary type extending type
  *   {@linkcode Data}.
  *
  * @param timeout - Transition delay in milliseconds before closing the panel.

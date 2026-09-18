@@ -3,6 +3,25 @@
 <details>
 <summary>
 
+## **[1.5.4] - 18/09/2026** => _00:16_
+
+</summary>
+
+- Enhance `EditPanel` component rendering with boolean presence guard to prevent
+  unmounting and ensure reactive node identification
+- Enhance comprehensive JSDoc documentation across `EditPanel` component, hooks, and
+  prop types
+- Update `README.md` documentation with accurate `Flow` props and `EditPanel` hooks
+  usage examples
+- <u>Test coverage **_100%_**</u>
+
+</details>
+
+<br/>
+
+<details>
+<summary>
+
 ## **[1.5.3] - 17/09/2026** => _01:10_
 
 </summary>

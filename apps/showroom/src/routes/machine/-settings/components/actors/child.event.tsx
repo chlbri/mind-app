@@ -8,10 +8,15 @@ import type {
   StateActorData,
   StateMachineNodeData,
 } from '../../types';
+import { GuardsInput } from '../guards';
 
+/** Properties for the {@linkcode ActorChildEventItem} component. */
 export type ActorChildEventItemProps = {
+  /** Stable identifier of the parent actor. */
   actorId: string;
+  /** Event key name emitted by the child actor. */
   eventKey: string;
+  /** Callback for updating a field on the state machine node data. */
   updateField: <K extends keyof StateMachineNodeData>(
     field: K,
     value: StateMachineNodeData[K],
@@ -22,6 +27,10 @@ export type ActorChildEventItemProps = {
  * Child item component representing a single handled event on a child actor
  * (`child.on`). Retrieves its configuration reactively from the state machine by
  * `actorId` and `eventKey`.
+ *
+ * @param props - Component properties of type {@linkcode ActorChildEventItemProps}.
+ *
+ * @returns The rendered Solid component.
  */
 export const ActorChildEventItem: Component<ActorChildEventItemProps> = props => {
   const { hooks } = useFlow();
@@ -164,34 +173,24 @@ export const ActorChildEventItem: Component<ActorChildEventItemProps> = props =>
             />
           </div>
 
-          <div class='grid grid-cols-2 gap-1.5'>
-            <div class='flex flex-col gap-0.5'>
-              <label class='text-[9px] text-gray-500'>Target State</label>
-              <input
-                type='text'
-                class='w-full rounded border border-gray-200 px-1.5 py-0.5 font-mono text-[11px] focus:border-indigo-500 focus:outline-none'
-                value={handler().target ?? ''}
-                placeholder='e.g. /approved'
-                onInput={e => {
-                  updateHandler({ target: e.currentTarget.value || undefined });
-                }}
-              />
-            </div>
-
-            <div class='flex flex-col gap-0.5'>
-              <label class='text-[9px] text-gray-500'>Guards</label>
-              <input
-                type='text'
-                class='w-full rounded border border-gray-200 px-1.5 py-0.5 font-mono text-[11px] focus:border-indigo-500 focus:outline-none'
-                value={handler().guards?.join(', ') ?? ''}
-                placeholder='e.g. isValid'
-                onInput={e => {
-                  const guards = toList(e.currentTarget.value);
-                  updateHandler({ guards: guards.length > 0 ? guards : undefined });
-                }}
-              />
-            </div>
+          <div class='flex flex-col gap-0.5'>
+            <label class='text-[9px] text-gray-500'>Target State</label>
+            <input
+              type='text'
+              class='w-full rounded border border-gray-200 px-1.5 py-0.5 font-mono text-[11px] focus:border-indigo-500 focus:outline-none'
+              value={handler().target ?? ''}
+              placeholder='e.g. /approved'
+              onInput={e => {
+                updateHandler({ target: e.currentTarget.value || undefined });
+              }}
+            />
           </div>
+
+          <GuardsInput
+            compact
+            value={handler().guards}
+            onChange={guards => updateHandler({ guards })}
+          />
         </div>
       )}
     </Show>

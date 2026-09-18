@@ -9,6 +9,8 @@ applications.
 - **State Machine Powered**: State management built with `@bemedev/app`.
 - **Zoom & Controls**: Built-in zoom in/out, reset, and node creation toolbar.
 - **Dynamic Edge Creation**: Interactive drag-to-connect endpoints between nodes.
+- **Edge Validation**: Guarded connection rules via `edgesAllowed` predicate.
+- **Contextual Actions**: Customizable action toolbars rendered above selected nodes.
 - **Type-Safe**: Full TypeScript definitions for nodes, edges, and configuration
   handlers.
 
@@ -92,14 +94,15 @@ export const CustomFlow = () => {
     <div style={{ width: '100vw', height: '100vh' }}>
       <Flow<CustomData>
         config={config}
-        component={CustomNode}
+        Node={CustomNode}
+        edgesAllowed={(source, target) => source.id !== target.id}
         panels={{
           topRight: () => (
             <EditPanel<CustomData>
               children={hooks => (
                 <div>
                   <input
-                    value={hooks.editing()?.data.label ?? ''}
+                    value={hooks.editingNode()?.data.label ?? ''}
                     onInput={e => hooks.updateField('label', e.currentTarget.value)}
                   />
                 </div>

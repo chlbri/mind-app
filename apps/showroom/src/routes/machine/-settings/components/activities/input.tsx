@@ -4,19 +4,28 @@ import { Show, type Component } from 'solid-js';
 
 import { toList } from '../../helpers';
 import type { StateActivityData, StateMachineNodeData } from '../../types';
+import { GuardsInput } from '../guards';
 
+/** Properties for the {@linkcode ActivityItem} component. */
 export type ActivityItemProps = {
+  /** Unique identifier of the activity item. */
   id: string;
+  /** Callback for updating a field on the state machine node data. */
   updateField: <K extends keyof StateMachineNodeData>(
     field: K,
     value: StateMachineNodeData[K],
   ) => void;
+  /** Callback invoked when removing the activity item. */
   onRemove: () => void;
 };
 
 /**
  * Child item component representing a single activity. Retrieves its state
  * reactively from the state machine using its stable `id`.
+ *
+ * @param props - Component properties of type {@linkcode ActivityItemProps}.
+ *
+ * @returns The rendered Solid component.
  */
 export const ActivityItem: Component<ActivityItemProps> = props => {
   const { hooks } = useFlow();
@@ -156,21 +165,11 @@ export const ActivityItem: Component<ActivityItemProps> = props => {
             </div>
 
             {/* Guards Input */}
-            <div class='flex flex-col gap-0.5'>
-              <label class='text-[10px] font-semibold text-gray-600'>
-                Guards <span class='text-gray-400'>(optional condition names)</span>
-              </label>
-              <input
-                type='text'
-                class='w-full rounded border border-gray-200 bg-white px-2 py-1 font-mono text-xs focus:border-purple-500 focus:outline-none'
-                value={act().guards?.join(', ') ?? ''}
-                placeholder='e.g. isOnline, hasCredentials'
-                onInput={e => {
-                  const guards = toList(e.currentTarget.value);
-                  updateActivity({ guards: guards.length > 0 ? guards : undefined });
-                }}
-              />
-            </div>
+            <GuardsInput
+              compact
+              value={act().guards}
+              onChange={guards => updateActivity({ guards })}
+            />
 
             {/* Description Input */}
             <div class='flex flex-col gap-0.5'>

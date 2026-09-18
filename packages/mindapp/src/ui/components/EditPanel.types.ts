@@ -8,7 +8,7 @@ import type { Data } from './FlowChart';
  * Render properties and mutation callbacks provided to {@linkcode EditPanel} children
  * or custom component.
  *
- * @template | {@linkcode Data} `D` - Custom node data dictionary type extending
+ * @template | {@linkcode Data} `D` - Custom node data dictionary type extending type
  *   {@linkcode Data}.
  */
 export type EditPanelChildProps<D extends Data = Data> = ReturnType<
@@ -18,7 +18,7 @@ export type EditPanelChildProps<D extends Data = Data> = ReturnType<
 /**
  * Configuration properties for the generic {@linkcode EditPanel} component.
  *
- * @template | {@linkcode Data} `D` - Custom node data dictionary type extending
+ * @template | {@linkcode Data} `D` - Custom node data dictionary type extending type
  *   {@linkcode Data}.
  */
 export type EditPanelProps<D extends Data = Data> = {

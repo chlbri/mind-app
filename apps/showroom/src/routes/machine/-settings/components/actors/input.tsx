@@ -4,21 +4,30 @@ import { createSignal, For, Show, type Component } from 'solid-js';
 
 import { toList } from '../../helpers';
 import type { StateActorData, StateMachineNodeData } from '../../types';
+import { GuardsInput } from '../guards';
 import { ActorChildContextItem } from './child.context';
 import { ActorChildEventItem } from './child.event';
 
+/** Properties for the {@linkcode ActorItem} component. */
 export type ActorItemProps = {
+  /** Stable unique identifier of the actor entry. */
   id: string;
+  /** Callback for updating a field on the state machine node data. */
   updateField: <K extends keyof StateMachineNodeData>(
     field: K,
     value: StateMachineNodeData[K],
   ) => void;
+  /** Callback invoked when removing the actor item. */
   onRemove: () => void;
 };
 
 /**
  * Child item component representing a single actor (emitter or child state machine).
  * Retrieves its state reactively from the state machine using its stable `id`.
+ *
+ * @param props - Component properties of type {@linkcode ActorItemProps}.
+ *
+ * @returns The rendered Solid component.
  */
 export const ActorItem: Component<ActorItemProps> = props => {
   const { hooks } = useFlow();
@@ -238,60 +247,47 @@ export const ActorItem: Component<ActorItemProps> = props => {
                       />
                     </div>
 
-                    <div class='grid grid-cols-2 gap-1.5'>
-                      <div class='flex flex-col gap-0.5'>
-                        <label class='text-[9px] text-gray-500'>
-                          Target State (optional)
-                        </label>
-                        <input
-                          type='text'
-                          class='w-full rounded border border-gray-200 px-1.5 py-0.5 font-mono text-[11px] focus:border-cyan-500 focus:outline-none'
-                          value={act().emitter?.next.target ?? ''}
-                          placeholder='e.g. /streaming'
-                          onInput={e => {
-                            const currentEmitter = act().emitter ?? {
-                              next: { actions: [] },
-                            };
-                            updateActor({
-                              emitter: {
-                                ...currentEmitter,
-                                next: {
-                                  ...currentEmitter.next,
-                                  target: e.currentTarget.value || undefined,
-                                },
+                    <div class='flex flex-col gap-0.5'>
+                      <label class='text-[9px] text-gray-500'>
+                        Target State (optional)
+                      </label>
+                      <input
+                        type='text'
+                        class='w-full rounded border border-gray-200 px-1.5 py-0.5 font-mono text-[11px] focus:border-cyan-500 focus:outline-none'
+                        value={act().emitter?.next.target ?? ''}
+                        placeholder='e.g. /streaming'
+                        onInput={e => {
+                          const currentEmitter = act().emitter ?? {
+                            next: { actions: [] },
+                          };
+                          updateActor({
+                            emitter: {
+                              ...currentEmitter,
+                              next: {
+                                ...currentEmitter.next,
+                                target: e.currentTarget.value || undefined,
                               },
-                            });
-                          }}
-                        />
-                      </div>
-
-                      <div class='flex flex-col gap-0.5'>
-                        <label class='text-[9px] text-gray-500'>
-                          Guards (optional)
-                        </label>
-                        <input
-                          type='text'
-                          class='w-full rounded border border-gray-200 px-1.5 py-0.5 font-mono text-[11px] focus:border-cyan-500 focus:outline-none'
-                          value={act().emitter?.next.guards?.join(', ') ?? ''}
-                          placeholder='e.g. isValid'
-                          onInput={e => {
-                            const guards = toList(e.currentTarget.value);
-                            const currentEmitter = act().emitter ?? {
-                              next: { actions: [] },
-                            };
-                            updateActor({
-                              emitter: {
-                                ...currentEmitter,
-                                next: {
-                                  ...currentEmitter.next,
-                                  guards: guards.length > 0 ? guards : undefined,
-                                },
-                              },
-                            });
-                          }}
-                        />
-                      </div>
+                            },
+                          });
+                        }}
+                      />
                     </div>
+
+                    <GuardsInput
+                      compact
+                      value={act().emitter?.next.guards}
+                      onChange={guards => {
+                        const currentEmitter = act().emitter ?? {
+                          next: { actions: [] },
+                        };
+                        updateActor({
+                          emitter: {
+                            ...currentEmitter,
+                            next: { ...currentEmitter.next, guards },
+                          },
+                        });
+                      }}
+                    />
                   </div>
 
                   {/* error (optional) */}
