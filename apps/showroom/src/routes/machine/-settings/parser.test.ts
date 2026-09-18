@@ -231,4 +231,68 @@ describe('#01 => parseMachineToGraph', () => {
       expect(child?.child?.contexts).toEqual({ '.': 'workerContext' });
     });
   });
+
+  describe('#07 => State classification (stateType) and isInitial rules', () => {
+    it('#07 => should classify stateType properly and enforce isInitial rules', () => {
+      const graph = parseMachineToGraph(
+        {
+          initial: 'idle',
+          states: {
+            idle: { on: { WORK: '/processing' } },
+            processing: { type: 'compound', states: { step1: {} } },
+            parallelWorkflow: {
+              type: 'parallel',
+              states: { branchA: {}, branchB: {} },
+            },
+            completed: { type: 'final' },
+          },
+        },
+        {},
+      );
+
+      // 1. Root idle state (atomic, initial)
+      const idleNode = graph.nodes.find(n => n.id === '/idle');
+      expect(idleNode).toBeDefined();
+      expect(idleNode?.data?.stateType).toBe('atomic');
+      expect(idleNode?.data?.isInitial).toBe(true);
+
+      // 2. Processing parent state (compound, not initial)
+      const processingNode = graph.nodes.find(n => n.id === '/processing');
+      expect(processingNode).toBeDefined();
+      expect(processingNode?.data?.stateType).toBe('compound');
+      expect(processingNode?.data?.isInitial).toBe(false);
+
+      // 3. Single child of compound parent: step1 must be initial by default!
+      const step1Node = graph.nodes.find(n => n.id === '/processing/step1');
+      expect(step1Node).toBeDefined();
+      expect(step1Node?.data?.stateType).toBe('atomic');
+      expect(step1Node?.data?.isInitial).toBe(true);
+
+      // 4. Parallel parent state
+      const parallelNode = graph.nodes.find(n => n.id === '/parallelWorkflow');
+      expect(parallelNode).toBeDefined();
+      expect(parallelNode?.data?.stateType).toBe('parallel');
+      expect(parallelNode?.data?.isInitial).toBe(false);
+
+      // 5. Children of parallel parent must NOT be initial
+      const branchANode = graph.nodes.find(
+        n => n.id === '/parallelWorkflow/branchA',
+      );
+      const branchBNode = graph.nodes.find(
+        n => n.id === '/parallelWorkflow/branchB',
+      );
+      expect(branchANode).toBeDefined();
+      expect(branchANode?.data?.stateType).toBe('atomic');
+      expect(branchANode?.data?.isInitial).toBe(false);
+      expect(branchBNode).toBeDefined();
+      expect(branchBNode?.data?.stateType).toBe('atomic');
+      expect(branchBNode?.data?.isInitial).toBe(false);
+
+      // 6. Final state
+      const completedNode = graph.nodes.find(n => n.id === '/completed');
+      expect(completedNode).toBeDefined();
+      expect(completedNode?.data?.stateType).toBe('final');
+      expect(completedNode?.data?.isInitial).toBe(false);
+    });
+  });
 });

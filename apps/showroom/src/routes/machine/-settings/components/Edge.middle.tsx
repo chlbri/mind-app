@@ -1,7 +1,14 @@
 import { deepEqual } from '@bemedev/app/utils';
-import { clamp, cn, useFlow, type EdgeMiddleProps } from '@bemedev/mind-flow';
+import {
+  clamp,
+  cn,
+  TinyColor,
+  useFlow,
+  type EdgeMiddleProps,
+} from '@bemedev/mind-flow';
 import { For, Show, type Component } from 'solid-js';
 
+import { EDGES_COLORS } from '../constants';
 import { monoLength } from '../helpers';
 import { setActiveAddTransitionEdge } from '../signals';
 import type { EdgeKind, StateMachineEdgeData } from '../types';
@@ -39,6 +46,8 @@ export const StateMachineEdgeMiddle: Component<
   const addColors = () => getKindConfig(props.data?.kind);
 
   const getKindConfig = (k?: EdgeKind) => {
+    const fill = EDGES_COLORS[k ?? 'on'];
+    const stroke = new TinyColor(fill).lighten(70).toHex8String();
     switch (k) {
       case 'child_parent':
         return {
@@ -47,8 +56,8 @@ export const StateMachineEdgeMiddle: Component<
           ring: 'rounded-xl ring-2 ring-offset-4 ring-purple-600',
           border: 'border-purple-800',
           text: 'text-white',
-          fill: '#8b5cf6',
-          stroke: '#c4b5fd',
+          fill,
+          stroke,
           icon: '⮑',
           name: 'Child-to-Parent',
         };
@@ -59,8 +68,8 @@ export const StateMachineEdgeMiddle: Component<
           ring: 'rounded-xl ring-2 ring-offset-8 ring-orange-600',
           border: 'border-orange-800',
           text: 'text-white',
-          fill: '#f97316',
-          stroke: '#fed7aa',
+          fill,
+          stroke,
           icon: '⏱',
           name: 'After',
         };
@@ -71,8 +80,8 @@ export const StateMachineEdgeMiddle: Component<
           ring: 'rounded-xl ring-2 ring-offset-8 ring-green-600',
           border: 'border-green-800',
           text: 'text-white',
-          fill: '#22c55e',
-          stroke: '#bbf7d0',
+          fill,
+          stroke,
           icon: '⚡',
           name: 'Always',
         };
@@ -84,8 +93,8 @@ export const StateMachineEdgeMiddle: Component<
           ring: 'rounded-xl ring-2 ring-offset-8 ring-blue-600',
           border: 'border-blue-800',
           text: 'text-white',
-          fill: '#3b82f6',
-          stroke: '#bfdbfe',
+          fill,
+          stroke,
           icon: '🔀',
           name: 'On',
         };

@@ -3,6 +3,30 @@
 <details>
 <summary>
 
+## **[1.5.5] - 18/09/2026** => _22:15_
+
+</summary>
+
+- Add payload support to `ADD_PARENT` event for custom ID, parent ID, node data, and
+  handles
+- Add automatic edge creation linking parent and newly created node via `linkParent`
+  action
+- Add contextual node offset positioning relative to parent node coordinates in
+  `placeParent`
+- Fix dimension calculation in `CONFIGURE` action by preserving existing node
+  dimensions
+- Enhance comprehensive JSDoc documentation across types and flowchart components
+- Refactor `updateNodeField` and `updateEdgeField` in `EditPanel.hooks` to delegate
+  to data update helpers
+- <u>Test coverage **_100%_**</u>
+
+</details>
+
+<br/>
+
+<details>
+<summary>
+
 ## **[1.5.4] - 18/09/2026** => _00:16_
 
 </summary>

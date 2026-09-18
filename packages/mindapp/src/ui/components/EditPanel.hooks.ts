@@ -80,10 +80,7 @@ export const useHook = <D extends Data = Data, E extends Data = Data>(
   };
 
   const updateNodeField = <K extends keyof D>(field: K, value: D[K]) => {
-    const current = _editingNode();
-    if (!current) return;
-
-    return senderNodeData({ ...current, data: { ...current.data, [field]: value } });
+    return updateNodeData({ [field]: value } as any);
   };
 
   const updateEdgeData = (data: Partial<E>) => {
@@ -94,10 +91,7 @@ export const useHook = <D extends Data = Data, E extends Data = Data>(
   };
 
   const updateEdgeField = <K extends keyof E>(field: K, value: E[K]) => {
-    const current = _editingEdge();
-    if (!current) return;
-
-    return senderEdgeData({ ...current, data: { ...current.data, [field]: value } });
+    return updateEdgeData({ [field]: value } as any);
   };
 
   const editingNode = _editingNode as Accessor<{ id: string; data: D }>;

@@ -1,4 +1,6 @@
-import type { EdgeKind } from './types';
+import type { HandleConfig, HandleType, NodeHandles_T } from '@bemedev/mind-flow';
+
+import { EDGES_COLORS } from './constants';
 
 /**
  * Width in pixels of a capitalized (uppercase) character in HTML monospace font at
@@ -41,20 +43,6 @@ export function monoLength(text?: string | null): number {
   return total;
 }
 
-export const getStrokeColor = (k: EdgeKind) => {
-  switch (k) {
-    case 'child_parent':
-      return '#8b5cf6'; // Violet
-    case 'after':
-      return '#f97316'; // Orange
-    case 'always':
-      return '#22c55e'; // Green
-    case 'on':
-    default:
-      return '#3b82f6'; // Blue
-  }
-};
-
 /** Helper to split comma-separated strings into cleaned array. */
 export const toList = (val: string): string[] => {
   return val
@@ -62,5 +50,24 @@ export const toList = (val: string): string[] => {
     .map(s => s.trim())
     .filter(Boolean);
 };
+
+const top: HandleConfig[] = [{ type: 'none', color: EDGES_COLORS.child_parent }];
+
+const HORIZONTAL_EDGES_COLRS = [
+  EDGES_COLORS.after,
+  EDGES_COLORS.always,
+  EDGES_COLORS.on,
+];
+
+const handleHelperH = (type: Exclude<HandleType, 'none'>): HandleConfig[] => {
+  return HORIZONTAL_EDGES_COLRS.map(color => ({ type, color }));
+};
+
+export const createHandles: () => NodeHandles_T = () => ({
+  top,
+  bottom: top,
+  left: handleHelperH('input'),
+  right: handleHelperH('output'),
+});
 
 export * from './transition.validator';

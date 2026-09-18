@@ -7,8 +7,7 @@ import {
 } from '@bemedev/mind-flow';
 import { Show, splitProps, type Component } from 'solid-js';
 
-import { DASH_ARRAY } from '../data';
-import { getStrokeColor } from '../helpers';
+import { DASH_ARRAY, EDGES_COLORS } from '../constants';
 import type { StateMachineEdgeData } from '../types';
 import { StateMachineEdgeMiddle } from './Edge.middle';
 
@@ -33,13 +32,7 @@ export const StateMachineEdge: Component<
 
     const fromPos = edgeRecord()?.fromPosition;
     const toPos = edgeRecord()?.toPosition;
-    if (
-      fromPos === 'top' ||
-      toPos === 'bottom' ||
-      fromPos === 'bottom' ||
-      toPos === 'top'
-    )
-      return 'child_parent';
+    if (fromPos === 'top' || toPos === 'bottom') return 'child_parent';
 
     const idx = edgeRecord()?.fromIndex ?? edgeRecord()?.toIndex;
     if (idx === 0) return 'after';
@@ -53,7 +46,7 @@ export const StateMachineEdge: Component<
     return kind() === 'child_parent' ? DASH_ARRAY : undefined;
   };
 
-  const strokeColor = () => getStrokeColor(kind());
+  const strokeColor = () => EDGES_COLORS[kind()];
   const [, others] = splitProps(props, ['data']);
   const data = () => ({ ...props.data, ...edgeData(), kind: kind() });
 

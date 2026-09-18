@@ -18,8 +18,8 @@ export const StateMachineNode: Component<StateMachineNodeData> = props => {
     switch (props.stateType) {
       case 'compound':
         return 'bg-purple-100 text-purple-700 border-purple-300';
-      case 'initial':
-        return 'bg-emerald-100 text-emerald-700 border-emerald-300';
+      case 'parallel':
+        return 'bg-amber-100 text-amber-700 border-amber-300';
       case 'final':
         return 'bg-slate-100 text-slate-700 border-slate-300';
       default:

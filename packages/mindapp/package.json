@@ -1,6 +1,6 @@
 {
   "name": "@bemedev/mind-flow",
-  "version": "1.5.4",
+  "version": "1.5.5",
   "description": "Flow Chart UI library for Solid.js applications",
   "keywords": [
     "diagram",

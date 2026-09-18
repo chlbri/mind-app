@@ -1,6 +1,7 @@
 import type { GuardConfig } from '@bemedev/app';
 import type { EdgesFrom, NodeHandles_T, NodesFrom } from '@bemedev/mind-flow';
 
+import { createHandles } from './helpers';
 import { formatGuards, normalizeGuards } from './helpers';
 import type {
   EdgeKind,
@@ -12,6 +13,7 @@ import type {
   StateMachineNodeData,
   StateNodeKeys,
   StateNodePositions,
+  StateType,
   TransitionItem,
 } from './types';
 
@@ -303,6 +305,9 @@ export const parseMachineToGraph = <
   const rawConfig = (machineConfig as any)?.config ?? machineConfig ?? {};
   const rootStates = rawConfig.states ?? {};
   const rootInitial = rawConfig.initial;
+  const rootKeys = Object.keys(rootStates);
+  const effectiveRootInitial =
+    rootInitial ?? (rootKeys.length === 1 ? rootKeys[0] : undefined);
 
   const rawNodes: Array<{
     id: string;
@@ -312,7 +317,7 @@ export const parseMachineToGraph = <
     isInitial: boolean;
     hasChildren: boolean;
     isChild: boolean;
-    stateType: 'atomic' | 'compound' | 'initial' | 'final';
+    stateType: StateType;
     tags?: string[];
     entry?: string[];
     exit?: string[];
@@ -350,17 +355,20 @@ export const parseMachineToGraph = <
       stateObj?.states && Object.keys(stateObj.states).length > 0,
     );
     const isChild = Boolean(parentPath);
+    const isParentParallel = stateObj?.parentType === 'parallel';
     const isInitial =
-      (parentPath === '' && stateName === rootInitial) ||
-      (Boolean(parentPath) && stateObj?.parentInitial === stateName);
+      !isParentParallel &&
+      ((parentPath === '' && stateName === effectiveRootInitial) ||
+        (Boolean(parentPath) && stateObj?.parentInitial === stateName));
 
-    const stateType: StateMachineNodeData['stateType'] =
+    const isParallel = stateObj?.type === 'parallel';
+    const stateType: StateType =
       stateObj?.type === 'final'
         ? 'final'
-        : hasChildren
-          ? 'compound'
-          : isInitial
-            ? 'initial'
+        : isParallel
+          ? 'parallel'
+          : hasChildren
+            ? 'compound'
             : 'atomic';
 
     const actors = extractActors(stateObj?.actors);
@@ -410,12 +418,22 @@ export const parseMachineToGraph = <
       });
     }
 
-    // Recursively walk substates if compound
+    // Recursively walk substates if compound or parallel
     if (hasChildren) {
-      const childInitial = stateObj.initial;
+      const childKeys = Object.keys(stateObj.states);
+      const isParallel = stateObj?.type === 'parallel';
+      const childInitial =
+        !isParallel && childKeys.length === 1
+          ? (stateObj.initial ?? childKeys[0])
+          : stateObj.initial;
+
       Object.entries(stateObj.states).forEach(
         ([childName, childObj]: [string, any]) => {
-          const enrichedChild = { ...childObj, parentInitial: childInitial };
+          const enrichedChild = {
+            ...childObj,
+            parentInitial: childInitial,
+            parentType: stateObj?.type,
+          };
           walkState(childName, enrichedChild, currentPath, depth + 1, nodeIndex);
         },
       );
@@ -530,21 +548,7 @@ export const parseMachineToGraph = <
     const defaultY = INITIAL_Y + currentYCount * VERTICAL_SPACING;
     const pos = positions?.[node.id as keyof typeof positions];
     const position = pos ? { x: pos.x, y: pos.y } : { x: defaultX, y: defaultY };
-    const handles: NodeHandles_T = {
-      top: [{ type: 'none', color: '#8b5cf6' }], // link to parent
-      bottom: [{ type: 'none', color: '#8b5cf6' }], // link to children
-
-      left: [
-        { type: 'input', color: '#f97316' }, // after [orange]
-        { type: 'input', color: '#22c55e' }, // always [green]
-        { type: 'input', color: '#3b82f6' }, // on [blue]
-      ],
-      right: [
-        { type: 'output', color: '#f97316' }, // after [orange]
-        { type: 'output', color: '#22c55e' }, // always [green]
-        { type: 'output', color: '#3b82f6' }, // on [blue]
-      ],
-    };
+    const handles: NodeHandles_T = createHandles();
 
     return {
       id: node.id,
