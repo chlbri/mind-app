@@ -1,4 +1,5 @@
 import type { CommonConfig3, GuardConfig } from '@bemedev/app';
+import type { StateType } from '@bemedev/app/states';
 import type { Point } from '@bemedev/mind-flow';
 
 /** 2D coordinate position representing a node's location on the canvas. */
@@ -144,7 +145,7 @@ export type StateMachineNodeData = {
   /** Parent state path if this state is a child of a compound state. */
   parentPath?: string;
   /** State classification. */
-  stateType: 'atomic' | 'compound' | 'initial' | 'final';
+  stateType: StateType;
   /** Whether this state is the initial substate of its parent or root. */
   isInitial?: boolean;
   /** Metadata tags assigned to this state. */

@@ -33,7 +33,13 @@ export const StateMachineEdge: Component<
 
     const fromPos = edgeRecord()?.fromPosition;
     const toPos = edgeRecord()?.toPosition;
-    if (fromPos === 'top' || toPos === 'bottom') return 'child_parent';
+    if (
+      fromPos === 'top' ||
+      toPos === 'bottom' ||
+      fromPos === 'bottom' ||
+      toPos === 'top'
+    )
+      return 'child_parent';
 
     const idx = edgeRecord()?.fromIndex ?? edgeRecord()?.toIndex;
     if (idx === 0) return 'after';

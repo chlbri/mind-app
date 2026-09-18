@@ -1,6 +1,8 @@
 import { HANDLE_SIZE, useFlow } from '@bemedev/mind-flow';
 import type { Component } from 'solid-js';
 
+import { NODE_HANDLES } from '../data';
+
 /** Properties for the {@linkcode StateMachineNodeSelected} component. */
 export type StateMachineNodeSelectedProps = {
   /** Unique identifier of the selected state node. */
@@ -14,15 +16,17 @@ export type StateMachineNodeSelectedProps = {
  * Provides icon-only buttons for:
  *
  * - Deleting the state node
- * - Adding a child sub-state
- * - Adding an `after` transition (Orange, right handle 0)
- * - Adding an `always` transition (Green, right handle 1)
- * - Adding an `on` transition (Blue, right handle 2)
+ * - Adding a child sub-state 250px below the parent bottom-left corner with an edge
+ *   from parent bottom handle to child top handle
  */
 export const StateMachineNodeSelected: Component<
   StateMachineNodeSelectedProps
 > = props => {
-  const { send } = useFlow();
+  const { send, hooks } = useFlow();
+
+  const nodes = hooks.state({
+    selector: ({ context: { data } }) => data?.nodes ?? [],
+  });
 
   return (
     <div class='flex items-center gap-1.5 rounded-full bg-slate-900/90 px-2 py-1 shadow-lg ring-1 ring-white/20 backdrop-blur-xs'>
@@ -60,7 +64,66 @@ export const StateMachineNodeSelected: Component<
         }}
         onClick={e => {
           e.stopPropagation();
-          send({ type: 'ADD_CHILD', payload: props.id });
+          const parentNode = nodes().find(n => n.id === props.id);
+          if (!parentNode) return;
+
+          const parentPath = parentNode.data?.path ?? parentNode.id;
+          const existingChildren = nodes().filter(
+            n =>
+              n.data?.parentPath === parentPath || n.id.startsWith(`${parentPath}/`),
+          );
+          const childName = `state-${existingChildren.length + 1}`;
+          const childId = `${parentPath}/${childName}`;
+          const parentTitle =
+            parentNode.data?.title ?? parentPath.split('/').pop() ?? 'parent';
+
+          const el =
+            typeof document !== 'undefined'
+              ? document.getElementById(props.id)
+              : null;
+          const parentHeight = el?.offsetHeight ?? 60;
+
+          // Target position: 250px below the bottom-left corner of the parent node
+          const targetX = parentNode.position.x;
+          const targetY = parentNode.position.y + parentHeight + 150;
+
+          // 1. Dispatch ADD_PARENT to add the child node and link bottom-to-top hierarchy edge
+          send({
+            type: 'ADD_PARENT',
+            payload: {
+              id: childId,
+              parentId: props.id,
+              data: {
+                id: childId,
+                title: childName,
+                path: childId,
+                parentPath,
+                stateType: 'atomic',
+              },
+              handles: NODE_HANDLES,
+            },
+          });
+
+          // 2. Dispatch MOVE to position node at 250px below parent bottom-left corner
+          send({ type: 'MOVE', payload: { id: childId, x: targetX, y: targetY } });
+
+          // 3. Mark parent as compound if needed
+          if (parentNode.data?.stateType !== 'compound') {
+            send({
+              type: 'SET_NODE_DATA',
+              payload: { id: props.id, data: { stateType: 'compound' } },
+            });
+          }
+
+          // 4. Set edge metadata for the child_parent relation
+          const edgeId = `edge = ${props.id} => ${childId}:top:0`;
+          send({
+            type: 'SET_EDGE_DATA',
+            payload: {
+              id: edgeId,
+              data: { kind: 'child_parent', label: `child of : /${parentTitle}` },
+            },
+          });
         }}
       >
         {/* Child Substate / Tree Icon */}

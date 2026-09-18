@@ -1,4 +1,9 @@
-import type { ConfigFrom } from '@bemedev/mind-flow';
+import type {
+  ConfigFrom,
+  HandleConfig,
+  HandleType,
+  NodeHandles_T,
+} from '@bemedev/mind-flow';
 
 import { parseMachineToGraph } from './parser';
 import type { StateMachineEdgeData, StateMachineNodeData } from './types';
@@ -110,3 +115,26 @@ export const config: ConfigFrom<StateMachineNodeData, StateMachineEdgeData> = {
 };
 
 export const DASH_ARRAY = '6 4';
+
+export const EDGES_COLORS = {
+  AFTER: '##22c55e',
+  ALWAYS: '#f97316',
+  ON: '#3b82f6',
+  FAMILY: '#8b5cf6',
+};
+
+const top: HandleConfig[] = [{ type: 'none', color: EDGES_COLORS.FAMILY }];
+
+const handleHelperH = (type: Exclude<HandleType, 'none'>): HandleConfig[] => {
+  return Object.entries(EDGES_COLORS)
+    .filter(([id]) => id !== 'FAMILY')
+    .map(([, color]) => color)
+    .map(color => ({ type, color }));
+};
+
+export const NODE_HANDLES: NodeHandles_T = {
+  top,
+  bottom: top,
+  left: handleHelperH('input'),
+  right: handleHelperH('output'),
+};

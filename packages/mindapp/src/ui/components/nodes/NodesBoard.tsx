@@ -343,7 +343,7 @@ export const NodesBoard = <N extends Data = Data, E extends Data = Data>(
           <button
             type='button'
             class='flex size-9 cursor-pointer items-center justify-center rounded-lg bg-blue-600 text-white shadow transition-all duration-150 hover:bg-blue-700 active:scale-95'
-            onClick={() => send('ADD_PARENT')}
+            onClick={() => send({ type: 'ADD_PARENT', payload: undefined })}
             title='Add parent node'
             aria-label='Add parent node'
           >
