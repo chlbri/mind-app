@@ -1,5 +1,7 @@
+import { interpret } from '@bemedev/app';
 import { describe, expect, it } from 'vitest';
 
+import { machine } from './main.machine';
 import {
   HANDLE_CONTAINER_OFFSET_X,
   HANDLE_RADIUS,
@@ -251,6 +253,42 @@ describe('#01 => main.machine.helpers', () => {
       expect(coords?.y0).toBe(125);
       expect(coords?.x1).toBe(300 - HANDLE_OFFSET);
       expect(coords?.y1).toBe(225);
+    });
+  });
+
+  describe('#06 => machine DELETE principal node protection', () => {
+    it('#01 => should not delete node with id "/" or principal property', () => {
+      const inst = interpret(machine, {
+        context: {
+          data: {
+            nodes: [
+              {
+                id: '/',
+                data: {
+                  principal: { ___root: '@bemedev/mind-flow/uniquePrincipal##' },
+                },
+                position: { x: 0, y: 0 },
+              },
+              { id: '/cart', data: {}, position: { x: 10, y: 10 } },
+            ],
+            edges: [],
+          },
+          edgesPositions: {},
+          zoom: 1,
+        },
+        pContext: { dimensions: {} } as any,
+      });
+      inst.start();
+      inst.send('CONFIGURE_EMPTY');
+
+      inst.send({ type: 'DELETE', payload: '/' });
+      expect(inst.context.data?.nodes?.some((n: any) => n.id === '/')).toBe(true);
+
+      inst.send({ type: 'DELETE', payload: '/cart' });
+      expect(inst.context.data?.nodes?.some((n: any) => n.id === '/cart')).toBe(
+        false,
+      );
+      expect(inst.context.data?.nodes?.some((n: any) => n.id === '/')).toBe(true);
     });
   });
 });

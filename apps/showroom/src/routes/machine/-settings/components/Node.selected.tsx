@@ -1,6 +1,7 @@
 import { HANDLE_SIZE, useFlow } from '@bemedev/mind-flow';
-import type { Component } from 'solid-js';
+import { Show, type Component } from 'solid-js';
 
+import { isDirectChildOfPrincipal, PRINCIPAL_NODE_KEY } from '../constants';
 import { createHandles } from '../helpers';
 
 /** Properties for the {@linkcode StateMachineNodeSelected} component. */
@@ -29,6 +30,57 @@ export const StateMachineNodeSelected: Component<
     selector: ({ context: { data } }) => data?.nodes ?? [],
   });
 
+  const currentNode = () => nodes().find(n => n.id === props.id);
+
+  const parentNode = () => {
+    const current = currentNode();
+    if (!current) return undefined;
+    const parentPath = current.data?.parentPath;
+    if (parentPath && parentPath !== PRINCIPAL_NODE_KEY) {
+      const found = nodes().find(
+        n => n.id === parentPath || n.data?.path === parentPath,
+      );
+      if (found) return found;
+    }
+    if (
+      parentPath === PRINCIPAL_NODE_KEY ||
+      isDirectChildOfPrincipal(current.data?.path ?? props.id)
+    ) {
+      return nodes().find(
+        n => n.id === PRINCIPAL_NODE_KEY || (n.data as any)?.principal,
+      );
+    }
+    return undefined;
+  };
+
+  const isParentCompound = () => parentNode()?.data?.stateType === 'compound';
+
+  const siblings = () => {
+    const parent = parentNode();
+    if (!parent) return [];
+    const isParentPrincipal =
+      parent.id === PRINCIPAL_NODE_KEY ||
+      (parent.data as any)?.principal ||
+      parent.data?.path === PRINCIPAL_NODE_KEY;
+
+    if (isParentPrincipal) {
+      return nodes().filter(
+        n =>
+          n.id !== PRINCIPAL_NODE_KEY &&
+          !(n.data as any)?.principal &&
+          (n.data?.parentPath === PRINCIPAL_NODE_KEY ||
+            isDirectChildOfPrincipal(n.data?.path ?? n.id)),
+      );
+    }
+
+    const pPath = parent.data?.path ?? parent.id;
+    return nodes().filter(
+      n =>
+        n.id !== parent.id &&
+        (n.data?.parentPath === pPath || n.data?.parentPath === parent.id),
+    );
+  };
+
   return (
     <div class='flex items-center gap-1.5 rounded-full bg-zinc-800/10 px-2 py-1 shadow-xl backdrop-blur-sm'>
       {/* Delete State Button */}
@@ -42,17 +94,34 @@ export const StateMachineNodeSelected: Component<
         }}
         onClick={e => {
           e.stopPropagation();
-          const currentNode = nodes().find(n => n.id === props.id);
+          if (props.id === PRINCIPAL_NODE_KEY) return;
+          const allNodesList = nodes();
+          const currentNode = allNodesList.find(n => n.id === props.id);
           const parentPath = currentNode?.data?.parentPath;
-          if (parentPath) {
-            const parent = nodes().find(
+          const canvasNodes = allNodesList.filter(
+            n => n.id !== PRINCIPAL_NODE_KEY && !(n.data as any)?.principal,
+          );
+          const remainingCanvasNodes = canvasNodes.filter(n => n.id !== props.id);
+
+          // If all canvas nodes are deleted, principal node is immediately atomic
+          if (remainingCanvasNodes.length === 0) {
+            const principal = allNodesList.find(
+              n => n.id === PRINCIPAL_NODE_KEY || (n.data as any)?.principal,
+            );
+            if (principal) {
+              setData({ id: principal.id, data: { stateType: 'atomic' } });
+            }
+          } else if (parentPath) {
+            const parent = allNodesList.find(
               n => n.id === parentPath || n.data?.path === parentPath,
             );
-            const remainingSiblings = nodes().filter(
+            const remainingSiblings = allNodesList.filter(
               n =>
                 n.id !== props.id &&
                 (n.data?.parentPath === parentPath ||
-                  n.data?.parentPath === parent?.id),
+                  n.data?.parentPath === parent?.id ||
+                  (parentPath === PRINCIPAL_NODE_KEY &&
+                    isDirectChildOfPrincipal(n.data?.path ?? n.id))),
             );
 
             if (
@@ -61,13 +130,15 @@ export const StateMachineNodeSelected: Component<
               parent.data?.stateType !== 'final'
             ) {
               setData({ id: parent.id, data: { stateType: 'atomic' } });
-            } else if (remainingSiblings.length === 1) {
-              setData({ id: remainingSiblings[0].id, data: { isInitial: true } });
-            } else if (
-              remainingSiblings.length > 1 &&
-              currentNode?.data?.isInitial
-            ) {
-              setData({ id: remainingSiblings[0].id, data: { isInitial: true } });
+            } else if (parent?.data?.stateType === 'compound') {
+              if (remainingSiblings.length === 1) {
+                setData({ id: remainingSiblings[0].id, data: { isInitial: true } });
+              } else if (
+                remainingSiblings.length > 1 &&
+                currentNode?.data?.isInitial
+              ) {
+                setData({ id: remainingSiblings[0].id, data: { isInitial: true } });
+              }
             }
           }
           send({ type: 'DELETE', payload: props.id });
@@ -81,6 +152,34 @@ export const StateMachineNodeSelected: Component<
           <path d='M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z' />
         </svg>
       </button>
+
+      {/* Set as Initial State Button */}
+      <Show when={isParentCompound() && !currentNode()?.data?.isInitial}>
+        <button
+          type='button'
+          class='flex cursor-pointer items-center justify-center rounded-full border border-white bg-emerald-600 text-white transition-transform hover:scale-110 active:scale-95'
+          style={{
+            'pointer-events': 'all',
+            width: `${HANDLE_SIZE * 1.8}px`,
+            height: `${HANDLE_SIZE * 1.8}px`,
+          }}
+          title='Set as initial state'
+          aria-label='Set as initial state'
+          onClick={e => {
+            e.stopPropagation();
+            setData({ id: props.id, data: { isInitial: true } });
+            siblings().forEach(sibling => {
+              if (sibling.id !== props.id && sibling.data?.isInitial) {
+                setData({ id: sibling.id, data: { isInitial: false } });
+              }
+            });
+          }}
+        >
+          <svg class='size-3.5 fill-current' viewBox='0 0 24 24'>
+            <path d='M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z' />
+          </svg>
+        </button>
+      </Show>
 
       {/* Add Child State Button */}
       <button

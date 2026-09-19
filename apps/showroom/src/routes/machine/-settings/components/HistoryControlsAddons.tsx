@@ -1,4 +1,4 @@
-import { clickOutside, cn, useFlow, typings } from '@bemedev/mind-flow';
+import { clickOutside, cn, typings, useFlow } from '@bemedev/mind-flow';
 import {
   Check,
   ChevronDown,
@@ -9,7 +9,9 @@ import {
 } from 'lucide-solid';
 import { createSignal, For, Show, type Component } from 'solid-js';
 
+import { isDirectChildOfPrincipal, PRINCIPAL_NODE_KEY } from '../constants';
 import { createHandles } from '../helpers';
+import { isPrincipalOpen, setIsPrincipalOpen } from './PrincipalPanel';
 
 /**
  * Formats a single commit's delta summary or base snapshot details for display in
@@ -126,15 +128,90 @@ export const HistoryControlsAddons: Component = () => {
     setIsCommitOpen(false);
   };
 
+  const allNodes = hooks.state({
+    selector: ({ context: { data } }) => data?.nodes ?? [],
+  });
+
+  const handleAddRootNode = () => {
+    const nodesList = allNodes();
+    const principal = nodesList.find(
+      n => n.id === PRINCIPAL_NODE_KEY || (n.data as any)?.principal,
+    );
+    const canvasNodes = nodesList.filter(
+      n => n.id !== PRINCIPAL_NODE_KEY && !(n.data as any)?.principal,
+    );
+    const level1Nodes = canvasNodes.filter(n =>
+      isDirectChildOfPrincipal(n.data?.path ?? n.id),
+    );
+
+    const isPrincipalAtomic = principal?.data?.stateType === 'atomic';
+    const isPrincipalParallel = principal?.data?.stateType === 'parallel';
+
+    const nextIndex = level1Nodes.length + 1;
+    const childName = `state-${nextIndex}`;
+    const childId = `/${childName}`;
+
+    // If principal is compound (or atomic switching to compound), first child must be initial
+    const isInitial =
+      !isPrincipalParallel && (isPrincipalAtomic || level1Nodes.length === 0);
+
+    if (isPrincipalAtomic && principal) {
+      send({
+        type: 'SET_NODE_DATA',
+        payload: { id: principal.id, data: { stateType: 'compound' } },
+      });
+    }
+
+    send({
+      type: 'ADD_PARENT',
+      payload: {
+        id: childId,
+        data: {
+          id: childId,
+          title: childName,
+          path: childId,
+          parentPath: PRINCIPAL_NODE_KEY,
+          stateType: 'atomic',
+          isInitial,
+        },
+        handles: createHandles(),
+      },
+    });
+  };
+
   return (
     <div class='flex items-center gap-1.5'>
+      {/* Principal Node Toggle Button */}
+      <button
+        type='button'
+        data-principal-toggle
+        class={cn(
+          'flex size-9 cursor-pointer items-center justify-center rounded-lg border shadow-sm transition-all duration-150 active:scale-95',
+          isPrincipalOpen()
+            ? 'border-indigo-400 bg-indigo-600 text-white shadow'
+            : 'border-gray-200 bg-gray-50 text-gray-700 hover:bg-gray-100',
+        )}
+        onClick={e => {
+          e.stopPropagation();
+          setIsPrincipalOpen(prev => !prev);
+        }}
+        title={isPrincipalOpen() ? 'Hide Principal Node' : 'Show Principal Node'}
+        aria-label='Toggle principal node panel'
+      >
+        <svg
+          class='size-4.5 fill-current'
+          viewBox='0 0 24 24'
+          xmlns='http://www.w3.org/2000/svg'
+        >
+          <path d='M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z' />
+        </svg>
+      </button>
+
       {/* Root Node Addition Action */}
       <button
         type='button'
         class='flex size-9 cursor-pointer items-center justify-center rounded-lg bg-blue-600 text-white shadow transition-all duration-150 hover:bg-blue-700 active:scale-95'
-        onClick={() =>
-          send({ type: 'ADD_PARENT', payload: { handles: createHandles() } })
-        }
+        onClick={handleAddRootNode}
         title='Add parent node'
         aria-label='Add parent node'
       >

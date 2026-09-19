@@ -1,9 +1,10 @@
-import type { GuardConfig } from "@bemedev/app";
-import type { StateType } from "@bemedev/app/states";
-import type { EdgesFrom, NodeHandles_T, NodesFrom } from "@bemedev/mind-flow";
+import type { GuardConfig } from '@bemedev/app';
+import type { StateType } from '@bemedev/app/states';
+import type { EdgesFrom, NodeHandles_T, NodesFrom } from '@bemedev/mind-flow';
 
-import { createHandles } from "./helpers";
-import { formatGuards, normalizeGuards } from "./helpers";
+import { PRINCIPAL_NODE_KEY } from './constants';
+import { createHandles } from './helpers';
+import { formatGuards, normalizeGuards } from './helpers';
 import type {
   EdgeKind,
   MachineConfig,
@@ -15,7 +16,7 @@ import type {
   StateNodeKeys,
   StateNodePositions,
   TransitionItem,
-} from "./types";
+} from './types';
 
 export type { MachineConfig, Position, StateNodeKeys, StateNodePositions };
 
@@ -25,12 +26,16 @@ const VERTICAL_SPACING = 170;
 const INITIAL_X = 80;
 const INITIAL_Y = 100;
 
-class Principal {
-  ___root = "@bemedev/mind-flow/uniquePrincipal##";
+export class Principal {
+  ___root = '@bemedev/mind-flow/uniquePrincipal##';
 
+  private static _instance: Principal;
   private constructor() {}
   static get unique() {
-    return new Principal();
+    if (!this._instance) {
+      this._instance = new Principal();
+    }
+    return this._instance;
   }
 }
 
@@ -43,13 +48,13 @@ type NormalizedTarget = {
 
 const normalizeTarget = (raw: any): NormalizedTarget[] => {
   if (!raw) return [];
-  if (typeof raw === "string") return [{ target: raw }];
+  if (typeof raw === 'string') return [{ target: raw }];
   if (Array.isArray(raw)) {
-    return raw.flatMap((item) => normalizeTarget(item));
+    return raw.flatMap(item => normalizeTarget(item));
   }
-  if (typeof raw === "object") {
+  if (typeof raw === 'object') {
     const target = raw.target ?? raw.state;
-    if (typeof target === "string") {
+    if (typeof target === 'string') {
       const rawGuards = raw.guards ?? raw.guard;
       const normalized = normalizeGuards(rawGuards);
       const guards = normalized.length > 0 ? normalized : undefined;
@@ -66,11 +71,11 @@ const normalizeTarget = (raw: any): NormalizedTarget[] => {
 
 /** Helper to extract action string name whether given as string or describer object. */
 const toActionName = (action: any): string => {
-  if (typeof action === "string") return action;
-  if (action && typeof action === "object" && typeof action.name === "string") {
+  if (typeof action === 'string') return action;
+  if (action && typeof action === 'object' && typeof action.name === 'string') {
     return action.name;
   }
-  return String(action ?? "");
+  return String(action ?? '');
 };
 
 /**
@@ -83,7 +88,7 @@ const extractActivities = (rawActivities?: any): StateActivityData[] => {
   // If already an array of structured StateActivityData objects
   if (
     Array.isArray(rawActivities) &&
-    rawActivities.every((item) => typeof item === "object" && "delay" in item)
+    rawActivities.every(item => typeof item === 'object' && 'delay' in item)
   ) {
     return rawActivities.map((item, i) => ({
       ...item,
@@ -94,9 +99,9 @@ const extractActivities = (rawActivities?: any): StateActivityData[] => {
   // If legacy array of string keys (e.g. ['pollStatus', 'heartbeat'])
   if (
     Array.isArray(rawActivities) &&
-    rawActivities.every((item) => typeof item === "string")
+    rawActivities.every(item => typeof item === 'string')
   ) {
-    return rawActivities.map((delay) => ({
+    return rawActivities.map(delay => ({
       id: delay,
       delay,
       actions: [delay],
@@ -105,11 +110,11 @@ const extractActivities = (rawActivities?: any): StateActivityData[] => {
   }
 
   // If ActivityConfig record: Record<string, ActivityArray>
-  if (typeof rawActivities === "object") {
+  if (typeof rawActivities === 'object') {
     return Object.entries(rawActivities).flatMap(([delay, config]) => {
       const configs = Array.isArray(config) ? config : [config];
       return configs.map((item, i) => {
-        if (typeof item === "string") {
+        if (typeof item === 'string') {
           return {
             id: delay,
             delay,
@@ -117,7 +122,7 @@ const extractActivities = (rawActivities?: any): StateActivityData[] => {
             description: `Runs '${item}' action every ${delay}`,
           };
         }
-        if (item && typeof item === "object") {
+        if (item && typeof item === 'object') {
           const rawActions = item.actions ?? item.name;
           const actionsList = Array.isArray(rawActions)
             ? rawActions.map(toActionName)
@@ -146,40 +151,38 @@ const extractActivities = (rawActivities?: any): StateActivityData[] => {
 
 /** Normalizes raw actors defined on a state into {@linkcode StateActorData} entries. */
 const extractActors = (rawActors?: Record<string, any>): StateActorData[] => {
-  if (!rawActors || typeof rawActors !== "object") return [];
+  if (!rawActors || typeof rawActors !== 'object') return [];
 
   return Object.entries(rawActors).map(([name, config]) => {
     const isEmitter =
       config &&
-      (Boolean(config.next) ||
-        Boolean(config.error) ||
-        Boolean(config.complete));
+      (Boolean(config.next) || Boolean(config.error) || Boolean(config.complete));
     const isChild =
       config &&
       (Boolean(config.on) || Boolean(config.contexts) || Boolean(config.src));
 
-    const type: StateActorData["type"] = isEmitter
-      ? "emitter"
+    const type: StateActorData['type'] = isEmitter
+      ? 'emitter'
       : isChild
-        ? "child"
-        : "service";
+        ? 'child'
+        : 'service';
 
-    const emissions: StateActorData["emissions"] = {};
+    const emissions: StateActorData['emissions'] = {};
     const nextActions = Array.isArray(config?.next?.actions)
       ? config.next.actions
       : config?.next?.actions
         ? [config.next.actions]
-        : typeof config?.next === "string"
+        : typeof config?.next === 'string'
           ? [config.next]
           : config?.next
-            ? ["handleNext"]
+            ? ['handleNext']
             : undefined;
 
     const errorActions = Array.isArray(config?.error?.actions)
       ? config.error.actions
       : config?.error?.actions
         ? [config.error.actions]
-        : typeof config?.error === "string"
+        : typeof config?.error === 'string'
           ? [config.error]
           : undefined;
 
@@ -187,7 +190,7 @@ const extractActors = (rawActors?: Record<string, any>): StateActorData[] => {
       ? config.complete.actions
       : config?.complete?.actions
         ? [config.complete.actions]
-        : typeof config?.complete === "string"
+        : typeof config?.complete === 'string'
           ? [config.complete]
           : undefined;
 
@@ -195,24 +198,23 @@ const extractActors = (rawActors?: Record<string, any>): StateActorData[] => {
     if (errorActions) emissions.error = errorActions;
     if (completeActions) emissions.complete = completeActions;
 
-    const events: StateActorData["events"] = {};
+    const events: StateActorData['events'] = {};
     const childOnHandlers: Record<string, any> = {};
 
-    if (config?.on && typeof config.on === "object") {
+    if (config?.on && typeof config.on === 'object') {
       Object.entries(config.on).forEach(([ev, handler]: [string, any]) => {
         const handlerActions = Array.isArray(handler?.actions)
           ? handler.actions
           : handler?.actions
             ? [handler.actions]
-            : typeof handler === "string"
+            : typeof handler === 'string'
               ? [handler]
               : [];
 
         events[ev] = handlerActions;
         childOnHandlers[ev] = {
           actions: handlerActions,
-          target:
-            typeof handler?.target === "string" ? handler.target : undefined,
+          target: typeof handler?.target === 'string' ? handler.target : undefined,
           guards: handler?.guards ? normalizeGuards(handler.guards) : undefined,
         };
       });
@@ -220,9 +222,9 @@ const extractActors = (rawActors?: Record<string, any>): StateActorData[] => {
 
     const description =
       config?.description ??
-      (type === "emitter"
+      (type === 'emitter'
         ? `Reactive stream emitter subscribed on state entry, emits values to actions, stops on state exit.`
-        : type === "child"
+        : type === 'child'
           ? `Bi-directional child actor machine handling event delegation and parent context synchronization.`
           : `Background service executed during the lifecycle of this state.`);
 
@@ -232,10 +234,10 @@ const extractActors = (rawActors?: Record<string, any>): StateActorData[] => {
       type,
       description,
       emitter:
-        type === "emitter"
+        type === 'emitter'
           ? {
               next: {
-                actions: nextActions ?? ["handleNext"],
+                actions: nextActions ?? ['handleNext'],
                 target: config?.next?.target,
                 guards: config?.next?.guards
                   ? normalizeGuards(config.next.guards)
@@ -262,7 +264,7 @@ const extractActors = (rawActors?: Record<string, any>): StateActorData[] => {
             }
           : undefined,
       child:
-        type === "child"
+        type === 'child'
           ? { on: childOnHandlers, contexts: config?.contexts }
           : undefined,
       emissions,
@@ -305,9 +307,7 @@ const extractActors = (rawActors?: Record<string, any>): StateActorData[] => {
  * @see -- type {@linkcode Position}
  * @see -- type {@linkcode StateNodeKeys}
  */
-export const parseMachineToGraph = <
-  const T extends MachineConfig = MachineConfig,
->(
+export const parseMachineToGraph = <const T extends MachineConfig = MachineConfig>(
   machineConfig: T,
   positions: Record<StateNodeKeys<T>, Position>,
 ): {
@@ -356,30 +356,32 @@ export const parseMachineToGraph = <
   const walkState = (
     stateName: string,
     stateObj: any,
-    parentPath = "",
+    parentPath = '',
     depth = 0,
     parentIdx = 0,
   ) => {
-    const currentPath = parentPath
-      ? `${parentPath}/${stateName}`
-      : `/${stateName}`;
+    const currentPath =
+      parentPath && parentPath !== PRINCIPAL_NODE_KEY
+        ? `${parentPath}/${stateName}`
+        : `/${stateName}`;
     const id = currentPath;
     const hasChildren = Boolean(
       stateObj?.states && Object.keys(stateObj.states).length > 0,
     );
     const isChild = Boolean(parentPath);
-    const isParentParallel = stateObj?.parentType === "parallel";
+    const isParentParallel = stateObj?.parentType === 'parallel';
     const isInitial =
       !isParentParallel &&
-      ((parentPath === "" && stateName === effectiveRootInitial) ||
-        (Boolean(parentPath) && stateObj?.parentInitial === stateName));
+      ((parentPath === PRINCIPAL_NODE_KEY && stateName === effectiveRootInitial) ||
+        (Boolean(parentPath && parentPath !== PRINCIPAL_NODE_KEY) &&
+          stateObj?.parentInitial === stateName));
 
-    const isParallel = stateObj?.type === "parallel";
+    const isParallel = stateObj?.type === 'parallel';
     const stateType: StateType = isParallel
-      ? "parallel"
+      ? 'parallel'
       : hasChildren
-        ? "compound"
-        : "atomic";
+        ? 'compound'
+        : 'atomic';
 
     const actors = extractActors(stateObj?.actors);
     const entry = Array.isArray(stateObj?.entry)
@@ -417,21 +419,22 @@ export const parseMachineToGraph = <
 
     // 1. Edge for relation between child and parent:
     // "child to parent, will have a specific edge"
-    if (parentPath) {
+    // Exclude hierarchy edges to the principal node since it is rendered in the top-right panel
+    if (parentPath && parentPath !== PRINCIPAL_NODE_KEY) {
       const edgeId = `edge:hierarchy:${id}=>${parentPath}`;
       rawEdges.push({
         id: edgeId,
         from: id,
         to: parentPath,
-        kind: "child_parent",
-        label: `child of : /${parentPath.split("/").pop()}`,
+        kind: 'child_parent',
+        label: `child of : /${parentPath.split('/').pop()}`,
       });
     }
 
     // Recursively walk substates if compound or parallel
     if (hasChildren) {
       const childKeys = Object.keys(stateObj.states);
-      const isParallel = stateObj?.type === "parallel";
+      const isParallel = stateObj?.type === 'parallel';
       const childInitial =
         !isParallel && childKeys.length === 1
           ? (stateObj.initial ?? childKeys[0])
@@ -444,60 +447,60 @@ export const parseMachineToGraph = <
             parentInitial: childInitial,
             parentType: stateObj?.type,
           };
-          walkState(
-            childName,
-            enrichedChild,
-            currentPath,
-            depth + 1,
-            nodeIndex,
-          );
+          walkState(childName, enrichedChild, currentPath, depth + 1, nodeIndex);
         },
       );
     }
   };
 
-  // Walk all root states
-  Object.entries(rootStates).forEach(([name, obj]) => {
-    walkState(name, obj, "", 0, 0);
+  // Walk all root states with PRINCIPAL_NODE_KEY as parent
+  const isMainParallel = (main as any)?.type === 'parallel';
+  Object.entries(rootStates).forEach(([name, obj]: [string, any]) => {
+    const enrichedRoot = {
+      ...obj,
+      parentInitial: effectiveRootInitial,
+      parentType: isMainParallel ? 'parallel' : undefined,
+    };
+    walkState(name, enrichedRoot, PRINCIPAL_NODE_KEY, 0, 0);
   });
 
   // Resolve transition targets (on, after, always)
   const resolveTargetId = (target: string, currentPath: string): string => {
-    if (target.startsWith("/")) {
+    if (target.startsWith('/')) {
       // Absolute path: find exact or prefix match
-      const exact = rawNodes.find((n) => n.path === target);
+      const exact = rawNodes.find(n => n.path === target);
       if (exact) return exact.id;
       // Partial match
-      const partial = rawNodes.find((n) => n.id.endsWith(target));
+      const partial = rawNodes.find(n => n.id.endsWith(target));
       if (partial) return partial.id;
       return target;
     }
     // Relative path from current parent
-    const parentPart = currentPath.substring(0, currentPath.lastIndexOf("/"));
+    const parentPart = currentPath.substring(0, currentPath.lastIndexOf('/'));
     const candidatePath = parentPart ? `${parentPart}/${target}` : `/${target}`;
-    const found = rawNodes.find((n) => n.path === candidatePath);
+    const found = rawNodes.find(n => n.path === candidatePath);
     if (found) return found.id;
     return `/${target}`;
   };
 
-  rawNodes.forEach((node) => {
+  rawNodes.forEach(node => {
     const s = node.rawState;
     if (!s) return;
 
     // 2. Edge for 'after' transition
-    if (s.after && typeof s.after === "object") {
+    if (s.after && typeof s.after === 'object') {
       Object.entries(s.after).forEach(([delay, targetRaw]) => {
         const targets = normalizeTarget(targetRaw);
         targets.forEach(({ target, guards, actions }, idx) => {
           const toId = resolveTargetId(target, node.path);
           const edgeId = `edge:after:${node.id}=>${toId}:${delay}:${idx}`;
           const guardLabel =
-            guards && guards.length > 0 ? ` [${formatGuards(guards)}]` : "";
+            guards && guards.length > 0 ? ` [${formatGuards(guards)}]` : '';
           rawEdges.push({
             id: edgeId,
             from: node.id,
             to: toId,
-            kind: "after",
+            kind: 'after',
             label: `after: ${delay}${guardLabel}`,
             delay,
             guards,
@@ -514,12 +517,12 @@ export const parseMachineToGraph = <
         const toId = resolveTargetId(target, node.path);
         const edgeId = `edge:always:${node.id}=>${toId}:${idx}`;
         const guardLabel =
-          guards && guards.length > 0 ? ` [${formatGuards(guards)}]` : "";
+          guards && guards.length > 0 ? ` [${formatGuards(guards)}]` : '';
         rawEdges.push({
           id: edgeId,
           from: node.id,
           to: toId,
-          kind: "always",
+          kind: 'always',
           label: `always${guardLabel}`,
           guards,
           actions,
@@ -528,19 +531,19 @@ export const parseMachineToGraph = <
     }
 
     // 4. Edge for 'on' transition
-    if (s.on && typeof s.on === "object") {
+    if (s.on && typeof s.on === 'object') {
       Object.entries(s.on).forEach(([event, targetRaw]) => {
         const targets = normalizeTarget(targetRaw);
         targets.forEach(({ target, guards, actions }, idx) => {
           const toId = resolveTargetId(target, node.path);
           const edgeId = `edge:on:${node.id}=>${toId}:${event}:${idx}`;
           const guardLabel =
-            guards && guards.length > 0 ? ` [${formatGuards(guards)}]` : "";
+            guards && guards.length > 0 ? ` [${formatGuards(guards)}]` : '';
           rawEdges.push({
             id: edgeId,
             from: node.id,
             to: toId,
-            kind: "on",
+            kind: 'on',
             label: `on: ${event}${guardLabel}`,
             event,
             guards,
@@ -563,9 +566,7 @@ export const parseMachineToGraph = <
     const defaultX = INITIAL_X + col * HORIZONTAL_SPACING;
     const defaultY = INITIAL_Y + currentYCount * VERTICAL_SPACING;
     const pos = positions?.[node.id as keyof typeof positions];
-    const position = pos
-      ? { x: pos.x, y: pos.y }
-      : { x: defaultX, y: defaultY };
+    const position = pos ? { x: pos.x, y: pos.y } : { x: defaultX, y: defaultY };
     const handles: NodeHandles_T = createHandles();
 
     return {
@@ -602,7 +603,7 @@ export const parseMachineToGraph = <
     }
   >();
 
-  rawEdges.forEach((e) => {
+  rawEdges.forEach(e => {
     const key = `${e.kind}:${e.from}=>${e.to}`;
     const transitionItem: TransitionItem = {
       id: e.id,
@@ -619,7 +620,7 @@ export const parseMachineToGraph = <
       existing.transitions.push(transitionItem);
     } else {
       const edgeId =
-        e.kind === "child_parent"
+        e.kind === 'child_parent'
           ? `edge:hierarchy:${e.from}=>${e.to}`
           : `edge:${e.kind}:${e.from}=>${e.to}`;
 
@@ -633,61 +634,82 @@ export const parseMachineToGraph = <
     }
   });
 
-  const edges: EdgesFrom<StateMachineEdgeData> = Array.from(
-    edgeGroups.values(),
-  ).map((g) => {
-    const primary = g.transitions[0];
-    const isMulti = g.transitions.length > 1;
+  const edges: EdgesFrom<StateMachineEdgeData> = Array.from(edgeGroups.values()).map(
+    g => {
+      const primary = g.transitions[0];
+      const isMulti = g.transitions.length > 1;
 
-    let fromPosition: "top" | "right" | "bottom" | "left" = "right";
-    let toPosition: "top" | "right" | "bottom" | "left" = "left";
-    let fromIndex: number | undefined = undefined;
-    let toIndex: number | undefined = undefined;
+      let fromPosition: 'top' | 'right' | 'bottom' | 'left' = 'right';
+      let toPosition: 'top' | 'right' | 'bottom' | 'left' = 'left';
+      let fromIndex: number | undefined = undefined;
+      let toIndex: number | undefined = undefined;
 
-    if (g.kind === "child_parent") {
-      fromPosition = "top";
-      toPosition = "bottom";
-      fromIndex = 0;
-      toIndex = 0;
-    } else if (g.kind === "after") {
-      fromPosition = "right";
-      toPosition = "left";
-      fromIndex = 0;
-      toIndex = 0;
-    } else if (g.kind === "always") {
-      fromPosition = "right";
-      toPosition = "left";
-      fromIndex = 1;
-      toIndex = 1;
-    } else {
-      // 'on'
-      fromPosition = "right";
-      toPosition = "left";
-      fromIndex = 2;
-      toIndex = 2;
-    }
+      if (g.kind === 'child_parent') {
+        fromPosition = 'top';
+        toPosition = 'bottom';
+        fromIndex = 0;
+        toIndex = 0;
+      } else if (g.kind === 'after') {
+        fromPosition = 'right';
+        toPosition = 'left';
+        fromIndex = 0;
+        toIndex = 0;
+      } else if (g.kind === 'always') {
+        fromPosition = 'right';
+        toPosition = 'left';
+        fromIndex = 1;
+        toIndex = 1;
+      } else {
+        // 'on'
+        fromPosition = 'right';
+        toPosition = 'left';
+        fromIndex = 2;
+        toIndex = 2;
+      }
 
-    return {
-      id: g.id,
-      from: g.from,
-      to: g.to,
-      fromPosition,
-      toPosition,
-      fromIndex,
-      toIndex,
-      data: {
-        kind: g.kind,
-        label: isMulti ? `${g.transitions.length} transitions` : primary.label,
-        event: primary.event,
-        delay: primary.delay,
-        guards: primary.guards,
-        actions: primary.actions,
-        fromState: g.from,
-        toState: g.to,
-        transitions: g.transitions,
-      },
-    };
-  });
+      return {
+        id: g.id,
+        from: g.from,
+        to: g.to,
+        fromPosition,
+        toPosition,
+        fromIndex,
+        toIndex,
+        data: {
+          kind: g.kind,
+          label: isMulti ? `${g.transitions.length} transitions` : primary.label,
+          event: primary.event,
+          delay: primary.delay,
+          guards: primary.guards,
+          actions: primary.actions,
+          fromState: g.from,
+          toState: g.to,
+          transitions: g.transitions,
+        },
+      };
+    },
+  );
 
-  return { nodes, edges };
+  const principalNodeType: StateType =
+    rootKeys.length === 0
+      ? 'atomic'
+      : (main as any)?.type === 'parallel'
+        ? 'parallel'
+        : 'compound';
+
+  const principalNode: NodesFrom<StateMachineNodeData>[number] = {
+    id: PRINCIPAL_NODE_KEY,
+    position: (positions as any)?.[PRINCIPAL_NODE_KEY] ?? { x: 0, y: 0 },
+    data: {
+      ...main,
+      principal: Principal.unique,
+      id: PRINCIPAL_NODE_KEY,
+      title: (main as any)?.id ?? (main as any)?.name ?? 'Machine',
+      path: PRINCIPAL_NODE_KEY,
+      stateType: principalNodeType,
+      content: (main as any)?.description,
+    } as any,
+  };
+
+  return { nodes: [principalNode, ...nodes], edges };
 };

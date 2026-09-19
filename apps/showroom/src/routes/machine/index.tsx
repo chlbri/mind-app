@@ -4,15 +4,18 @@ import { onMount } from 'solid-js';
 import * as v from 'valibot';
 
 import {
+  AtomicFiligrane,
   HistoryControlsAddons,
+  PrincipalPanel,
   StateMachineEdge,
   StateMachineEditPanel,
   StateMachineNode,
   StateMachineNodeSelected,
   TransitionModal,
 } from './-settings/components';
-import { localStorageModel, STORAGE_KEY } from './-settings/constants';
+import { historyModel, localStorageModel, STORAGE_KEY } from './-settings/constants';
 import { DEFAULT_CONFIG } from './-settings/data';
+import { Principal } from './-settings/parser';
 import type { StateMachineEdgeData, StateMachineNodeData } from './-settings/types';
 
 const getHistory = () => {
@@ -50,6 +53,8 @@ export const Route = createFileRoute('/machine/')({
       return DEFAULT_CONFIG;
     };
 
+    let hLen = -1;
+
     return (
       <div class='relative h-[calc(100vh-64px)] w-[calc(100vw-32px)] overflow-hidden'>
         <Flow<StateMachineNodeData, StateMachineEdgeData>
@@ -58,17 +63,24 @@ export const Route = createFileRoute('/machine/')({
           Node={StateMachineNode}
           NodeSelected={StateMachineNodeSelected}
           Edge={StateMachineEdge}
-          panels={{ bottomLeft: TransitionModal, topLeft: StateMachineEditPanel }}
+          panels={{
+            bottomLeft: TransitionModal,
+            topLeft: StateMachineEditPanel,
+            topRight: PrincipalPanel,
+          }}
           controlsAddons={HistoryControlsAddons}
 
           register={({ history, historyIndex }) => {
-            const parsed = v.safeParse(localStorageModel, { history, historyIndex });
-            if (parsed.success) {
-              try {
-                localStorage.setItem(STORAGE_KEY, JSON.stringify(parsed.output));
-              } catch {
-                console.warn('Cannot access local storage');
+            try {
+              const parsed = v.parse(historyModel, { history, historyIndex });
+              const currentLen = parsed.history.length;
+              const check = currentLen > hLen;
+              if (check) {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(parsed));
+                hLen = currentLen;
               }
+            } catch {
+              console.warn('Cannot access local storage');
             }
           }}
 
@@ -101,14 +113,68 @@ export const Route = createFileRoute('/machine/')({
             stateType: 'atomic',
           }}
         >
+          <AtomicFiligrane />
           <Hook>
             {() => {
-              const { send } = useFlow();
+              const { send, service } = useFlow();
 
               onMount(() => {
+                service.addOptions(() => ({
+                  guards: {
+                    canDelete: {
+                      DELETE: ({ context: { data }, payload }) => {
+                        const node = data?.nodes?.find(n => n.id === payload);
+                        const check =
+                          (node?.data as any)?.principal === Principal.unique;
+                        if (check) {
+                          return false;
+                        }
+                        return true;
+                      },
+                    },
+                  },
+                }));
                 const payload = getHistory();
                 if (payload) send({ type: 'BUILD_HISTORY', payload });
               });
+
+              // // Auto-sync:
+              // // 1. If principal node is set to atomic, delete all canvas nodes and edges
+              // // 2. If all canvas nodes are deleted, principal node is immediately atomic
+              // createEffect(() => {
+              //   const nodes = hooks.state({
+              //     selector: ({ context: { data } }) => data?.nodes ?? [],
+              //   })();
+              //   const canvasNodes = nodes.filter(
+              //     n => n.id !== PRINCIPAL_NODE_KEY && !(n.data as any)?.principal,
+              //   );
+              //   const principal = nodes.find(
+              //     n => n.id === PRINCIPAL_NODE_KEY || (n.data as any)?.principal,
+              //   );
+              //   if (
+              //     principal &&
+              //     principal.data?.stateType === 'atomic' &&
+              //     canvasNodes.length > 0
+              //   ) {
+              //     const updatedPrincipal = {
+              //       ...principal,
+              //       data: { ...principal.data, stateType: 'atomic' as StateType },
+              //     };
+              //     send({
+              //       type: 'CONFIGURE',
+              //       payload: { nodes: [updatedPrincipal], edges: [] },
+              //     });
+              //   } else if (
+              //     canvasNodes.length === 0 &&
+              //     principal &&
+              //     principal.data?.stateType !== 'atomic'
+              //   ) {
+              //     send({
+              //       type: 'SET_NODE_DATA',
+              //       payload: { id: principal.id, data: { stateType: 'atomic' } },
+              //     });
+              //   }
+              // });
             }}
           </Hook>
         </Flow>

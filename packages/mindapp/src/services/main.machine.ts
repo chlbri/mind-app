@@ -85,7 +85,11 @@ export const machine = createMachine(
           START_NEW_EDGE: { actions: ['startNewEdge'], target: '/register' },
           MOVE_NEW_EDGE: { actions: ['moveNewEdge'], target: '/register' },
           CLEAR_NEW_EDGE: { actions: ['clearNewEdge'], target: '/register' },
-          DELETE: { actions: ['delete'], target: '/construction' },
+          DELETE: {
+            actions: ['delete'],
+            target: '/construction',
+            guards: 'canDelete',
+          },
           SELECT: { actions: ['select'], target: '/register' },
           DESELECT: { actions: ['deselect'], target: '/register' },
           ZOOM: { actions: ['zoom'], target: '/register' },
@@ -98,10 +102,7 @@ export const machine = createMachine(
           COMMIT: { actions: ['recordHistory'], target: '/register' },
           RESET_HISTORY: { actions: ['resetHistory'], target: '/register' },
 
-          CONFIGURE: {
-            actions: ['configure', 'recordHistory'],
-            target: '/construction',
-          },
+          CONFIGURE: { actions: ['configure'], target: '/construction' },
 
           ADD_EDGE: {
             actions: ['addEdge'],
@@ -738,11 +739,30 @@ export const machine = createMachine(
     delete: batch(
       filter('data.edges', {
         DELETE: ({ id, from, to }, _, { payload }) => {
+          if (
+            payload === '/' ||
+            payload === '@bemedev/mind-flow/uniquePrincipal##'
+          ) {
+            return true;
+          }
           return id !== payload && from !== payload && to !== payload;
         },
       }),
 
-      filter('data.nodes', { DELETE: ({ id }, _, { payload }) => id !== payload }),
+      filter('data.nodes', {
+        DELETE: ({ id, data }, _, { payload }) => {
+          if (
+            id === payload &&
+            (id === '/' ||
+              (data as any)?.principal ||
+              (data as any)?.principal?.___root ===
+                '@bemedev/mind-flow/uniquePrincipal##')
+          ) {
+            return true;
+          }
+          return id !== payload;
+        },
+      }),
       erase('editing'),
     ),
 

@@ -6,3 +6,5 @@ export * from './Node.edit';
 export * from './Node.selected';
 export * from './guards';
 export * from './HistoryControlsAddons';
+export * from './PrincipalPanel';
+export * from './Filigrane';
