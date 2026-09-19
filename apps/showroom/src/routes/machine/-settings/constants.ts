@@ -18,3 +18,5 @@ export const localStorageModel = v.pipe(
   v.parseJson(),
   v.object({ history: typings.history, historyIndex: v.number() }),
 );
+
+export const PRINCIPAL_NODE_KEY = '/';
