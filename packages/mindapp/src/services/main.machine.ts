@@ -30,6 +30,7 @@ import {
 } from './main.machine.history';
 import {
   board,
+  commitPayload,
   data,
   dimension,
   extremities,
@@ -42,6 +43,7 @@ import {
   point,
   vector,
   type Board,
+  type CommitPayload,
   type Dimension,
   type FlowchartData,
   type FlowchartDiff,
@@ -51,7 +53,7 @@ import {
   type Vector,
 } from './main.machine.typings';
 
-export type { FlowchartData, FlowchartDiff, HistoryEntry };
+export type { CommitPayload, FlowchartData, FlowchartDiff, HistoryEntry };
 
 /**
  * State machine managing flowchart state transitions, nodes, edges, selection, and
@@ -99,7 +101,7 @@ export const machine = createMachine(
           SET_EDGE_DATA: { actions: ['setEdgeData'], target: '/register' },
           EDIT: { actions: ['edit'], target: '/register' },
           STOP_EDIT: { actions: ['stopEdit'], target: '/register' },
-          COMMIT: { actions: ['recordHistory'], target: '/register' },
+          COMMIT: { actions: ['recordHistory'], target: '/construction' },
           RESET_HISTORY: { actions: ['resetHistory'], target: '/register' },
 
           CONFIGURE: { actions: ['configure'], target: '/construction' },
@@ -191,7 +193,7 @@ export const machine = createMachine(
       UNDO: v.never(),
       REDO: v.never(),
       CHECKOUT: v.number(),
-      COMMIT: v.optional(v.string()),
+      COMMIT: v.optional(commitPayload),
       RESET_HISTORY: v.never(),
       BUILD_HISTORY: v.object({ history, historyIndex: v.number() }),
 
@@ -297,9 +299,13 @@ export const machine = createMachine(
         if (!data) return [history, historyIndex];
 
         let commitName: string | undefined;
+        let previousIndex: number | undefined;
         if (rest?.event?.type === 'COMMIT') {
-          const p: string | undefined = rest?.event?.payload;
-          commitName = p?.trim();
+          const p: CommitPayload | undefined = rest?.event?.payload;
+          commitName = p?.name?.trim();
+          if (typeof p?.previous === 'number') {
+            previousIndex = p.previous;
+          }
         }
 
         // Base entry
@@ -316,9 +322,14 @@ export const machine = createMachine(
           return [[entry], 0];
         }
 
-        // Calculate diff from the last registered commit to the current one
-        const lastRegisteredData = reconstructState(history, history.length - 1);
-        const diff = calculateDiff(lastRegisteredData, data);
+        // Calculate diff from the specified previous commit (or the last registered commit) to the current one
+        const targetPrevIndex =
+          typeof previousIndex === 'number'
+            ? Math.max(0, Math.min(previousIndex, history.length - 1))
+            : history.length - 1;
+
+        const previousData = reconstructState(history, targetPrevIndex);
+        const diff = calculateDiff(previousData, data);
 
         // No changes observed => skip commit (no empty commit)
         if (!diff) {
@@ -330,6 +341,9 @@ export const machine = createMachine(
           diff,
           date: Date.now(),
           ...(commitName ? { name: commitName } : {}),
+          ...(typeof previousIndex === 'number'
+            ? { previous: targetPrevIndex }
+            : {}),
         };
         const nextHistory = [...history, newEntry];
 

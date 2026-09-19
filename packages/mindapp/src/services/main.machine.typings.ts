@@ -274,6 +274,7 @@ export const historyEntry = v.object({
   diff: v.optional(diff),
   date: v.number(),
   name: v.optional(v.string()),
+  previous: v.optional(v.number()),
 });
 
 /**
@@ -284,5 +285,16 @@ export type HistoryEntry = v.InferOutput<typeof historyEntry>;
 
 /** Schema definition for an array of history entries. */
 export const history = v.array(historyEntry);
+
+/**
+ * Schema definition for commit action payload specifying optional commit name and
+ * 0-based target index of a previous history entry to diff against.
+ */
+export const commitPayload = v.partial(
+  v.object({ name: v.string(), previous: v.number() }),
+);
+
+/** Commit payload inferred from schema {@linkcode commitPayload}. */
+export type CommitPayload = v.InferOutput<typeof commitPayload>;
 
 export type { DeepPartial };

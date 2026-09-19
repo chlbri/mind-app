@@ -122,8 +122,15 @@ export const HistoryControlsAddons: Component = () => {
   };
 
   const handleCommit = () => {
-    const payload = commitName()?.trim();
-    send({ type: 'COMMIT', payload });
+    const name = commitName()?.trim();
+    const previous = historyIndex() >= 0 ? historyIndex() : undefined;
+    send({
+      type: 'COMMIT',
+      payload: {
+        ...(name ? { name } : {}),
+        ...(previous !== undefined ? { previous } : {}),
+      },
+    });
     setCommitName('');
     setIsCommitOpen(false);
   };

@@ -54,6 +54,7 @@ export const Route = createFileRoute('/machine/')({
     };
 
     let hLen = -1;
+    let tempIndex = -1;
 
     return (
       <div class='relative h-[calc(100vh-64px)] w-[calc(100vw-32px)] overflow-hidden'>
@@ -74,10 +75,11 @@ export const Route = createFileRoute('/machine/')({
             try {
               const parsed = v.parse(historyModel, { history, historyIndex });
               const currentLen = parsed.history.length;
-              const check = currentLen > hLen;
+              const check = currentLen > hLen || tempIndex !== parsed.historyIndex;
               if (check) {
                 localStorage.setItem(STORAGE_KEY, JSON.stringify(parsed));
                 hLen = currentLen;
+                tempIndex = parsed.historyIndex;
               }
             } catch {
               console.warn('Cannot access local storage');

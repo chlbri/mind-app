@@ -13,6 +13,7 @@ import {
   getHandlePosition,
   parseEdgeId,
 } from './main.machine.helpers';
+import { reconstructState } from './main.machine.history';
 import type { Dimension, NodeProps } from './main.machine.typings';
 
 const HANDLE_OFFSET = HANDLE_CONTAINER_OFFSET_X - NODE_BORDER_WIDTH - HANDLE_RADIUS; // 10.5
@@ -289,6 +290,125 @@ describe('#01 => main.machine.helpers', () => {
         false,
       );
       expect(inst.context.data?.nodes?.some((n: any) => n.id === '/')).toBe(true);
+    });
+  });
+
+  describe('#07 => machine COMMIT history with previous diffing', () => {
+    it('#01 => should record initial base commit with structuredClone', () => {
+      const inst = interpret(machine, {
+        context: {
+          data: {
+            nodes: [{ id: '/cart', data: {}, position: { x: 0, y: 0 } }],
+            edges: [],
+          },
+          history: [],
+          historyIndex: -1,
+          edgesPositions: {},
+          zoom: 1,
+        },
+        pContext: { dimensions: {} } as any,
+      });
+      inst.start();
+      inst.send('CONFIGURE_EMPTY');
+
+      inst.send({ type: 'COMMIT', payload: { name: 'initial' } });
+      expect(inst.context.history).toHaveLength(1);
+      expect(inst.context.history?.[0]?.name).toBe('initial');
+      expect(inst.context.history?.[0]?.data).toBeDefined();
+      expect(inst.context.historyIndex).toBe(0);
+    });
+
+    it('#02 => should diff against last commit by default when previous is omitted', () => {
+      const inst = interpret(machine, {
+        context: {
+          data: {
+            nodes: [{ id: '/cart', data: {}, position: { x: 0, y: 0 } }],
+            edges: [],
+          },
+          history: [
+            {
+              data: {
+                nodes: [{ id: '/cart', data: {}, position: { x: 0, y: 0 } }],
+                edges: [],
+              },
+              date: Date.now(),
+              name: 'initial',
+            },
+          ],
+          historyIndex: 0,
+          edgesPositions: {},
+          zoom: 1,
+        },
+        pContext: { dimensions: {} } as any,
+      });
+      inst.start();
+      inst.send('CONFIGURE_EMPTY');
+
+      inst.context.data = {
+        nodes: [
+          { id: '/cart', data: {}, position: { x: 0, y: 0 } },
+          { id: '/checkout', data: {}, position: { x: 100, y: 100 } },
+        ],
+        edges: [],
+      };
+
+      inst.send({ type: 'COMMIT', payload: { name: 'add checkout' } });
+      expect(inst.context.history).toHaveLength(2);
+      expect(inst.context.history?.[1]?.name).toBe('add checkout');
+      expect(inst.context.history?.[1]?.diff?.nodes?.addeds).toBeDefined();
+      expect(inst.context.historyIndex).toBe(1);
+    });
+
+    it('#03 => should diff against a specific previous HistoryEntry when previous is provided', () => {
+      const baseData = {
+        nodes: [{ id: '/cart', data: {}, position: { x: 0, y: 0 } }],
+        edges: [],
+      };
+      const inst = interpret(machine, {
+        context: {
+          data: baseData,
+          history: [
+            { data: baseData, date: Date.now(), name: 'commit-0' },
+            {
+              diff: {
+                nodes: {
+                  addeds: [
+                    { id: '/payment', data: {}, position: { x: 50, y: 50 } },
+                  ] as any,
+                },
+              },
+              date: Date.now(),
+              name: 'commit-1',
+            },
+          ],
+          historyIndex: 1,
+          edgesPositions: {},
+          zoom: 1,
+        },
+        pContext: { dimensions: {} } as any,
+      });
+      inst.start();
+      inst.send('CONFIGURE_EMPTY');
+
+      inst.context.data = {
+        nodes: [
+          { id: '/cart', data: {}, position: { x: 0, y: 0 } },
+          { id: '/shipping', data: {}, position: { x: 100, y: 100 } },
+        ],
+        edges: [],
+      };
+
+      inst.send({ type: 'COMMIT', payload: { name: 'branch from 0', previous: 0 } });
+
+      expect(inst.context.history).toHaveLength(3);
+      const entry2 = inst.context.history?.[2];
+      expect(entry2?.name).toBe('branch from 0');
+      expect(entry2?.previous).toBe(0);
+      expect(entry2?.diff?.nodes?.addeds).toBeDefined();
+      expect(entry2?.diff?.nodes?.removeds).toBeUndefined();
+
+      const reconstructed = reconstructState(inst.context.history!, 2);
+      expect(reconstructed.nodes.map(n => n.id)).toEqual(['/cart', '/shipping']);
     });
   });
 });
