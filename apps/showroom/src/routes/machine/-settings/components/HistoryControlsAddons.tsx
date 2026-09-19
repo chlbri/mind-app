@@ -1,4 +1,4 @@
-import { clickOutside, cn, useFlow, type HistoryEntry } from '@bemedev/mind-flow';
+import { clickOutside, cn, useFlow, typings } from '@bemedev/mind-flow';
 import {
   Check,
   ChevronDown,
@@ -15,12 +15,15 @@ import { createHandles } from '../helpers';
  * Formats a single commit's delta summary or base snapshot details for display in
  * the checkout select dropdown.
  *
- * @param entry - The commit history entry of type {@linkcode HistoryEntry}.
+ * @param entry - The commit history entry of type {@linkcode typings.HistoryEntry}.
  * @param index - The sequential index of the commit.
  *
  * @returns Human-readable commit summary string.
  */
-export const formatCommitSummary = (entry: HistoryEntry, index: number): string => {
+export const formatCommitSummary = (
+  entry: typings.HistoryEntry,
+  index: number,
+): string => {
   if (index === 0) {
     const nodeCount = entry.data?.nodes?.length ?? 0;
     const edgeCount = entry.data?.edges?.length ?? 0;
@@ -312,7 +315,7 @@ export const HistoryControlsAddons: Component = () => {
                           setIsOpen(false);
                         }}
                       >
-                        <div class='flex min-w-0 flex-col pr-2'>
+                        <div class='flex w-full flex-col pr-2'>
                           <div class='flex items-center gap-1.5'>
                             <span
                               class={cn(
@@ -343,9 +346,11 @@ export const HistoryControlsAddons: Component = () => {
                           </span>
                         </div>
 
-                        <Show when={isSelected()}>
-                          <Check class='size-4 shrink-0 text-indigo-600' />
-                        </Show>
+                        <div class='w-4.5'>
+                          <Show when={isSelected()}>
+                            <Check class='size-4 text-indigo-600' />
+                          </Show>
+                        </div>
                       </button>
                     );
                   }}

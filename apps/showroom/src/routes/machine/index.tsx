@@ -12,7 +12,7 @@ import {
   TransitionModal,
 } from './-settings/components';
 import { localStorageModel, STORAGE_KEY } from './-settings/constants';
-import { config } from './-settings/data';
+import { DEFAULT_CONFIG } from './-settings/data';
 import type { StateMachineEdgeData, StateMachineNodeData } from './-settings/types';
 
 const getHistory = () => {
@@ -37,7 +37,7 @@ export const Route = createFileRoute('/machine/')({
      *
      * @returns The flowchart configuration object.
      *
-     * @see {@linkcode config}
+     * @see {@linkcode DEFAULT_CONFIG}
      */
     const getInitialConfig: any = () => {
       try {
@@ -47,7 +47,7 @@ export const Route = createFileRoute('/machine/')({
         console.warn('Nothing is registered yet');
       }
 
-      return config;
+      return DEFAULT_CONFIG;
     };
 
     return (
