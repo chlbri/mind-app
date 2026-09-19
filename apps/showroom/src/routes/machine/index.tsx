@@ -1,5 +1,7 @@
-import { Flow, type ConfigFrom } from '@bemedev/mind-flow';
+import { Flow, Hook, reconstructState, useFlow } from '@bemedev/mind-flow';
 import { createFileRoute } from '@tanstack/solid-router';
+import { onMount } from 'solid-js';
+import * as v from 'valibot';
 
 import {
   HistoryControlsAddons,
@@ -9,19 +11,19 @@ import {
   StateMachineNodeSelected,
   TransitionModal,
 } from './-settings/components';
-import { STORAGE_KEY } from './-settings/constants';
+import { localStorageModel, STORAGE_KEY } from './-settings/constants';
 import { config } from './-settings/data';
 import type { StateMachineEdgeData, StateMachineNodeData } from './-settings/types';
 
-/**
- * Function type signature for retrieving initial state machine flowchart
- * configuration.
- *
- * @returns Initial flowchart configuration of type {@linkcode ConfigFrom}.
- *
- * @see -- type {@linkcode StateMachineNodeData}, -- type {@linkcode StateMachineEdgeData}
- */
-type InitialConfig = () => ConfigFrom<StateMachineNodeData, StateMachineEdgeData>;
+const getHistory = () => {
+  if (typeof window === 'undefined') return;
+
+  try {
+    return v.parse(localStorageModel, localStorage.getItem(STORAGE_KEY));
+  } catch {
+    console.warn('Nothing is registered yet');
+  }
+};
 
 /**
  * Interactive State Machine Showroom route demonstrating `@bemedev/app` graph
@@ -37,17 +39,10 @@ export const Route = createFileRoute('/machine/')({
      *
      * @see {@linkcode config}
      */
-    const getInitialConfig: InitialConfig = () => {
-      if (typeof window === 'undefined') return config;
-
+    const getInitialConfig: any = () => {
       try {
-        const raw = localStorage.getItem(STORAGE_KEY);
-        if (!raw) return config;
-
-        const parsed = JSON.parse(raw);
-        if (parsed && Array.isArray(parsed.nodes) && Array.isArray(parsed.edges)) {
-          return { nodes: parsed.nodes, edges: parsed.edges };
-        }
+        const parsed = getHistory();
+        if (parsed) return reconstructState(parsed.history, parsed.historyIndex);
       } catch {
         console.warn('Nothing is registered yet');
       }
@@ -66,10 +61,11 @@ export const Route = createFileRoute('/machine/')({
           panels={{ bottomLeft: TransitionModal, topLeft: StateMachineEditPanel }}
           controlsAddons={HistoryControlsAddons}
 
-          register={({ data }) => {
-            if (data && typeof window !== 'undefined') {
+          register={({ history, historyIndex }) => {
+            const parsed = v.safeParse(localStorageModel, { history, historyIndex });
+            if (parsed.success) {
               try {
-                localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(parsed.output));
               } catch {
                 console.warn('Cannot access local storage');
               }
@@ -104,7 +100,18 @@ export const Route = createFileRoute('/machine/')({
             path: '/new-state',
             stateType: 'atomic',
           }}
-        ></Flow>
+        >
+          <Hook>
+            {() => {
+              const { send } = useFlow();
+
+              onMount(() => {
+                const payload = getHistory();
+                if (payload) send({ type: 'BUILD_HISTORY', payload });
+              });
+            }}
+          </Hook>
+        </Flow>
       </div>
     );
   },

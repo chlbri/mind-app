@@ -62,7 +62,7 @@
   "devDependencies": {
     "@bemedev/dev-utils": "^1.5.0",
     "@bemedev/sleep": "^0.2.2",
-    "@types/node": "^26.6.1",
+    "@types/node": "^26.6.2",
     "@vitest/coverage-v8": "^5.0.1",
     "glob": "^13.0.6",
     "globals": "^17.12.0",

@@ -1,7 +1,8 @@
 import { createMachine } from '@bemedev/app';
-import { toArray, type } from '@bemedev/app/bemedev';
+import { toArray } from '@bemedev/app/bemedev';
 import type { useDragDropContext } from '@thisbeyond/solid-dnd';
 import { nanoid } from 'nanoid';
+import * as v from 'valibot';
 
 /** Type alias for drag-drop state extracted from {@linkcode useDragDropContext}. */
 export type DragDropState = Exclude<ReturnType<typeof useDragDropContext>, null>[0];
@@ -31,13 +32,13 @@ import {
   board,
   data,
   dimension,
-  edgeJSON,
   extremities,
   flowchartData,
-  historyEntry,
+  flowchartEdge,
+  flowchartNode,
+  history,
   newEdge,
   nodeHandles,
-  nodeJSON,
   point,
   vector,
   type Board,
@@ -61,7 +62,10 @@ export type { FlowchartData, FlowchartDiff, HistoryEntry };
 export const machine = createMachine(
   {
     initial: 'idle',
-    on: { SET_BOARD: { actions: ['setBoard'] } },
+    on: {
+      SET_BOARD: { actions: ['setBoard'] },
+      BUILD_HISTORY: { actions: ['buildHistory'] },
+    },
 
     states: {
       idle: {
@@ -160,105 +164,110 @@ export const machine = createMachine(
     },
   },
   {
-    eventsMap: type(({ intersection, use, array, optional, custom, partial }) => ({
-      SET_BOARD: use(board),
-      CONFIGURE_EMPTY: 'never',
-      MOVE: { id: 'string', x: 'number', y: 'number' },
-      MOVE_IMMEDIATE: { id: 'string', x: 'number', y: 'number' },
-      ADD_CHILD: 'string',
-      ADD_SIBLING: 'string',
-      DELETE: 'string',
-      SELECT: 'string',
-      DESELECT: 'never',
-      EDIT: 'string',
-      STOP_EDIT: 'never',
-      ADD_EDGE: use(extremities),
-      MOVE_NEW_EDGE: use(point),
-      CLEAR_NEW_EDGE: 'never',
-      ZOOM: 'number',
-      TOGGLE_ZOOM: 'never',
-      RESIZE: { id: 'string', size: { width: 'number', height: 'number' } },
-      SET_NODE_DATA: { id: 'string', data: use(data) },
-      SET_EDGE_DATA: { id: 'string', data: use(data) },
-      UNDO: 'never',
-      REDO: 'never',
-      CHECKOUT: 'number',
-      COMMIT: optional('string'),
-      RESET_HISTORY: 'never',
+    eventsMap: v.object({
+      SET_BOARD: board,
+      CONFIGURE_EMPTY: v.never(),
+      MOVE: v.object({ id: v.string(), x: v.number(), y: v.number() }),
+      MOVE_IMMEDIATE: v.object({ id: v.string(), x: v.number(), y: v.number() }),
+      ADD_CHILD: v.string(),
+      ADD_SIBLING: v.string(),
+      DELETE: v.string(),
+      SELECT: v.string(),
+      DESELECT: v.never(),
+      EDIT: v.string(),
+      STOP_EDIT: v.never(),
+      ADD_EDGE: extremities,
+      MOVE_NEW_EDGE: point,
+      CLEAR_NEW_EDGE: v.never(),
+      ZOOM: v.number(),
+      TOGGLE_ZOOM: v.never(),
+      RESIZE: v.object({
+        id: v.string(),
+        size: v.object({ width: v.number(), height: v.number() }),
+      }),
+      SET_NODE_DATA: v.object({ id: v.string(), data }),
+      SET_EDGE_DATA: v.object({ id: v.string(), data }),
+      UNDO: v.never(),
+      REDO: v.never(),
+      CHECKOUT: v.number(),
+      COMMIT: v.optional(v.string()),
+      RESET_HISTORY: v.never(),
+      BUILD_HISTORY: v.object({ history, historyIndex: v.number() }),
 
-      ADD_PARENT: optional(
-        partial({
-          id: 'string',
-          parentId: 'string',
-          data: use(data),
-          handles: use(nodeHandles),
-        }),
+      ADD_PARENT: v.optional(
+        v.partial(
+          v.object({
+            id: v.string(),
+            parentId: v.string(),
+            data,
+            handles: nodeHandles,
+          }),
+        ),
       ),
 
-      START_NEW_EDGE: custom<
+      START_NEW_EDGE: v.custom<
         string | { from: string; position: HandlePosition | string; index: number }
-      >(),
+      >(() => true),
 
-      CONFIGURE: {
-        nodes: array(intersection(use(nodeJSON), { id: 'string' })),
-        edges: array(intersection(use(edgeJSON), { id: 'string' })),
-        defaultData: optional(use(data)),
-      },
-    })),
+      CONFIGURE: v.object({
+        nodes: v.array(flowchartNode),
+        edges: v.array(flowchartEdge),
+        defaultData: v.optional(data),
+      }),
+    }),
 
     sync: true,
 
-    pContext: type(({ union, optional, record, use, custom }) => ({
-      generatedId: union('string', 'null'),
-      previousZoom: optional('number'),
-      dimensions: record(use(dimension)),
-      defaultData: optional(use(data)),
+    pContext: v.object({
+      generatedId: v.nullable(v.string()),
+      previousZoom: v.optional(v.number()),
+      dimensions: v.record(v.string(), dimension),
+      defaultData: v.optional(data),
 
-      getBoardPosition:
-        custom<(clientX: number, clientY: number, board: Board) => Point>(),
+      getBoardPosition: v.custom<
+        (clientX: number, clientY: number, board: Board) => Point
+      >(() => true),
 
-      clampPosition:
-        custom<
-          (
-            board: Board,
-            x: number,
-            y: number,
-            nodeWidth?: number,
-            nodeHeight?: number,
-          ) => Point
-        >(),
+      clampPosition: v.custom<
+        (
+          board: Board,
+          x: number,
+          y: number,
+          nodeWidth?: number,
+          nodeHeight?: number,
+        ) => Point
+      >(() => true),
 
-      calculateDimensions:
-        custom<
-          (
-            position: { x: number; y: number },
-            parentDimension?: Pick<
-              {
-                width: number;
-                height: number;
-                output: { x: number; y: number };
-                input?: { x: number; y: number } | undefined;
-                inputOffset?: { x: number; y: number } | undefined;
-                outputOffset?: { x: number; y: number } | undefined;
-              },
-              'width' | 'height' | 'inputOffset' | 'outputOffset'
-            >,
-          ) => Dimension
-        >(),
-    })),
+      calculateDimensions: v.custom<
+        (
+          position: { x: number; y: number },
+          parentDimension?: Pick<
+            {
+              width: number;
+              height: number;
+              output: { x: number; y: number };
+              input?: { x: number; y: number } | undefined;
+              inputOffset?: { x: number; y: number } | undefined;
+              outputOffset?: { x: number; y: number } | undefined;
+            },
+            'width' | 'height' | 'inputOffset' | 'outputOffset'
+          >,
+        ) => Dimension
+      >(() => true),
+    }),
 
-    context: type(({ optional, use, array, record }) => ({
-      data: optional(use(flowchartData)),
-      history: optional(array(use(historyEntry))),
-      historyIndex: optional('number'),
-      board: optional(use(board)),
-      edgesPositions: record(use(vector)),
-      newEdge: optional(use(newEdge)),
-      selected: optional('string'),
-      editing: optional('string'),
-      updatingUI: optional('boolean'),
-      zoom: 'number',
-    })),
+    context: v.object({
+      data: v.optional(flowchartData),
+      history: v.optional(history),
+      historyIndex: v.optional(v.number()),
+      board: v.optional(board),
+      edgesPositions: v.record(v.string(), vector),
+      newEdge: v.optional(newEdge),
+      selected: v.optional(v.string()),
+      editing: v.optional(v.string()),
+      updatingUI: v.optional(v.boolean()),
+      zoom: v.number(),
+    }),
   },
 ).provideOptions(({ assign, batch, erase, filter, action }) => ({
   guards: {
@@ -275,6 +284,12 @@ export const machine = createMachine(
   },
 
   actions: {
+    buildHistory: assign(['history', 'historyIndex'], {
+      BUILD_HISTORY: ({ payload: { history, historyIndex } }) => [
+        history,
+        historyIndex,
+      ],
+    }),
     recordHistory: assign(
       ['history', 'historyIndex'],
       ({ context: { data, history = [], historyIndex = -1 }, ...rest }: any) => {

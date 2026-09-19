@@ -1,3 +1,6 @@
+import { typings } from '@bemedev/mind-flow';
+import * as v from 'valibot';
+
 export const DASH_ARRAY = '6 4';
 
 export const EDGES_COLORS = {
@@ -9,3 +12,9 @@ export const EDGES_COLORS = {
 
 /** LocalStorage key for persisting state machine flowchart configuration. */
 export const STORAGE_KEY = 'machine-flow-config';
+
+export const localStorageModel = v.pipe(
+  v.string(),
+  v.parseJson(),
+  v.object({ history: typings.history, historyIndex: v.number() }),
+);
