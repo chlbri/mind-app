@@ -5,9 +5,10 @@ import { useFlow } from '../FlowChart.context';
 
 /** Properties for the {@linkcode NodesBoardControls} component. */
 export type NodesControlsProps = {
+  /** Callback to recalculate and update scroll percentages on the board. */
   updateScrollPercentages: () => void;
 
-  /** Optional custom controls addon component. */
+  /** Optional custom controls addon component of type {@linkcode Component}. */
   addons?: Component;
 };
 
@@ -39,8 +40,9 @@ export const NodesBoardControls: Component<NodesControlsProps> = ({
         }}
         title='Zoom out'
         aria-label='Zoom out'
-        children='-'
-      />
+      >
+        -
+      </button>
 
       <button
         type='button'

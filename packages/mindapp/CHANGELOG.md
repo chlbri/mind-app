@@ -3,6 +3,29 @@
 <details>
 <summary>
 
+## **[1.5.6] - 19/09/2026** => _01:11_
+
+</summary>
+
+- Add `controlsAddons` prop to `FlowProps` and `NodesBoardProps` for custom toolbar
+  addon components
+- Add dedicated `NodesBoardControls` and `DefaultControlsAddons` components for
+  viewport zoom and action controls
+- Fix container element reference reactivity in `NodesBoard` using signal state for
+  reliable pan and zoom calculations
+- Enhance comprehensive JSDoc documentation across `NodesBoardControls`,
+  `NodesBoard`, and `FlowChart` types
+- Update `README.md` with `controlsAddons` customization examples and component
+  exports
+- <u>Test coverage **_100%_**</u>
+
+</details>
+
+<br/>
+
+<details>
+<summary>
+
 ## **[1.5.5] - 18/09/2026** => _22:15_
 
 </summary>

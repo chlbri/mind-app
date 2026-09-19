@@ -90,6 +90,7 @@ export type FlowProps<N extends Data = Data, E extends Data = Data> = {
    * @param edgeId - The identifier of the deleted edge.
    */
   onEdgeDeleted?: (edgeId: string) => void;
+  /** Optional custom controls addon component of type {@linkcode Component}. */
   controlsAddons?: Component;
 };
 

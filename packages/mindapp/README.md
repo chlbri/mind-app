@@ -7,7 +7,8 @@ applications.
 
 - **Interactive Canvas**: Drag-and-drop nodes and interactive connecting edges.
 - **State Machine Powered**: State management built with `@bemedev/app`.
-- **Zoom & Controls**: Built-in zoom in/out, reset, and node creation toolbar.
+- **Zoom & Controls**: Built-in zoom in/out, reset, and node creation toolbar with
+  customizable `controlsAddons`.
 - **Dynamic Edge Creation**: Interactive drag-to-connect endpoints between nodes.
 - **Edge Validation**: Guarded connection rules via `edgesAllowed` predicate.
 - **Contextual Actions**: Customizable action toolbars rendered above selected nodes.
@@ -110,6 +111,16 @@ export const CustomFlow = () => {
             />
           ),
         }}
+        controlsAddons={() => (
+          <button
+            type='button'
+            class='flex size-9 cursor-pointer items-center justify-center rounded-lg bg-emerald-600 text-white shadow'
+            onClick={() => console.log('Custom action')}
+            title='Custom action'
+          >
+            ★
+          </button>
+        )}
         onNodeAdded={node => console.log('Node added:', node)}
         onNodeDeleted={nodeId => console.log('Node deleted:', nodeId)}
         onEdgeAdded={edge => console.log('Edge added:', edge)}
@@ -148,6 +159,9 @@ export const CustomFlow = () => {
   handles per side with custom colors and types.
 - **`DefaultNodeSelected`**, **`DefaultNodeSelected_Props`**: Floating action toolbar
   component and prop types for selected nodes.
+- **`NodesBoardControls`**, **`NodesControlsProps`**, **`DefaultControlsAddons`**:
+  Viewport navigation toolbar controls component, prop types, and default root node
+  creation addon button.
 - **`EdgeProps`**: Type definition for edge connections (`EdgeProps<D>`).
 - **`EdgeMiddleProps`**: Type definition for edge middle overlay components
   (`EdgeMiddleProps<D>`).

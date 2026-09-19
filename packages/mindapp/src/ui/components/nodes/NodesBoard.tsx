@@ -47,7 +47,7 @@ export type NodesBoardProps<N extends Data = Data, E extends Data = Data> = {
   NodeSelected: NodeComponentProps<N>['Selected'];
   /** Optional custom overlay panels of type {@linkcode FlowPanels}. */
   panels?: FlowPanels;
-  /** Optional custom controls addon component. */
+  /** Optional custom controls addon component of type {@linkcode Component}. */
   controlsAddons?: Component;
 };
 

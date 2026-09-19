@@ -1,6 +1,17 @@
 import { dispatchArray } from '../helpers';
 import type { StateMachineNodeData } from '../types';
 
+/**
+ * Custom hook computing derived reactive state, formatted labels, and display
+ * properties for a state machine node.
+ *
+ * @param props - State machine node data of type {@linkcode StateMachineNodeData}.
+ *
+ * @returns An object containing reactive accessors for node actors, entries, exits,
+ *   activities, actions presence, tags, and badge colors.
+ *
+ * @see {@linkcode dispatchArray}
+ */
 export const useStateNodeHooks = (props: StateMachineNodeData) => {
   const [, actorCount, hasActors] = dispatchArray.withoutTitle(() => props.actors);
   const [tags, , hasTags] = dispatchArray.withoutTitle(() => props.tags);

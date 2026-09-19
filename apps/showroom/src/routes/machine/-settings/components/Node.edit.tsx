@@ -1,3 +1,4 @@
+import type { StateType } from '@bemedev/app/states';
 import {
   EditPanel,
   mouseOut,
@@ -118,13 +119,16 @@ export const StateMachineEditPanel: Component = () => {
           const currentId = current.id;
           return allNodes().filter(n => {
             if (n.id === currentId) return false;
+
             const parentPath = n.data?.parentPath;
+
             if (
               parentPath &&
               (parentPath === currentPath || parentPath === currentId)
             ) {
               return true;
             }
+
             return false;
           });
         };
@@ -194,9 +198,7 @@ export const StateMachineEditPanel: Component = () => {
                     node().data?.stateType === 'parallel' ? 'parallel' : 'compound'
                   }
                   onChange={e => {
-                    const nextType = e.currentTarget.value as
-                      | 'compound'
-                      | 'parallel';
+                    const nextType = e.currentTarget.value as StateType;
                     updateField('stateType', nextType);
                     if (nextType === 'parallel') {
                       childNodes().forEach(child => {
@@ -221,8 +223,9 @@ export const StateMachineEditPanel: Component = () => {
                     }
                   }}
                 >
-                  <option value='compound'>Compound</option>
-                  <option value='parallel'>Parallel</option>
+                  {['Compound', 'Parallel'].map(opt => (
+                    <option value={opt.toLowerCase()}>{opt}</option>
+                  ))}
                 </select>
               </div>
             </Show>
