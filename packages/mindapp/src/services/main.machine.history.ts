@@ -19,7 +19,7 @@ export const MAX_HISTORY_SIZE = 100;
  * @param base - Base flowchart data.
  * @param diff - Diff to apply.
  *
- * @returns Reconstructed {@linkcode FlowchartData}.
+ * @returns Reconstructed type {@linkcode FlowchartData}.
  */
 const applyDiff = (
   base?: FlowchartData,
@@ -123,7 +123,7 @@ const applyDiff = (
  * @param prev - Previous flowchart state.
  * @param next - Candidate next flowchart state.
  *
- * @returns {@linkcode FlowchartDiff} If changes exist, or `null` if identical.
+ * @returns Type {@linkcode FlowchartDiff} if changes exist, or `null` if identical.
  */
 export const calculateDiff = (
   prev?: FlowchartData,
@@ -255,7 +255,7 @@ export const calculateDiff = (
  * @param history - The history array.
  * @param targetIndex - Target commit index to reconstruct.
  *
- * @returns Reconstructed {@linkcode FlowchartData}.
+ * @returns Reconstructed type {@linkcode FlowchartData}.
  */
 export const reconstructState = (
   history: HistoryEntry[],
@@ -266,14 +266,32 @@ export const reconstructState = (
   }
 
   const boundedIndex = Math.min(targetIndex, history.length - 1);
+  if (boundedIndex === 0) {
+    return history[0].data
+      ? structuredClone(history[0].data)
+      : { nodes: [], edges: [] };
+  }
+
+  const chain: number[] = [];
+  let curr = boundedIndex;
+  const visited = new Set<number>();
+
+  while (curr > 0 && !visited.has(curr)) {
+    visited.add(curr);
+    chain.unshift(curr);
+    const entry = history[curr];
+    const prev = entry?.previous ?? curr - 1;
+    curr = prev >= 0 && prev < curr ? prev : curr - 1;
+  }
+
   const baseEntry = history[0];
   let current: FlowchartData = baseEntry.data
     ? structuredClone(baseEntry.data)
     : { nodes: [], edges: [] };
 
-  for (let i = 1; i <= boundedIndex; i++) {
-    const entry = history[i];
-    if (entry.diff) {
+  for (const idx of chain) {
+    const entry = history[idx];
+    if (entry?.diff) {
       current = applyDiff(current, entry.diff);
     }
   }

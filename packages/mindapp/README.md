@@ -7,13 +7,17 @@ applications.
 
 - **Interactive Canvas**: Drag-and-drop nodes and interactive connecting edges.
 - **State Machine Powered**: State management built with `@bemedev/app`.
+- **Git-Like History & Time Travel**: Built-in undo, redo, checkout, and commit
+  history tracking with delta diff calculation.
+- **Valibot Schema Validation**: Runtime data contracts and schema parsing powered by
+  Valibot.
 - **Zoom & Controls**: Built-in zoom in/out, reset, and node creation toolbar with
   customizable `controlsAddons`.
 - **Dynamic Edge Creation**: Interactive drag-to-connect endpoints between nodes.
 - **Edge Validation**: Guarded connection rules via `edgesAllowed` predicate.
 - **Contextual Actions**: Customizable action toolbars rendered above selected nodes.
 - **State Synchronization**: Context observation via `register` callback to track
-  data, edges, zoom, and selection.
+  data, edges, zoom, selection, and history.
 - **Type-Safe**: Full TypeScript definitions for nodes, edges, and configuration
   handlers.
 
@@ -172,9 +176,19 @@ export const CustomFlow = () => {
   positions and indices.
 - **`FlowProps`**: Generic props configuration type for `Flow` and `FlowChart`.
 - **`Context`**: Type representing the observable flowchart context slice (`data`,
-  `selected`, `zoom`, `editing`).
+  `selected`, `zoom`, `editing`, `history`, `historyIndex`).
 - **`ConfigFrom`**, **`NodesFrom`**, **`EdgesFrom`**: Type helpers extracting
   inferred config, nodes, and edges structures from `FlowProps`.
+- **`calculateDiff`**, **`reconstructState`**, **`squashOldestCommit`**,
+  **`MAX_HISTORY_SIZE`**: History engine utilities for computing delta diffs,
+  replaying commits, and capping history depth.
+- **`deepPartial`**, **`byFunction`**, **`DeepPartial`**, **`DeepPartialSchema`**:
+  Valibot schema helpers for constructing recursive partial schemas.
+- **`Hook`**: Headless lifecycle atom component for executing callbacks during
+  rendering.
+- **`typings`**: Namespace exporting all Valibot schemas and inferred types
+  (`FlowchartData`, `FlowchartDiff`, `HistoryEntry`, `CommitPayload`,
+  `FlowchartNode`, `FlowchartEdge`, etc.).
 - **`EditPanelProps`**, **`EditPanelChildProps`**: Types for `EditPanel` and its
   children accessor helpers.
 - **`handlePosition`**, **`HandlePosition`**: Schema and type for node handle

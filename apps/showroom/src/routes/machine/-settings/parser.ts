@@ -2,6 +2,7 @@ import type { GuardConfig } from '@bemedev/app';
 import type { StateType } from '@bemedev/app/states';
 import type { EdgesFrom, NodeHandles_T, NodesFrom } from '@bemedev/mind-flow';
 
+import { PRINCIPAL_NODE_KEY } from './constants';
 import { createHandles } from './helpers';
 import { formatGuards, normalizeGuards } from './helpers';
 import type {
@@ -24,6 +25,19 @@ const HORIZONTAL_SPACING = 360;
 const VERTICAL_SPACING = 170;
 const INITIAL_X = 80;
 const INITIAL_Y = 100;
+
+export class Principal {
+  ___root = '@bemedev/mind-flow/uniquePrincipal##';
+
+  private static _instance: Principal;
+  private constructor() {}
+  static get unique() {
+    if (!this._instance) {
+      this._instance = new Principal();
+    }
+    return this._instance;
+  }
+}
 
 /** Normalizes a raw transition target or candidate into structured properties. */
 type NormalizedTarget = {
@@ -293,18 +307,15 @@ const extractActors = (rawActors?: Record<string, any>): StateActorData[] => {
  * @see -- type {@linkcode Position}
  * @see -- type {@linkcode StateNodeKeys}
  */
-export const parseMachineToGraph = <
-  const T extends MachineConfig | { config: MachineConfig } = MachineConfig,
->(
+export const parseMachineToGraph = <const T extends MachineConfig = MachineConfig>(
   machineConfig: T,
   positions: Record<StateNodeKeys<T>, Position>,
 ): {
   nodes: NodesFrom<StateMachineNodeData>;
   edges: EdgesFrom<StateMachineEdgeData>;
 } => {
-  const rawConfig = (machineConfig as any)?.config ?? machineConfig ?? {};
-  const rootStates = rawConfig.states ?? {};
-  const rootInitial = rawConfig.initial;
+  const rawConfig = machineConfig;
+  const { states: rootStates = {}, initial: rootInitial, ...main } = rawConfig;
   const rootKeys = Object.keys(rootStates);
   const effectiveRootInitial =
     rootInitial ?? (rootKeys.length === 1 ? rootKeys[0] : undefined);
@@ -349,7 +360,10 @@ export const parseMachineToGraph = <
     depth = 0,
     parentIdx = 0,
   ) => {
-    const currentPath = parentPath ? `${parentPath}/${stateName}` : `/${stateName}`;
+    const currentPath =
+      parentPath && parentPath !== PRINCIPAL_NODE_KEY
+        ? `${parentPath}/${stateName}`
+        : `/${stateName}`;
     const id = currentPath;
     const hasChildren = Boolean(
       stateObj?.states && Object.keys(stateObj.states).length > 0,
@@ -358,8 +372,9 @@ export const parseMachineToGraph = <
     const isParentParallel = stateObj?.parentType === 'parallel';
     const isInitial =
       !isParentParallel &&
-      ((parentPath === '' && stateName === effectiveRootInitial) ||
-        (Boolean(parentPath) && stateObj?.parentInitial === stateName));
+      ((parentPath === PRINCIPAL_NODE_KEY && stateName === effectiveRootInitial) ||
+        (Boolean(parentPath && parentPath !== PRINCIPAL_NODE_KEY) &&
+          stateObj?.parentInitial === stateName));
 
     const isParallel = stateObj?.type === 'parallel';
     const stateType: StateType = isParallel
@@ -404,7 +419,8 @@ export const parseMachineToGraph = <
 
     // 1. Edge for relation between child and parent:
     // "child to parent, will have a specific edge"
-    if (parentPath) {
+    // Exclude hierarchy edges to the principal node since it is rendered in the top-right panel
+    if (parentPath && parentPath !== PRINCIPAL_NODE_KEY) {
       const edgeId = `edge:hierarchy:${id}=>${parentPath}`;
       rawEdges.push({
         id: edgeId,
@@ -437,9 +453,15 @@ export const parseMachineToGraph = <
     }
   };
 
-  // Walk all root states
-  Object.entries(rootStates).forEach(([name, obj]) => {
-    walkState(name, obj, '', 0, 0);
+  // Walk all root states with PRINCIPAL_NODE_KEY as parent
+  const isMainParallel = (main as any)?.type === 'parallel';
+  Object.entries(rootStates).forEach(([name, obj]: [string, any]) => {
+    const enrichedRoot = {
+      ...obj,
+      parentInitial: effectiveRootInitial,
+      parentType: isMainParallel ? 'parallel' : undefined,
+    };
+    walkState(name, enrichedRoot, PRINCIPAL_NODE_KEY, 0, 0);
   });
 
   // Resolve transition targets (on, after, always)
@@ -668,5 +690,26 @@ export const parseMachineToGraph = <
     },
   );
 
-  return { nodes, edges };
+  const principalNodeType: StateType =
+    rootKeys.length === 0
+      ? 'atomic'
+      : (main as any)?.type === 'parallel'
+        ? 'parallel'
+        : 'compound';
+
+  const principalNode: NodesFrom<StateMachineNodeData>[number] = {
+    id: PRINCIPAL_NODE_KEY,
+    position: (positions as any)?.[PRINCIPAL_NODE_KEY] ?? { x: 0, y: 0 },
+    data: {
+      ...main,
+      principal: Principal.unique,
+      id: PRINCIPAL_NODE_KEY,
+      title: (main as any)?.id ?? (main as any)?.name ?? 'Machine',
+      path: PRINCIPAL_NODE_KEY,
+      stateType: principalNodeType,
+      content: (main as any)?.description,
+    } as any,
+  };
+
+  return { nodes: [principalNode, ...nodes], edges };
 };

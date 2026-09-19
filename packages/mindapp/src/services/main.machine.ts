@@ -1,7 +1,8 @@
 import { createMachine } from '@bemedev/app';
-import { toArray, type } from '@bemedev/app/bemedev';
+import { toArray } from '@bemedev/app/bemedev';
 import type { useDragDropContext } from '@thisbeyond/solid-dnd';
 import { nanoid } from 'nanoid';
+import * as v from 'valibot';
 
 /** Type alias for drag-drop state extracted from {@linkcode useDragDropContext}. */
 export type DragDropState = Exclude<ReturnType<typeof useDragDropContext>, null>[0];
@@ -29,18 +30,20 @@ import {
 } from './main.machine.history';
 import {
   board,
+  commitPayload,
   data,
   dimension,
-  edgeJSON,
   extremities,
   flowchartData,
-  historyEntry,
+  flowchartEdge,
+  flowchartNode,
+  history,
   newEdge,
   nodeHandles,
-  nodeJSON,
   point,
   vector,
   type Board,
+  type CommitPayload,
   type Dimension,
   type FlowchartData,
   type FlowchartDiff,
@@ -50,7 +53,12 @@ import {
   type Vector,
 } from './main.machine.typings';
 
-export type { FlowchartData, FlowchartDiff, HistoryEntry };
+/**
+ * Type aliases for flowchart history, delta diffs, and commit payloads.
+ *
+ * @see -- type {@linkcode CommitPayload}, -- type {@linkcode FlowchartData}, -- type {@linkcode FlowchartDiff}, -- type {@linkcode HistoryEntry}
+ */
+export type { CommitPayload, FlowchartData, FlowchartDiff, HistoryEntry };
 
 /**
  * State machine managing flowchart state transitions, nodes, edges, selection, and
@@ -61,7 +69,10 @@ export type { FlowchartData, FlowchartDiff, HistoryEntry };
 export const machine = createMachine(
   {
     initial: 'idle',
-    on: { SET_BOARD: { actions: ['setBoard'] } },
+    on: {
+      SET_BOARD: { actions: ['setBoard'] },
+      BUILD_HISTORY: { actions: ['buildHistory'] },
+    },
 
     states: {
       idle: {
@@ -81,7 +92,11 @@ export const machine = createMachine(
           START_NEW_EDGE: { actions: ['startNewEdge'], target: '/register' },
           MOVE_NEW_EDGE: { actions: ['moveNewEdge'], target: '/register' },
           CLEAR_NEW_EDGE: { actions: ['clearNewEdge'], target: '/register' },
-          DELETE: { actions: ['delete'], target: '/construction' },
+          DELETE: {
+            actions: ['delete'],
+            target: '/construction',
+            guards: 'canDelete',
+          },
           SELECT: { actions: ['select'], target: '/register' },
           DESELECT: { actions: ['deselect'], target: '/register' },
           ZOOM: { actions: ['zoom'], target: '/register' },
@@ -91,13 +106,10 @@ export const machine = createMachine(
           SET_EDGE_DATA: { actions: ['setEdgeData'], target: '/register' },
           EDIT: { actions: ['edit'], target: '/register' },
           STOP_EDIT: { actions: ['stopEdit'], target: '/register' },
-          COMMIT: { actions: ['recordHistory'], target: '/register' },
+          COMMIT: { actions: ['recordHistory'], target: '/construction' },
           RESET_HISTORY: { actions: ['resetHistory'], target: '/register' },
 
-          CONFIGURE: {
-            actions: ['configure', 'recordHistory'],
-            target: '/construction',
-          },
+          CONFIGURE: { actions: ['configure'], target: '/construction' },
 
           ADD_EDGE: {
             actions: ['addEdge'],
@@ -138,21 +150,13 @@ export const machine = createMachine(
             target: '/construction',
           },
 
-          UNDO: {
-            actions: ['undo', 'buildUI'],
-            target: '/register',
-            guards: 'canUndo',
-          },
+          UNDO: { actions: ['undo'], target: '/construction', guards: 'canUndo' },
 
-          REDO: {
-            actions: ['redo', 'buildUI'],
-            target: '/register',
-            guards: 'canRedo',
-          },
+          REDO: { actions: ['redo'], target: '/construction', guards: 'canRedo' },
 
           CHECKOUT: {
-            actions: ['checkout', 'buildUI'],
-            target: '/register',
+            actions: ['checkout'],
+            target: '/construction',
             guards: 'canCheckout',
           },
         },
@@ -160,822 +164,888 @@ export const machine = createMachine(
     },
   },
   {
-    eventsMap: type(({ intersection, use, array, optional, custom, partial }) => ({
-      SET_BOARD: use(board),
-      CONFIGURE_EMPTY: 'never',
-      MOVE: { id: 'string', x: 'number', y: 'number' },
-      MOVE_IMMEDIATE: { id: 'string', x: 'number', y: 'number' },
-      ADD_CHILD: 'string',
-      ADD_SIBLING: 'string',
-      DELETE: 'string',
-      SELECT: 'string',
-      DESELECT: 'never',
-      EDIT: 'string',
-      STOP_EDIT: 'never',
-      ADD_EDGE: use(extremities),
-      MOVE_NEW_EDGE: use(point),
-      CLEAR_NEW_EDGE: 'never',
-      ZOOM: 'number',
-      TOGGLE_ZOOM: 'never',
-      RESIZE: { id: 'string', size: { width: 'number', height: 'number' } },
-      SET_NODE_DATA: { id: 'string', data: use(data) },
-      SET_EDGE_DATA: { id: 'string', data: use(data) },
-      UNDO: 'never',
-      REDO: 'never',
-      CHECKOUT: 'number',
-      COMMIT: optional('string'),
-      RESET_HISTORY: 'never',
+    eventsMap: v.object({
+      SET_BOARD: board,
+      CONFIGURE_EMPTY: v.never(),
+      MOVE: v.object({ id: v.string(), x: v.number(), y: v.number() }),
+      MOVE_IMMEDIATE: v.object({ id: v.string(), x: v.number(), y: v.number() }),
+      ADD_CHILD: v.string(),
+      ADD_SIBLING: v.string(),
+      DELETE: v.string(),
+      SELECT: v.string(),
+      DESELECT: v.never(),
+      EDIT: v.string(),
+      STOP_EDIT: v.never(),
+      ADD_EDGE: extremities,
+      MOVE_NEW_EDGE: point,
+      CLEAR_NEW_EDGE: v.never(),
+      ZOOM: v.number(),
+      TOGGLE_ZOOM: v.never(),
+      RESIZE: v.object({
+        id: v.string(),
+        size: v.object({ width: v.number(), height: v.number() }),
+      }),
+      SET_NODE_DATA: v.object({ id: v.string(), data }),
+      SET_EDGE_DATA: v.object({ id: v.string(), data }),
+      UNDO: v.never(),
+      REDO: v.never(),
+      CHECKOUT: v.number(),
+      COMMIT: v.optional(commitPayload),
+      RESET_HISTORY: v.never(),
+      BUILD_HISTORY: v.object({ history, historyIndex: v.number() }),
 
-      ADD_PARENT: optional(
-        partial({
-          id: 'string',
-          parentId: 'string',
-          data: use(data),
-          handles: use(nodeHandles),
-        }),
+      ADD_PARENT: v.optional(
+        v.partial(
+          v.object({
+            id: v.string(),
+            parentId: v.string(),
+            data,
+            handles: nodeHandles,
+          }),
+        ),
       ),
 
-      START_NEW_EDGE: custom<
+      START_NEW_EDGE: v.custom<
         string | { from: string; position: HandlePosition | string; index: number }
-      >(),
+      >(() => true),
 
-      CONFIGURE: {
-        nodes: array(intersection(use(nodeJSON), { id: 'string' })),
-        edges: array(intersection(use(edgeJSON), { id: 'string' })),
-        defaultData: optional(use(data)),
-      },
-    })),
+      CONFIGURE: v.object({
+        nodes: v.array(flowchartNode),
+        edges: v.array(flowchartEdge),
+        defaultData: v.optional(data),
+      }),
+    }),
 
     sync: true,
 
-    pContext: type(({ union, optional, record, use, custom }) => ({
-      generatedId: union('string', 'null'),
-      previousZoom: optional('number'),
-      dimensions: record(use(dimension)),
-      defaultData: optional(use(data)),
+    pContext: v.object({
+      generatedId: v.nullable(v.string()),
+      previousZoom: v.optional(v.number()),
+      dimensions: v.record(v.string(), dimension),
+      defaultData: v.optional(data),
 
-      getBoardPosition:
-        custom<(clientX: number, clientY: number, board: Board) => Point>(),
+      getBoardPosition: v.custom<
+        (clientX: number, clientY: number, board: Board) => Point
+      >(() => true),
 
-      clampPosition:
-        custom<
-          (
-            board: Board,
-            x: number,
-            y: number,
-            nodeWidth?: number,
-            nodeHeight?: number,
-          ) => Point
-        >(),
+      clampPosition: v.custom<
+        (
+          board: Board,
+          x: number,
+          y: number,
+          nodeWidth?: number,
+          nodeHeight?: number,
+        ) => Point
+      >(() => true),
 
-      calculateDimensions:
-        custom<
-          (
-            position: { x: number; y: number },
-            parentDimension?: Pick<
-              {
-                width: number;
-                height: number;
-                output: { x: number; y: number };
-                input?: { x: number; y: number } | undefined;
-                inputOffset?: { x: number; y: number } | undefined;
-                outputOffset?: { x: number; y: number } | undefined;
-              },
-              'width' | 'height' | 'inputOffset' | 'outputOffset'
-            >,
-          ) => Dimension
-        >(),
-    })),
+      calculateDimensions: v.custom<
+        (
+          position: { x: number; y: number },
+          parentDimension?: Pick<
+            {
+              width: number;
+              height: number;
+              output: { x: number; y: number };
+              input?: { x: number; y: number } | undefined;
+              inputOffset?: { x: number; y: number } | undefined;
+              outputOffset?: { x: number; y: number } | undefined;
+            },
+            'width' | 'height' | 'inputOffset' | 'outputOffset'
+          >,
+        ) => Dimension
+      >(() => true),
+    }),
 
-    context: type(({ optional, use, array, record }) => ({
-      data: optional(use(flowchartData)),
-      history: optional(array(use(historyEntry))),
-      historyIndex: optional('number'),
-      board: optional(use(board)),
-      edgesPositions: record(use(vector)),
-      newEdge: optional(use(newEdge)),
-      selected: optional('string'),
-      editing: optional('string'),
-      updatingUI: optional('boolean'),
-      zoom: 'number',
-    })),
+    context: v.object({
+      data: v.optional(flowchartData),
+      history: v.optional(history),
+      historyIndex: v.optional(v.number()),
+      board: v.optional(board),
+      edgesPositions: v.record(v.string(), vector),
+      newEdge: v.optional(newEdge),
+      selected: v.optional(v.string()),
+      editing: v.optional(v.string()),
+      updatingUI: v.optional(v.boolean()),
+      zoom: v.number(),
+    }),
   },
-).provideOptions(({ assign, batch, erase, filter, action }) => ({
-  guards: {
-    canUndo: ({ context: { historyIndex } }) => {
-      return (historyIndex ?? -1) > 0;
+).provideOptions(({ assign, batch, erase, filter, action }) => {
+  const commitAction = action(({ context: { data }, pContext }) => {
+    data?.nodes?.forEach(({ id, position }) => {
+      pContext.dimensions[id] = pContext.dimensions[id]
+        ? calculateDimensions(position, pContext.dimensions[id])
+        : calculateDimensions(position);
+    });
+  });
+
+  return {
+    guards: {
+      canUndo: ({ context: { historyIndex } }) => {
+        return (historyIndex ?? -1) > 0;
+      },
+
+      canRedo: ({ context: { history, historyIndex } }) => {
+        if (!history || historyIndex === undefined) return false;
+        return historyIndex >= 0 && historyIndex < history.length - 1;
+      },
+
+      canCheckout: ({ context: { history } }) => !!history,
     },
 
-    canRedo: ({ context: { history, historyIndex } }) => {
-      if (!history || historyIndex === undefined) return false;
-      return historyIndex >= 0 && historyIndex < history.length - 1;
-    },
+    actions: {
+      buildHistory: assign(['history', 'historyIndex'], {
+        BUILD_HISTORY: ({ payload: { history, historyIndex } }) => [
+          history,
+          historyIndex,
+        ],
+      }),
+      recordHistory: assign(
+        ['history', 'historyIndex'],
+        ({ context: { data, history = [], historyIndex = -1 }, ...rest }: any) => {
+          if (!data) return [history, historyIndex];
 
-    canCheckout: ({ context: { history } }) => !!history,
-  },
+          let commitName: string | undefined;
+          let previousIndex: number | undefined;
+          if (rest?.event?.type === 'COMMIT') {
+            const p: CommitPayload | undefined = rest?.event?.payload;
+            commitName = p?.name?.trim();
+            if (typeof p?.previous === 'number') {
+              previousIndex = p.previous;
+            }
+          }
 
-  actions: {
-    recordHistory: assign(
-      ['history', 'historyIndex'],
-      ({ context: { data, history = [], historyIndex = -1 }, ...rest }: any) => {
-        if (!data) return [history, historyIndex];
+          // Base entry
+          if (history.length === 0) {
+            const hasContent =
+              (data.nodes?.length ?? 0) > 0 || (data.edges?.length ?? 0) > 0;
+            if (!hasContent) return [history, historyIndex];
 
-        let commitName: string | undefined;
-        if (rest?.event?.type === 'COMMIT') {
-          const p: string | undefined = rest?.event?.payload;
-          commitName = p?.trim();
-        }
+            const entry: HistoryEntry = {
+              data: structuredClone(data),
+              date: Date.now(),
+              ...(commitName ? { name: commitName } : {}),
+            };
+            return [[entry], 0];
+          }
 
-        // Base entry
-        if (history.length === 0) {
-          const hasContent =
-            (data.nodes?.length ?? 0) > 0 || (data.edges?.length ?? 0) > 0;
-          if (!hasContent) return [history, historyIndex];
+          // Calculate diff from the specified previous commit (or the last registered commit) to the current one
+          const targetPrevIndex =
+            typeof previousIndex === 'number'
+              ? Math.max(0, Math.min(previousIndex, history.length - 1))
+              : history.length - 1;
 
-          const entry: HistoryEntry = {
-            data: structuredClone(data),
+          const previousData = reconstructState(history, targetPrevIndex);
+          const diff = calculateDiff(previousData, data);
+
+          // No changes observed => skip commit (no empty commit)
+          if (!diff) {
+            return [history, historyIndex];
+          }
+
+          // Add the current commit at the end without rebuilding or pruning history
+          const newEntry: HistoryEntry = {
+            diff,
             date: Date.now(),
             ...(commitName ? { name: commitName } : {}),
+            ...(typeof previousIndex === 'number'
+              ? { previous: targetPrevIndex }
+              : {}),
           };
-          return [[entry], 0];
-        }
+          const nextHistory = [...history, newEntry];
 
-        // Calculate diff from the last registered commit to the current one
-        const lastRegisteredData = reconstructState(history, history.length - 1);
-        const diff = calculateDiff(lastRegisteredData, data);
+          // Cap at MAX_HISTORY_SIZE (100)
+          while (nextHistory.length > MAX_HISTORY_SIZE) {
+            squashOldestCommit(nextHistory);
+          }
 
-        // No changes observed => skip commit (no empty commit)
-        if (!diff) {
-          return [history, historyIndex];
-        }
-
-        // Add the current commit at the end without rebuilding or pruning history
-        const newEntry: HistoryEntry = {
-          diff,
-          date: Date.now(),
-          ...(commitName ? { name: commitName } : {}),
-        };
-        const nextHistory = [...history, newEntry];
-
-        // Cap at MAX_HISTORY_SIZE (100)
-        while (nextHistory.length > MAX_HISTORY_SIZE) {
-          squashOldestCommit(nextHistory);
-        }
-
-        return [nextHistory, nextHistory.length - 1];
-      },
-    ),
-
-    undo: batch(
-      assign('data', ({ context: { history = [], historyIndex = 0 } }) => {
-        if (historyIndex <= 0) return history[0]?.data;
-        return reconstructState(history, historyIndex - 1);
-      }),
-
-      assign('historyIndex', ({ context: { historyIndex = 0 } }) => {
-        return Math.max(0, historyIndex - 1);
-      }),
-    ),
-
-    redo: batch(
-      assign('data', ({ context: { history = [], historyIndex = 0 } }) => {
-        if (historyIndex >= history.length - 1) {
-          return reconstructState(history, history.length - 1);
-        }
-        return reconstructState(history, historyIndex + 1);
-      }),
-
-      assign('historyIndex', ({ context: { history = [], historyIndex = 0 } }) => {
-        return Math.min(history.length - 1, historyIndex + 1);
-      }),
-    ),
-
-    checkout: batch(
-      assign('data', {
-        CHECKOUT: ({ context: { history = [] }, payload }) => {
-          return reconstructState(history, payload);
+          return [nextHistory, nextHistory.length - 1];
         },
-      }),
+      ),
 
-      assign('historyIndex', { CHECKOUT: ({ payload }) => payload }),
-    ),
+      undo: batch(
+        assign('data', ({ context: { history = [], historyIndex = 0 } }) => {
+          if (historyIndex <= 0) return history[0]?.data;
+          return reconstructState(history, historyIndex - 1);
+        }),
 
-    resetHistory: batch(
-      assign('history', ({ context: { data } }) => {
-        const cloned = data ? structuredClone(data) : undefined;
-        if (!cloned) return [];
-        return [{ data: cloned, date: Date.now() }];
-      }),
+        commitAction,
 
-      assign('historyIndex', () => 0),
-    ),
+        assign('historyIndex', ({ context: { historyIndex = 0 } }) => {
+          return Math.max(0, historyIndex - 1);
+        }),
+      ),
 
-    configure: batch(
-      assign('data', {
-        CONFIGURE: ({ payload: { nodes, edges } }) => ({ nodes, edges }),
-      }),
+      redo: batch(
+        assign('data', ({ context: { history = [], historyIndex = 0 } }) => {
+          if (historyIndex >= history.length - 1) {
+            return reconstructState(history, history.length - 1);
+          }
+          return reconstructState(history, historyIndex + 1);
+        }),
 
-      assign('newEdge', () => undefined),
-      assign('updatingUI', () => false),
+        commitAction,
 
-      action(({ pContext }) => {
-        pContext.generatedId = null;
-      }),
-      action({
-        CONFIGURE: ({ payload: { nodes, defaultData }, pContext }) => {
-          pContext.defaultData = defaultData;
-          nodes.forEach(({ id, position }) => {
-            const existing = pContext.dimensions[id];
-            pContext.dimensions[id] = existing
-              ? calculateDimensions(position, existing)
-              : calculateDimensions(position);
+        assign('historyIndex', ({ context: { history = [], historyIndex = 0 } }) => {
+          return Math.min(history.length - 1, historyIndex + 1);
+        }),
+      ),
+
+      checkout: batch(
+        assign('data', {
+          CHECKOUT: ({ context: { history = [] }, payload }) => {
+            return reconstructState(history, payload);
+          },
+        }),
+
+        commitAction,
+
+        assign('historyIndex', { CHECKOUT: ({ payload }) => payload }),
+      ),
+
+      resetHistory: batch(
+        assign('history', ({ context: { data } }) => {
+          const cloned = data ? structuredClone(data) : undefined;
+          if (!cloned) return [];
+          return [{ data: cloned, date: Date.now() }];
+        }),
+
+        assign('historyIndex', () => 0),
+      ),
+
+      configure: batch(
+        assign('data', {
+          CONFIGURE: ({ payload: { nodes, edges } }) => ({ nodes, edges }),
+        }),
+
+        assign('newEdge', () => undefined),
+        assign('updatingUI', () => false),
+
+        action(({ pContext }) => {
+          pContext.generatedId = null;
+        }),
+        action({
+          CONFIGURE: ({ payload: { nodes, defaultData }, pContext }) => {
+            pContext.defaultData = defaultData;
+            nodes.forEach(({ id, position }) => {
+              const existing = pContext.dimensions[id];
+              pContext.dimensions[id] = existing
+                ? calculateDimensions(position, existing)
+                : calculateDimensions(position);
+            });
+          },
+        }),
+      ),
+
+      setNodeData: assign('data.nodes', {
+        SET_NODE_DATA: ({ context: { data }, payload: { id, data: newData } }) => {
+          return data?.nodes?.map(node => {
+            if (node.id === id) {
+              return { ...node, data: { ...node.data, ...newData } };
+            }
+            return node;
           });
         },
       }),
-    ),
 
-    setNodeData: assign('data.nodes', {
-      SET_NODE_DATA: ({ context: { data }, payload: { id, data: newData } }) => {
-        return data?.nodes?.map(node => {
-          if (node.id === id) {
-            return { ...node, data: { ...node.data, ...newData } };
-          }
-          return node;
-        });
-      },
-    }),
-
-    setEdgeData: assign('data.edges', {
-      SET_EDGE_DATA: ({ context: { data }, payload: { id, data: newData } }) => {
-        return data?.edges?.map(edge => {
-          if (edge.id === id) {
-            return { ...edge, data: { ...edge.data, ...newData } };
-          }
-          return edge;
-        });
-      },
-    }),
-
-    setBoard: assign('board', { SET_BOARD: ({ payload }) => payload }),
-    generateID: action({
-      ADD_PARENT: ({ pContext, payload }) => {
-        const customId =
-          typeof payload === 'object' && payload ? payload.id : undefined;
-        pContext.generatedId = customId ?? nanoid();
-      },
-      else: ({ pContext }) => {
-        pContext.generatedId = nanoid();
-      },
-    }),
-    select: assign('selected', { SELECT: ({ payload }) => payload }),
-    clearNewEdge: erase('newEdge'),
-    deselect: batch(erase('selected'), erase('editing')),
-    stopEdit: erase('editing'),
-
-    edit: batch(
-      assign('editing', { EDIT: ({ payload }) => payload }),
-      assign('selected', { EDIT: ({ payload }) => payload }),
-    ),
-
-    startNewEdge: assign('newEdge', {
-      START_NEW_EDGE: ({ payload, pContext: { dimensions }, context: { data } }) => {
-        const from = typeof payload === 'string' ? payload : payload.from;
-        const fromPosition =
-          typeof payload === 'object' ? payload.position : undefined;
-        const fromIndex = typeof payload === 'object' ? payload.index : undefined;
-
-        const fromNode = data?.nodes?.find(n => n.id === from);
-        const dimension = dimensions[from];
-        if (!dimension) return undefined;
-
-        const width = dimension.width ?? DEFAULT_SIZE.width;
-        const height = dimension.height ?? DEFAULT_SIZE.height;
-        const nodePos = fromNode?.position ?? { x: 0, y: 0 };
-
-        let side: HandlePosition = (fromPosition as HandlePosition) ?? 'right';
-        let idx = fromIndex ?? 0;
-        if (!fromPosition && fromNode?.handles) {
-          const sides: HandlePosition[] = ['right', 'bottom', 'top', 'left'];
-          for (const s of sides) {
-            const hIdx = fromNode.handles[s]?.findIndex(h => h.type === 'output');
-            if (hIdx !== undefined && hIdx !== -1) {
-              side = s;
-              idx = hIdx;
-              break;
+      setEdgeData: assign('data.edges', {
+        SET_EDGE_DATA: ({ context: { data }, payload: { id, data: newData } }) => {
+          return data?.edges?.map(edge => {
+            if (edge.id === id) {
+              return { ...edge, data: { ...edge.data, ...newData } };
             }
-          }
-        }
-        const handle = fromNode?.handles?.[side]?.[idx];
-        if (fromNode?.handles && handle?.type === 'none') {
-          return undefined;
-        }
-        const total = fromNode?.handles?.[side]?.length ?? 1;
-        const p = getHandlePosition(nodePos, { width, height }, side, idx, total);
+            return edge;
+          });
+        },
+      }),
 
-        return {
-          from,
-          fromPosition: side,
-          fromIndex: idx,
-          x0: p.x,
-          y0: p.y,
-          x1: p.x,
-          y1: p.y,
-        };
-      },
-    }),
+      setBoard: assign('board', { SET_BOARD: ({ payload }) => payload }),
+      generateID: action({
+        ADD_PARENT: ({ pContext, payload }) => {
+          const customId =
+            typeof payload === 'object' && payload ? payload.id : undefined;
+          pContext.generatedId = customId ?? nanoid();
+        },
+        else: ({ pContext }) => {
+          pContext.generatedId = nanoid();
+        },
+      }),
+      select: assign('selected', { SELECT: ({ payload }) => payload }),
+      clearNewEdge: erase('newEdge'),
+      deselect: batch(erase('selected'), erase('editing')),
+      stopEdit: erase('editing'),
 
-    buildUI: batch(
-      assign('edgesPositions', {
-        MOVE: ({
-          context: { data, edgesPositions },
+      edit: batch(
+        assign('editing', { EDIT: ({ payload }) => payload }),
+        assign('selected', { EDIT: ({ payload }) => payload }),
+      ),
+
+      startNewEdge: assign('newEdge', {
+        START_NEW_EDGE: ({
           payload,
           pContext: { dimensions },
+          context: { data },
         }) => {
-          const edges = data?.edges;
-          const dimension = dimensions[payload.id];
-          if (!dimension) return edgesPositions;
+          const from = typeof payload === 'string' ? payload : payload.from;
+          const fromPosition =
+            typeof payload === 'object' ? payload.position : undefined;
+          const fromIndex = typeof payload === 'object' ? payload.index : undefined;
+
+          const fromNode = data?.nodes?.find(n => n.id === from);
+          const dimension = dimensions[from];
+          if (!dimension) return undefined;
 
           const width = dimension.width ?? DEFAULT_SIZE.width;
           const height = dimension.height ?? DEFAULT_SIZE.height;
-          const outputOffset =
-            dimension.outputOffset ?? getDefaultOutputOffset(width, height);
-          const inputOffset = dimension.inputOffset ?? getDefaultInputOffset(height);
+          const nodePos = fromNode?.position ?? { x: 0, y: 0 };
 
-          dimension.output = {
-            x: payload.x + outputOffset.x,
-            y: payload.y + outputOffset.y,
-          };
-          dimension.input = {
-            x: payload.x + inputOffset.x,
-            y: payload.y + inputOffset.y,
-          };
-
-          const updatedNodes = (data?.nodes ?? []).map(n =>
-            n.id === payload.id
-              ? { ...n, position: { x: payload.x, y: payload.y } }
-              : n,
-          );
-
-          edges?.forEach(edge => {
-            if (edge.from === payload.id || edge.to === payload.id) {
-              const pos = calculateEdgePosition(edge, updatedNodes, dimensions);
-              if (pos) {
-                edgesPositions[edge.id] = pos;
+          let side: HandlePosition = (fromPosition as HandlePosition) ?? 'right';
+          let idx = fromIndex ?? 0;
+          if (!fromPosition && fromNode?.handles) {
+            const sides: HandlePosition[] = ['right', 'bottom', 'top', 'left'];
+            for (const s of sides) {
+              const hIdx = fromNode.handles[s]?.findIndex(h => h.type === 'output');
+              if (hIdx !== undefined && hIdx !== -1) {
+                side = s;
+                idx = hIdx;
+                break;
               }
             }
-          });
+          }
+          const handle = fromNode?.handles?.[side]?.[idx];
+          if (fromNode?.handles && handle?.type === 'none') {
+            return undefined;
+          }
+          const total = fromNode?.handles?.[side]?.length ?? 1;
+          const p = getHandlePosition(nodePos, { width, height }, side, idx, total);
 
-          return edgesPositions;
-        },
-
-        MOVE_IMMEDIATE: ({
-          context: { data, edgesPositions },
-          payload,
-          pContext: { dimensions },
-        }) => {
-          const dimension = dimensions[payload.id];
-          if (!dimension) return edgesPositions;
-
-          const width = dimension.width ?? DEFAULT_SIZE.width;
-          const height = dimension.height ?? DEFAULT_SIZE.height;
-          const outputOffset =
-            dimension.outputOffset ?? getDefaultOutputOffset(width, height);
-          const inputOffset = dimension.inputOffset ?? getDefaultInputOffset(height);
-
-          dimension.output = {
-            x: payload.x + outputOffset.x,
-            y: payload.y + outputOffset.y,
-          };
-          dimension.input = {
-            x: payload.x + inputOffset.x,
-            y: payload.y + inputOffset.y,
-          };
-
-          const updatedNodes = (data?.nodes ?? []).map(n =>
-            n.id === payload.id
-              ? { ...n, position: { x: payload.x, y: payload.y } }
-              : n,
-          );
-
-          data?.edges?.forEach(edge => {
-            if (edge.from === payload.id || edge.to === payload.id) {
-              const pos = calculateEdgePosition(edge, updatedNodes, dimensions);
-              if (pos) {
-                edgesPositions[edge.id] = pos;
-              }
-            }
-          });
-
-          return edgesPositions;
-        },
-
-        else: ({ context: { data }, pContext: { dimensions } }) => {
-          const nextEdgesPositions: Record<string, Vector> = {};
-
-          data?.edges?.forEach(edge => {
-            const pos = calculateEdgePosition(edge, data.nodes, dimensions);
-            if (pos) {
-              nextEdgesPositions[edge.id] = pos;
-            } else {
-              const output = dimensions[edge.from]?.output;
-              const input = dimensions[edge.to]?.input;
-              if (output && input) {
-                nextEdgesPositions[edge.id] = {
-                  x0: output.x,
-                  y0: output.y,
-                  x1: input.x,
-                  y1: input.y,
-                };
-              }
-            }
-          });
-
-          return nextEdgesPositions;
-        },
-      }),
-
-      assign('updatingUI', () => true),
-    ),
-
-    resize: action({
-      RESIZE: ({
-        payload: {
-          id,
-          size: { width, height },
-        },
-        context: { data },
-        pContext: { dimensions },
-      }) => {
-        const dimension = dimensions[id];
-        if (!dimension) return;
-
-        dimension.width = width;
-        dimension.height = height;
-        const node = data?.nodes?.find(n => n.id === id);
-        const outputOffset = getDefaultOutputOffset(width, height);
-        const inputOffset = dimension.inputOffset ?? getDefaultInputOffset(height);
-        dimension.outputOffset = outputOffset;
-        dimension.inputOffset = inputOffset;
-
-        if (node) {
-          dimension.output = {
-            x: node.position.x + outputOffset.x,
-            y: node.position.y + outputOffset.y,
-          };
-
-          dimension.input = {
-            x: node.position.x + inputOffset.x,
-            y: node.position.y + inputOffset.y,
-          };
-        } else {
-          dimension.output = { x: dimension.output.x, y: dimension.output.y };
-        }
-      },
-    }),
-
-    linkChild: batch(
-      assign('data.edges', {
-        ADD_CHILD: ({ context: { data }, pContext, payload: from }) => {
-          const edges = toArray.typed(data?.edges);
-          const generatedId = pContext?.generatedId;
-          const to = buildNodeID(generatedId);
-          const id = buildEdgeId(from, to, 'left', 0);
-          edges.push({ id, from, to, toPosition: 'left', toIndex: 0 });
-          return edges;
-        },
-      }),
-
-      assign('selected', ({ pContext: { generatedId } }) =>
-        buildNodeID(generatedId),
-      ),
-    ),
-
-    linkSibling: batch(
-      assign('data.edges', {
-        ADD_SIBLING: ({ pContext, payload, context: { data } }) => {
-          const edges = toArray.typed(data?.edges);
-          const generatedId = pContext?.generatedId;
-          const from = edges.find(({ to }) => to === payload)?.from;
-          if (!from) return edges;
-
-          const to = buildNodeID(generatedId);
-          const id = buildEdgeId(from, to, 'left', 0);
-          edges.push({ from, to, id, toPosition: 'left', toIndex: 0 });
-          return edges;
-        },
-      }),
-
-      assign('selected', ({ pContext: { generatedId } }) =>
-        buildNodeID(generatedId),
-      ),
-    ),
-
-    linkParent: assign('data.edges', {
-      ADD_PARENT: ({ context: { data }, pContext, payload }) => {
-        const edges = toArray.typed(data?.edges);
-        const parentId =
-          typeof payload === 'string'
-            ? payload
-            : typeof payload === 'object' && payload
-              ? payload.parentId
-              : undefined;
-        if (!parentId) return edges;
-
-        const customId =
-          typeof payload === 'object' && payload ? payload.id : undefined;
-        const to = customId ?? buildNodeID(pContext?.generatedId);
-        const from = parentId;
-        const id = buildEdgeId(from, to, 'top', 0);
-
-        if (!edges.some(e => e.id === id || (e.from === from && e.to === to))) {
-          edges.push({
-            id,
+          return {
             from,
-            to,
-            fromPosition: 'bottom',
-            fromIndex: 0,
-            toPosition: 'top',
-            toIndex: 0,
-          });
-        }
-        return edges;
-      },
-    }),
-
-    selectParent: assign('selected', {
-      ADD_PARENT: ({ pContext: { generatedId }, payload }) => {
-        const customId =
-          typeof payload === 'object' && payload ? payload.id : undefined;
-        return customId ?? buildNodeID(generatedId);
-      },
-      else: ({ pContext: { generatedId } }) => buildNodeID(generatedId),
-    }),
-
-    moveNode: assign('data.nodes', {
-      MOVE: ({ context: { data }, payload: { id, x, y } }) => {
-        return data?.nodes?.map(node => {
-          if (node.id === id) return { ...node, position: { x, y } };
-          return node;
-        });
-      },
-    }),
-
-    delete: batch(
-      filter('data.edges', {
-        DELETE: ({ id, from, to }, _, { payload }) => {
-          return id !== payload && from !== payload && to !== payload;
+            fromPosition: side,
+            fromIndex: idx,
+            x0: p.x,
+            y0: p.y,
+            x1: p.x,
+            y1: p.y,
+          };
         },
       }),
 
-      filter('data.nodes', { DELETE: ({ id }, _, { payload }) => id !== payload }),
-      erase('editing'),
-    ),
+      buildUI: batch(
+        assign('edgesPositions', {
+          MOVE: ({
+            context: { data, edgesPositions },
+            payload,
+            pContext: { dimensions },
+          }) => {
+            const edges = data?.edges;
+            const dimension = dimensions[payload.id];
+            if (!dimension) return edgesPositions;
 
-    addEdge: batch(
-      assign('data.edges', {
-        ADD_EDGE: ({ context, payload }) => {
-          const p =
+            const width = dimension.width ?? DEFAULT_SIZE.width;
+            const height = dimension.height ?? DEFAULT_SIZE.height;
+            const outputOffset =
+              dimension.outputOffset ?? getDefaultOutputOffset(width, height);
+            const inputOffset =
+              dimension.inputOffset ?? getDefaultInputOffset(height);
+
+            dimension.output = {
+              x: payload.x + outputOffset.x,
+              y: payload.y + outputOffset.y,
+            };
+            dimension.input = {
+              x: payload.x + inputOffset.x,
+              y: payload.y + inputOffset.y,
+            };
+
+            const updatedNodes = (data?.nodes ?? []).map(n =>
+              n.id === payload.id
+                ? { ...n, position: { x: payload.x, y: payload.y } }
+                : n,
+            );
+
+            edges?.forEach(edge => {
+              if (edge.from === payload.id || edge.to === payload.id) {
+                const pos = calculateEdgePosition(edge, updatedNodes, dimensions);
+                if (pos) {
+                  edgesPositions[edge.id] = pos;
+                }
+              }
+            });
+
+            return edgesPositions;
+          },
+
+          MOVE_IMMEDIATE: ({
+            context: { data, edgesPositions },
+            payload,
+            pContext: { dimensions },
+          }) => {
+            const dimension = dimensions[payload.id];
+            if (!dimension) return edgesPositions;
+
+            const width = dimension.width ?? DEFAULT_SIZE.width;
+            const height = dimension.height ?? DEFAULT_SIZE.height;
+            const outputOffset =
+              dimension.outputOffset ?? getDefaultOutputOffset(width, height);
+            const inputOffset =
+              dimension.inputOffset ?? getDefaultInputOffset(height);
+
+            dimension.output = {
+              x: payload.x + outputOffset.x,
+              y: payload.y + outputOffset.y,
+            };
+            dimension.input = {
+              x: payload.x + inputOffset.x,
+              y: payload.y + inputOffset.y,
+            };
+
+            const updatedNodes = (data?.nodes ?? []).map(n =>
+              n.id === payload.id
+                ? { ...n, position: { x: payload.x, y: payload.y } }
+                : n,
+            );
+
+            data?.edges?.forEach(edge => {
+              if (edge.from === payload.id || edge.to === payload.id) {
+                const pos = calculateEdgePosition(edge, updatedNodes, dimensions);
+                if (pos) {
+                  edgesPositions[edge.id] = pos;
+                }
+              }
+            });
+
+            return edgesPositions;
+          },
+
+          else: ({ context: { data }, pContext: { dimensions } }) => {
+            const nextEdgesPositions: Record<string, Vector> = {};
+
+            data?.edges?.forEach(edge => {
+              const pos = calculateEdgePosition(edge, data.nodes, dimensions);
+              if (pos) {
+                nextEdgesPositions[edge.id] = pos;
+              } else {
+                const output = dimensions[edge.from]?.output;
+                const input = dimensions[edge.to]?.input;
+                if (output && input) {
+                  nextEdgesPositions[edge.id] = {
+                    x0: output.x,
+                    y0: output.y,
+                    x1: input.x,
+                    y1: input.y,
+                  };
+                }
+              }
+            });
+
+            return nextEdgesPositions;
+          },
+        }),
+
+        assign('updatingUI', () => true),
+      ),
+
+      resize: action({
+        RESIZE: ({
+          payload: {
+            id,
+            size: { width, height },
+          },
+          context: { data },
+          pContext: { dimensions },
+        }) => {
+          const dimension = dimensions[id];
+          if (!dimension) return;
+
+          dimension.width = width;
+          dimension.height = height;
+          const node = data?.nodes?.find(n => n.id === id);
+          const outputOffset = getDefaultOutputOffset(width, height);
+          const inputOffset = dimension.inputOffset ?? getDefaultInputOffset(height);
+          dimension.outputOffset = outputOffset;
+          dimension.inputOffset = inputOffset;
+
+          if (node) {
+            dimension.output = {
+              x: node.position.x + outputOffset.x,
+              y: node.position.y + outputOffset.y,
+            };
+
+            dimension.input = {
+              x: node.position.x + inputOffset.x,
+              y: node.position.y + inputOffset.y,
+            };
+          } else {
+            dimension.output = { x: dimension.output.x, y: dimension.output.y };
+          }
+        },
+      }),
+
+      linkChild: batch(
+        assign('data.edges', {
+          ADD_CHILD: ({ context: { data }, pContext, payload: from }) => {
+            const edges = toArray.typed(data?.edges);
+            const generatedId = pContext?.generatedId;
+            const to = buildNodeID(generatedId);
+            const id = buildEdgeId(from, to, 'left', 0);
+            edges.push({ id, from, to, toPosition: 'left', toIndex: 0 });
+            return edges;
+          },
+        }),
+
+        assign('selected', ({ pContext: { generatedId } }) =>
+          buildNodeID(generatedId),
+        ),
+      ),
+
+      linkSibling: batch(
+        assign('data.edges', {
+          ADD_SIBLING: ({ pContext, payload, context: { data } }) => {
+            const edges = toArray.typed(data?.edges);
+            const generatedId = pContext?.generatedId;
+            const from = edges.find(({ to }) => to === payload)?.from;
+            if (!from) return edges;
+
+            const to = buildNodeID(generatedId);
+            const id = buildEdgeId(from, to, 'left', 0);
+            edges.push({ from, to, id, toPosition: 'left', toIndex: 0 });
+            return edges;
+          },
+        }),
+
+        assign('selected', ({ pContext: { generatedId } }) =>
+          buildNodeID(generatedId),
+        ),
+      ),
+
+      linkParent: assign('data.edges', {
+        ADD_PARENT: ({ context: { data }, pContext, payload }) => {
+          const edges = toArray.typed(data?.edges);
+          const parentId =
             typeof payload === 'string'
-              ? { from: payload, to: '' }
-              : (payload as any);
-          const { from, to, toPosition, toIndex, fromPosition, fromIndex } = p;
-          const edges = context.data?.edges ?? [];
-          const id = buildEdgeId(from, to, toPosition, toIndex);
-          const existing = edges.find(
-            e =>
-              e.id === id ||
-              (e.from === from &&
-                e.to === to &&
-                (!toPosition || e.toPosition === toPosition) &&
-                (toIndex === undefined || e.toIndex === toIndex)),
-          );
-          if (existing) return edges;
+              ? payload
+              : typeof payload === 'object' && payload
+                ? payload.parentId
+                : undefined;
+          if (!parentId) return edges;
 
-          const out = [
-            ...edges,
-            {
+          const customId =
+            typeof payload === 'object' && payload ? payload.id : undefined;
+          const to = customId ?? buildNodeID(pContext?.generatedId);
+          const from = parentId;
+          const id = buildEdgeId(from, to, 'top', 0);
+
+          if (!edges.some(e => e.id === id || (e.from === from && e.to === to))) {
+            edges.push({
               id,
               from,
               to,
-              ...(toPosition ? { toPosition } : {}),
-              ...(toIndex !== undefined ? { toIndex } : {}),
-              ...(fromPosition ? { fromPosition } : {}),
-              ...(fromIndex !== undefined ? { fromIndex } : {}),
-            },
-          ];
-          return out;
+              fromPosition: 'bottom',
+              fromIndex: 0,
+              toPosition: 'top',
+              toIndex: 0,
+            });
+          }
+          return edges;
         },
       }),
 
-      assign('selected', {
-        ADD_EDGE: ({ context, payload }) => {
-          const p =
-            typeof payload === 'string'
-              ? { from: payload, to: '' }
-              : (payload as any);
-          const { from, to, toPosition, toIndex } = p;
-          const edges = context.data?.edges ?? [];
-          const id = buildEdgeId(from, to, toPosition, toIndex);
-          const existing = edges.find(
-            e =>
-              e.id === id ||
-              (e.from === from &&
-                e.to === to &&
-                (!toPosition || e.toPosition === toPosition) &&
-                (toIndex === undefined || e.toIndex === toIndex)),
-          );
-          return existing ? existing.id : id;
+      selectParent: assign('selected', {
+        ADD_PARENT: ({ pContext: { generatedId }, payload }) => {
+          const customId =
+            typeof payload === 'object' && payload ? payload.id : undefined;
+          return customId ?? buildNodeID(generatedId);
+        },
+        else: ({ pContext: { generatedId } }) => buildNodeID(generatedId),
+      }),
+
+      moveNode: assign('data.nodes', {
+        MOVE: ({ context: { data }, payload: { id, x, y } }) => {
+          return data?.nodes?.map(node => {
+            if (node.id === id) return { ...node, position: { x, y } };
+            return node;
+          });
         },
       }),
 
-      erase('newEdge'),
-    ),
+      delete: batch(
+        filter('data.edges', {
+          DELETE: ({ id, from, to }, _, { payload }) => {
+            if (
+              payload === '/' ||
+              payload === '@bemedev/mind-flow/uniquePrincipal##'
+            ) {
+              return true;
+            }
+            return id !== payload && from !== payload && to !== payload;
+          },
+        }),
 
-    zoom: assign('zoom', {
-      ZOOM: ({ context: { zoom }, payload, pContext }) => {
-        const next = zoom + payload;
-        const clamped = clamp(next, 0.1, 3);
-        pContext.previousZoom = undefined;
-        return clamped;
-      },
-    }),
+        filter('data.nodes', {
+          DELETE: ({ id, data }, _, { payload }) => {
+            if (
+              id === payload &&
+              (id === '/' ||
+                (data as any)?.principal ||
+                (data as any)?.principal?.___root ===
+                  '@bemedev/mind-flow/uniquePrincipal##')
+            ) {
+              return true;
+            }
+            return id !== payload;
+          },
+        }),
+        erase('editing'),
+      ),
 
-    toggleZoom: assign('zoom', {
-      TOGGLE_ZOOM: ({ context: { zoom }, pContext }) => {
-        const previous = pContext.previousZoom;
+      addEdge: batch(
+        assign('data.edges', {
+          ADD_EDGE: ({ context, payload }) => {
+            const p =
+              typeof payload === 'string'
+                ? { from: payload, to: '' }
+                : (payload as any);
+            const { from, to, toPosition, toIndex, fromPosition, fromIndex } = p;
+            const edges = context.data?.edges ?? [];
+            const id = buildEdgeId(from, to, toPosition, toIndex);
+            const existing = edges.find(
+              e =>
+                e.id === id ||
+                (e.from === from &&
+                  e.to === to &&
+                  (!toPosition || e.toPosition === toPosition) &&
+                  (toIndex === undefined || e.toIndex === toIndex)),
+            );
+            if (existing) return edges;
 
-        if (previous !== undefined) {
+            const out = [
+              ...edges,
+              {
+                id,
+                from,
+                to,
+                ...(toPosition ? { toPosition } : {}),
+                ...(toIndex !== undefined ? { toIndex } : {}),
+                ...(fromPosition ? { fromPosition } : {}),
+                ...(fromIndex !== undefined ? { fromIndex } : {}),
+              },
+            ];
+            return out;
+          },
+        }),
+
+        assign('selected', {
+          ADD_EDGE: ({ context, payload }) => {
+            const p =
+              typeof payload === 'string'
+                ? { from: payload, to: '' }
+                : (payload as any);
+            const { from, to, toPosition, toIndex } = p;
+            const edges = context.data?.edges ?? [];
+            const id = buildEdgeId(from, to, toPosition, toIndex);
+            const existing = edges.find(
+              e =>
+                e.id === id ||
+                (e.from === from &&
+                  e.to === to &&
+                  (!toPosition || e.toPosition === toPosition) &&
+                  (toIndex === undefined || e.toIndex === toIndex)),
+            );
+            return existing ? existing.id : id;
+          },
+        }),
+
+        erase('newEdge'),
+      ),
+
+      zoom: assign('zoom', {
+        ZOOM: ({ context: { zoom }, payload, pContext }) => {
+          const next = zoom + payload;
+          const clamped = clamp(next, 0.1, 3);
           pContext.previousZoom = undefined;
-          return previous;
-        }
+          return clamped;
+        },
+      }),
 
-        pContext.previousZoom = zoom;
-        return 1;
-      },
-    }),
+      toggleZoom: assign('zoom', {
+        TOGGLE_ZOOM: ({ context: { zoom }, pContext }) => {
+          const previous = pContext.previousZoom;
 
-    // #region UI
-    placeChild: assign('data.nodes', {
-      ADD_CHILD: ({ payload, context: { data, board }, pContext }) => {
-        if (!board) return data?.nodes;
+          if (previous !== undefined) {
+            pContext.previousZoom = undefined;
+            return previous;
+          }
 
-        const nodes = data?.nodes;
-        if (!payload) return nodes;
+          pContext.previousZoom = zoom;
+          return 1;
+        },
+      }),
 
-        const parentNode = nodes?.find(node => node.id === payload);
-        if (!parentNode) return nodes;
+      // #region UI
+      placeChild: assign('data.nodes', {
+        ADD_CHILD: ({ payload, context: { data, board }, pContext }) => {
+          if (!board) return data?.nodes;
 
-        const parentDimension = pContext.dimensions[payload];
-        const id = `node-${pContext.generatedId}`;
-        const width = parentDimension?.width ?? DEFAULT_SIZE.width;
-        const height = parentDimension?.height ?? DEFAULT_SIZE.height;
-        const initialX = parentNode.position.x + width + PARENT_CHILD_GAP_WIDTH;
-        const initialY = parentNode.position.y;
+          const nodes = data?.nodes;
+          if (!payload) return nodes;
 
-        const position = pContext.clampPosition(
-          board,
-          initialX,
-          initialY,
-          width,
-          height,
-        );
+          const parentNode = nodes?.find(node => node.id === payload);
+          if (!parentNode) return nodes;
 
-        pContext.dimensions[id] = pContext.calculateDimensions(
-          position,
-          parentDimension ?? DEFAULT_SIZE,
-        );
+          const parentDimension = pContext.dimensions[payload];
+          const id = `node-${pContext.generatedId}`;
+          const width = parentDimension?.width ?? DEFAULT_SIZE.width;
+          const height = parentDimension?.height ?? DEFAULT_SIZE.height;
+          const initialX = parentNode.position.x + width + PARENT_CHILD_GAP_WIDTH;
+          const initialY = parentNode.position.y;
 
-        const defaultData = pContext.defaultData ?? DEFAULT_DATA;
-        nodes?.push({ id, data: { ...defaultData }, position });
-        return nodes;
-      },
-    }),
+          const position = pContext.clampPosition(
+            board,
+            initialX,
+            initialY,
+            width,
+            height,
+          );
 
-    placeParent: assign('data.nodes', {
-      ADD_PARENT: ({ context: { data, zoom = 1, board }, pContext, payload }) => {
-        const nodes = toArray.typed(data?.nodes);
-        const customId =
-          typeof payload === 'object' && payload ? payload.id : undefined;
-        const id = customId ?? buildNodeID(pContext.generatedId);
-        const parentId =
-          typeof payload === 'string'
-            ? payload
-            : typeof payload === 'object' && payload
-              ? payload.parentId
-              : undefined;
+          pContext.dimensions[id] = pContext.calculateDimensions(
+            position,
+            parentDimension ?? DEFAULT_SIZE,
+          );
 
-        const parentNode = parentId
-          ? nodes.find(node => node.id === parentId)
-          : undefined;
-        const parentDimension = parentId ? pContext.dimensions[parentId] : undefined;
+          const defaultData = pContext.defaultData ?? DEFAULT_DATA;
+          nodes?.push({ id, data: { ...defaultData }, position });
+          return nodes;
+        },
+      }),
 
-        let width: number = DEFAULT_SIZE.width;
-        let height: number = DEFAULT_SIZE.height;
-        let x: number;
-        let y: number;
+      placeParent: assign('data.nodes', {
+        ADD_PARENT: ({ context: { data, zoom = 1, board }, pContext, payload }) => {
+          const nodes = toArray.typed(data?.nodes);
+          const customId =
+            typeof payload === 'object' && payload ? payload.id : undefined;
+          const id = customId ?? buildNodeID(pContext.generatedId);
+          const parentId =
+            typeof payload === 'string'
+              ? payload
+              : typeof payload === 'object' && payload
+                ? payload.parentId
+                : undefined;
 
-        if (parentNode) {
-          width = parentDimension?.width ?? DEFAULT_SIZE.width;
-          height = parentDimension?.height ?? DEFAULT_SIZE.height;
-          x = parentNode.position.x + width + 100;
-          y = parentNode.position.y + height + 250;
-        } else if (board) {
-          const container = board.parent;
-          const scrollLeft = container?.scrollLeft ?? 0;
-          const scrollTop = container?.scrollTop ?? 0;
-          const bWidth = container?.width ?? 0;
-          const bHeight = container?.height ?? 0;
-          const currentZoom = zoom;
-          x = (scrollLeft + bWidth / 2) / currentZoom;
-          y = (scrollTop + bHeight / 2) / currentZoom;
-        } else {
-          x = 0;
-          y = 0;
-        }
-
-        const position =
-          board && !parentNode
-            ? pContext.clampPosition(board, x, y, width, height)
-            : { x, y };
-
-        pContext.dimensions[id] = pContext.calculateDimensions(
-          position,
-          parentDimension ?? DEFAULT_SIZE,
-        );
-
-        const defaultData = pContext.defaultData ?? DEFAULT_DATA;
-        const nodeData =
-          typeof payload === 'object' && payload?.data
-            ? payload.data
-            : { ...defaultData };
-
-        const nodeHandles =
-          typeof payload === 'object' && payload?.handles
-            ? payload.handles
+          const parentNode = parentId
+            ? nodes.find(node => node.id === parentId)
+            : undefined;
+          const parentDimension = parentId
+            ? pContext.dimensions[parentId]
             : undefined;
 
-        nodes.push({
-          id,
-          data: nodeData,
-          position,
-          ...(nodeHandles ? { handles: nodeHandles } : {}),
-        });
-        return nodes;
-      },
-    }),
+          let width: number = DEFAULT_SIZE.width;
+          let height: number = DEFAULT_SIZE.height;
+          let x: number;
+          let y: number;
 
-    placeSibling: assign('data.nodes', {
-      ADD_SIBLING: ({ payload, context: { data, board }, pContext }) => {
-        if (!board) return data?.nodes;
+          if (parentNode) {
+            width = parentDimension?.width ?? DEFAULT_SIZE.width;
+            height = parentDimension?.height ?? DEFAULT_SIZE.height;
+            x = parentNode.position.x + width + 100;
+            y = parentNode.position.y + height + 250;
+          } else if (board) {
+            const container = board.parent;
+            const scrollLeft = container?.scrollLeft ?? 0;
+            const scrollTop = container?.scrollTop ?? 0;
+            const bWidth = container?.width ?? 0;
+            const bHeight = container?.height ?? 0;
+            const currentZoom = zoom;
+            x = (scrollLeft + bWidth / 2) / currentZoom;
+            y = (scrollTop + bHeight / 2) / currentZoom;
+          } else {
+            x = 0;
+            y = 0;
+          }
 
-        const edges = data?.edges;
-        const nodes = data?.nodes;
-        const parentID = edges?.find(edge => edge.to === payload)?.from;
-        if (!parentID) return nodes;
+          const position =
+            board && !parentNode
+              ? pContext.clampPosition(board, x, y, width, height)
+              : { x, y };
 
-        const parentNode = nodes?.find(node => node.id === parentID);
-        if (!parentNode) return nodes;
+          pContext.dimensions[id] = pContext.calculateDimensions(
+            position,
+            parentDimension ?? DEFAULT_SIZE,
+          );
 
-        const parentDimension = pContext.dimensions[parentID];
-        const id = `node-${pContext.generatedId}`;
-        const width = parentDimension?.width ?? DEFAULT_SIZE.width;
-        const height = parentDimension?.height ?? DEFAULT_SIZE.height;
-        const initialX = parentNode.position.x + width + PARENT_CHILD_GAP_WIDTH;
-        const initialY = parentNode.position.y + PARENT_CHILD_GAP_WIDTH;
+          const defaultData = pContext.defaultData ?? DEFAULT_DATA;
+          const nodeData =
+            typeof payload === 'object' && payload?.data
+              ? payload.data
+              : { ...defaultData };
 
-        const position = pContext.clampPosition(
-          board,
-          initialX,
-          initialY,
-          width,
-          height,
-        );
+          const nodeHandles =
+            typeof payload === 'object' && payload?.handles
+              ? payload.handles
+              : undefined;
 
-        pContext.dimensions[id] = pContext.calculateDimensions(
-          position,
-          parentDimension ?? DEFAULT_SIZE,
-        );
+          nodes.push({
+            id,
+            data: nodeData,
+            position,
+            ...(nodeHandles ? { handles: nodeHandles } : {}),
+          });
+          return nodes;
+        },
+      }),
 
-        const defaultData = pContext.defaultData ?? DEFAULT_DATA;
-        nodes?.push({ id, data: { ...defaultData }, position });
-        return nodes;
-      },
-    }),
+      placeSibling: assign('data.nodes', {
+        ADD_SIBLING: ({ payload, context: { data, board }, pContext }) => {
+          if (!board) return data?.nodes;
 
-    moveNewEdge: assign('newEdge', {
-      MOVE_NEW_EDGE: ({ context: { newEdge, board }, payload, pContext }) => {
-        if (!board) return undefined;
-        if (!newEdge) return undefined;
+          const edges = data?.edges;
+          const nodes = data?.nodes;
+          const parentID = edges?.find(edge => edge.to === payload)?.from;
+          if (!parentID) return nodes;
 
-        const { x: x1, y: y1 } = pContext.getBoardPosition(
-          payload.x,
-          payload.y,
-          board,
-        );
+          const parentNode = nodes?.find(node => node.id === parentID);
+          if (!parentNode) return nodes;
 
-        return { ...newEdge, x1, y1 };
-      },
-    }),
-    // #endregion
-  },
-}));
+          const parentDimension = pContext.dimensions[parentID];
+          const id = `node-${pContext.generatedId}`;
+          const width = parentDimension?.width ?? DEFAULT_SIZE.width;
+          const height = parentDimension?.height ?? DEFAULT_SIZE.height;
+          const initialX = parentNode.position.x + width + PARENT_CHILD_GAP_WIDTH;
+          const initialY = parentNode.position.y + PARENT_CHILD_GAP_WIDTH;
+
+          const position = pContext.clampPosition(
+            board,
+            initialX,
+            initialY,
+            width,
+            height,
+          );
+
+          pContext.dimensions[id] = pContext.calculateDimensions(
+            position,
+            parentDimension ?? DEFAULT_SIZE,
+          );
+
+          const defaultData = pContext.defaultData ?? DEFAULT_DATA;
+          nodes?.push({ id, data: { ...defaultData }, position });
+          return nodes;
+        },
+      }),
+
+      moveNewEdge: assign('newEdge', {
+        MOVE_NEW_EDGE: ({ context: { newEdge, board }, payload, pContext }) => {
+          if (!board) return undefined;
+          if (!newEdge) return undefined;
+
+          const { x: x1, y: y1 } = pContext.getBoardPosition(
+            payload.x,
+            payload.y,
+            board,
+          );
+
+          return { ...newEdge, x1, y1 };
+        },
+      }),
+      // #endregion
+    },
+  };
+});

@@ -1,6 +1,7 @@
 import { useFlow } from '@bemedev/mind-flow';
 import { For, Show, type Component } from 'solid-js';
 
+import { PRINCIPAL_NODE_KEY } from '../constants';
 import type { StateMachineNodeData } from '../types';
 import { useStateNodeHooks } from './Node.hooks';
 
@@ -11,6 +12,9 @@ import { useStateNodeHooks } from './Node.hooks';
  * interactive bubble at the bottom-right corner if the state has actors attached.
  */
 export const StateMachineNode: Component<StateMachineNodeData> = props => {
+  if (props.id === PRINCIPAL_NODE_KEY || (props as any).principal) {
+    return null;
+  }
   const { send } = useFlow();
   const {
     hasActors,

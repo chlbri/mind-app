@@ -1,6 +1,7 @@
 export * from './helpers';
 export * from './services/main.machine.data';
-export * from './services/main.machine.typings';
+export * from './services/main.machine.history';
+export * as typings from './services/main.machine.typings';
 export * from './ui/components/classes';
 export * from './ui/components/edges';
 export type * from './ui/components/edges/types';
@@ -14,3 +15,4 @@ export * from './ui/Flow';
 export * from './ui/globals/directives';
 export * from './ui/globals/hooks';
 export * from '@ctrl/tinycolor';
+export * from './ui/globals/components/atoms/hook';

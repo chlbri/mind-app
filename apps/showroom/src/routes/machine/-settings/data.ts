@@ -104,7 +104,5 @@ const ORDER_GRAPH = parseMachineToGraph(
   },
 );
 
-export const config: ConfigFrom<StateMachineNodeData, StateMachineEdgeData> = {
-  nodes: ORDER_GRAPH.nodes,
-  edges: ORDER_GRAPH.edges,
-};
+export const DEFAULT_CONFIG: ConfigFrom<StateMachineNodeData, StateMachineEdgeData> =
+  { nodes: ORDER_GRAPH.nodes, edges: ORDER_GRAPH.edges };

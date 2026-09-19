@@ -181,4 +181,8 @@
   body {
     @apply bg-background text-foreground;
   }
+
+  div[id='/'] {
+    display: none !important;
+  }
 }

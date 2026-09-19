@@ -1,0 +1,770 @@
+{
+  "history": [
+    {
+      "data": {
+        "nodes": [
+          {
+            "position": { "x": 0, "y": 0 },
+            "data": {
+              "principal": { "___root": "@bemedev/mind-flow/uniquePrincipal##" },
+              "id": "/",
+              "title": "Machine",
+              "path": "/",
+              "stateType": "compound"
+            },
+            "id": "/"
+          },
+          {
+            "position": { "x": 50, "y": 140 },
+            "data": {
+              "id": "/cart",
+              "title": "cart",
+              "path": "/cart",
+              "parentPath": "/",
+              "stateType": "atomic",
+              "isInitial": true,
+              "actors": [],
+              "content": "Customer cart with selected items ready for checkout."
+            },
+            "handles": {
+              "top": [{ "type": "none", "color": "#8b5cf6" }],
+              "right": [
+                { "type": "output", "color": "#f97316" },
+                { "type": "output", "color": "#22c55e" },
+                { "type": "output", "color": "#3b82f6" }
+              ],
+              "left": [
+                { "type": "input", "color": "#f97316" },
+                { "type": "input", "color": "#22c55e" },
+                { "type": "input", "color": "#3b82f6" }
+              ],
+              "bottom": [{ "type": "none", "color": "#8b5cf6" }]
+            },
+            "id": "/cart"
+          },
+          {
+            "position": { "x": 110.125, "y": 379.890625 },
+            "data": {
+              "id": "/payment",
+              "title": "payment",
+              "path": "/payment",
+              "parentPath": "/",
+              "stateType": "atomic",
+              "isInitial": false,
+              "activities": [
+                {
+                  "id": "CHECK_GATEWAY_0",
+                  "delay": "CHECK_GATEWAY",
+                  "actions": ["pollGatewayStatus"],
+                  "guards": ["isGatewayConnected"],
+                  "description": "Periodically checks gateway payment authorization"
+                }
+              ],
+              "actors": [
+                {
+                  "id": "stripeGateway",
+                  "name": "stripeGateway",
+                  "type": "emitter",
+                  "description": "Reactive stream emitter subscribed on state entry, emits values to actions, stops on state exit.",
+                  "emitter": {
+                    "next": { "actions": ["onPaymentAuthorized", "storeReceipt"] },
+                    "error": { "actions": ["handlePaymentFailure"] },
+                    "complete": { "actions": ["closeGatewayConnection"] }
+                  },
+                  "emissions": {
+                    "next": ["onPaymentAuthorized", "storeReceipt"],
+                    "error": ["handlePaymentFailure"],
+                    "complete": ["closeGatewayConnection"]
+                  },
+                  "events": {},
+                  "config": {
+                    "next": { "actions": ["onPaymentAuthorized", "storeReceipt"] },
+                    "error": { "actions": ["handlePaymentFailure"] },
+                    "complete": { "actions": ["closeGatewayConnection"] }
+                  }
+                }
+              ],
+              "content": "Awaiting payment confirmation via payment gateway."
+            },
+            "handles": {
+              "top": [{ "type": "none", "color": "#8b5cf6" }],
+              "right": [
+                { "type": "output", "color": "#f97316" },
+                { "type": "output", "color": "#22c55e" },
+                { "type": "output", "color": "#3b82f6" }
+              ],
+              "left": [
+                { "type": "input", "color": "#f97316" },
+                { "type": "input", "color": "#22c55e" },
+                { "type": "input", "color": "#3b82f6" }
+              ],
+              "bottom": [{ "type": "none", "color": "#8b5cf6" }]
+            },
+            "id": "/payment"
+          },
+          {
+            "position": { "x": 545.296875, "y": 119.2421875 },
+            "data": {
+              "id": "/validation",
+              "title": "validation",
+              "path": "/validation",
+              "parentPath": "/",
+              "stateType": "atomic",
+              "isInitial": false,
+              "actors": [
+                {
+                  "id": "fraudDetector",
+                  "name": "fraudDetector",
+                  "type": "child",
+                  "description": "Bi-directional child actor machine handling event delegation and parent context synchronization.",
+                  "child": {
+                    "on": {
+                      "FLAGGED": { "actions": ["quarantineOrder"] },
+                      "CLEARED": { "actions": ["approveOrder"] }
+                    },
+                    "contexts": { ".": "fraudScore" }
+                  },
+                  "emissions": {},
+                  "events": {
+                    "FLAGGED": ["quarantineOrder"],
+                    "CLEARED": ["approveOrder"]
+                  },
+                  "contexts": { ".": "fraudScore" },
+                  "config": {
+                    "on": {
+                      "FLAGGED": { "actions": ["quarantineOrder"] },
+                      "CLEARED": { "actions": ["approveOrder"] }
+                    },
+                    "contexts": { ".": "fraudScore" }
+                  }
+                }
+              ],
+              "content": "Automated fraud detection and inventory check."
+            },
+            "handles": {
+              "top": [{ "type": "none", "color": "#8b5cf6" }],
+              "right": [
+                { "type": "output", "color": "#f97316" },
+                { "type": "output", "color": "#22c55e" },
+                { "type": "output", "color": "#3b82f6" }
+              ],
+              "left": [
+                { "type": "input", "color": "#f97316" },
+                { "type": "input", "color": "#22c55e" },
+                { "type": "input", "color": "#3b82f6" }
+              ],
+              "bottom": [{ "type": "none", "color": "#8b5cf6" }]
+            },
+            "id": "/validation"
+          },
+          {
+            "position": { "x": 1224.90625, "y": 49.671875 },
+            "data": {
+              "id": "/fulfillment",
+              "title": "fulfillment",
+              "path": "/fulfillment",
+              "parentPath": "/",
+              "stateType": "compound",
+              "isInitial": false,
+              "actors": [],
+              "content": "Parent order fulfillment process with child states."
+            },
+            "handles": {
+              "top": [{ "type": "none", "color": "#8b5cf6" }],
+              "right": [
+                { "type": "output", "color": "#f97316" },
+                { "type": "output", "color": "#22c55e" },
+                { "type": "output", "color": "#3b82f6" }
+              ],
+              "left": [
+                { "type": "input", "color": "#f97316" },
+                { "type": "input", "color": "#22c55e" },
+                { "type": "input", "color": "#3b82f6" }
+              ],
+              "bottom": [{ "type": "none", "color": "#8b5cf6" }]
+            },
+            "id": "/fulfillment"
+          },
+          {
+            "position": { "x": 824.06640625, "y": 359.61328125 },
+            "data": {
+              "id": "/fulfillment/packaging",
+              "title": "packaging",
+              "path": "/fulfillment/packaging",
+              "parentPath": "/fulfillment",
+              "stateType": "atomic",
+              "isInitial": true,
+              "actors": [],
+              "content": "Warehouse packaging and boxing items."
+            },
+            "handles": {
+              "top": [{ "type": "none", "color": "#8b5cf6" }],
+              "right": [
+                { "type": "output", "color": "#f97316" },
+                { "type": "output", "color": "#22c55e" },
+                { "type": "output", "color": "#3b82f6" }
+              ],
+              "left": [
+                { "type": "input", "color": "#f97316" },
+                { "type": "input", "color": "#22c55e" },
+                { "type": "input", "color": "#3b82f6" }
+              ],
+              "bottom": [{ "type": "none", "color": "#8b5cf6" }]
+            },
+            "id": "/fulfillment/packaging"
+          },
+          {
+            "position": { "x": 1469.16015625, "y": 550.46484375 },
+            "data": {
+              "id": "/fulfillment/shipping",
+              "title": "shipping",
+              "path": "/fulfillment/shipping",
+              "parentPath": "/fulfillment",
+              "stateType": "atomic",
+              "isInitial": false,
+              "activities": [
+                {
+                  "id": "5000ms_0",
+                  "delay": "5000ms",
+                  "actions": ["pingGpsLocation", "logTransitProgress"],
+                  "description": "Periodic GPS ping during shipment transit"
+                }
+              ],
+              "actors": [
+                {
+                  "id": "gpsTracker",
+                  "name": "gpsTracker",
+                  "type": "emitter",
+                  "description": "Reactive stream emitter subscribed on state entry, emits values to actions, stops on state exit.",
+                  "emitter": {
+                    "next": { "actions": ["updateLiveCoordinates"] },
+                    "complete": { "actions": ["notifyDeliveryPending"] }
+                  },
+                  "emissions": {
+                    "next": ["updateLiveCoordinates"],
+                    "complete": ["notifyDeliveryPending"]
+                  },
+                  "events": {},
+                  "config": {
+                    "next": { "actions": ["updateLiveCoordinates"] },
+                    "complete": { "actions": ["notifyDeliveryPending"] }
+                  }
+                }
+              ],
+              "content": "Carrier transit with real-time GPS tracking stream."
+            },
+            "handles": {
+              "top": [{ "type": "none", "color": "#8b5cf6" }],
+              "right": [
+                { "type": "output", "color": "#f97316" },
+                { "type": "output", "color": "#22c55e" },
+                { "type": "output", "color": "#3b82f6" }
+              ],
+              "left": [
+                { "type": "input", "color": "#f97316" },
+                { "type": "input", "color": "#22c55e" },
+                { "type": "input", "color": "#3b82f6" }
+              ],
+              "bottom": [{ "type": "none", "color": "#8b5cf6" }]
+            },
+            "id": "/fulfillment/shipping"
+          },
+          {
+            "position": { "x": 1994.30078125, "y": 335.66015625 },
+            "data": {
+              "id": "/fulfillment/completed",
+              "title": "completed",
+              "path": "/fulfillment/completed",
+              "parentPath": "/fulfillment",
+              "stateType": "atomic",
+              "isInitial": false,
+              "actors": [],
+              "content": "Customer confirmed delivery of items."
+            },
+            "handles": {
+              "top": [{ "type": "none", "color": "#8b5cf6" }],
+              "right": [
+                { "type": "output", "color": "#f97316" },
+                { "type": "output", "color": "#22c55e" },
+                { "type": "output", "color": "#3b82f6" }
+              ],
+              "left": [
+                { "type": "input", "color": "#f97316" },
+                { "type": "input", "color": "#22c55e" },
+                { "type": "input", "color": "#3b82f6" }
+              ],
+              "bottom": [{ "type": "none", "color": "#8b5cf6" }]
+            },
+            "id": "/fulfillment/completed"
+          },
+          {
+            "position": { "x": 113.20703125, "y": 756.34375 },
+            "data": {
+              "id": "/cancelled",
+              "title": "cancelled",
+              "path": "/cancelled",
+              "parentPath": "/",
+              "stateType": "atomic",
+              "isInitial": false,
+              "actors": [],
+              "content": "Order cancelled due to timeout or user action."
+            },
+            "handles": {
+              "top": [{ "type": "none", "color": "#8b5cf6" }],
+              "right": [
+                { "type": "output", "color": "#f97316" },
+                { "type": "output", "color": "#22c55e" },
+                { "type": "output", "color": "#3b82f6" }
+              ],
+              "left": [
+                { "type": "input", "color": "#f97316" },
+                { "type": "input", "color": "#22c55e" },
+                { "type": "input", "color": "#3b82f6" }
+              ],
+              "bottom": [{ "type": "none", "color": "#8b5cf6" }]
+            },
+            "id": "/cancelled"
+          },
+          {
+            "position": { "x": 551.79296875, "y": 645.14453125 },
+            "data": {
+              "id": "/rejected",
+              "title": "rejected",
+              "path": "/rejected",
+              "parentPath": "/",
+              "stateType": "atomic",
+              "isInitial": false,
+              "actors": [],
+              "content": "Order rejected by risk assessment."
+            },
+            "handles": {
+              "top": [{ "type": "none", "color": "#8b5cf6" }],
+              "right": [
+                { "type": "output", "color": "#f97316" },
+                { "type": "output", "color": "#22c55e" },
+                { "type": "output", "color": "#3b82f6" }
+              ],
+              "left": [
+                { "type": "input", "color": "#f97316" },
+                { "type": "input", "color": "#22c55e" },
+                { "type": "input", "color": "#3b82f6" }
+              ],
+              "bottom": [{ "type": "none", "color": "#8b5cf6" }]
+            },
+            "id": "/rejected"
+          },
+          {
+            "position": { "x": 1934.4453125, "y": 56.75390625 },
+            "data": {
+              "id": "/refunded",
+              "title": "refunded",
+              "path": "/refunded",
+              "parentPath": "/",
+              "stateType": "atomic",
+              "isInitial": false,
+              "actors": [],
+              "content": "Payment returned and order marked refunded."
+            },
+            "handles": {
+              "top": [{ "type": "none", "color": "#8b5cf6" }],
+              "right": [
+                { "type": "output", "color": "#f97316" },
+                { "type": "output", "color": "#22c55e" },
+                { "type": "output", "color": "#3b82f6" }
+              ],
+              "left": [
+                { "type": "input", "color": "#f97316" },
+                { "type": "input", "color": "#22c55e" },
+                { "type": "input", "color": "#3b82f6" }
+              ],
+              "bottom": [{ "type": "none", "color": "#8b5cf6" }]
+            },
+            "id": "/refunded"
+          }
+        ],
+        "edges": [
+          {
+            "from": "/fulfillment/packaging",
+            "to": "/fulfillment",
+            "toPosition": "bottom",
+            "toIndex": 0,
+            "fromPosition": "top",
+            "fromIndex": 0,
+            "data": {
+              "kind": "child_parent",
+              "label": "child of : /fulfillment",
+              "fromState": "/fulfillment/packaging",
+              "toState": "/fulfillment",
+              "transitions": [
+                {
+                  "id": "edge:hierarchy:/fulfillment/packaging=>/fulfillment",
+                  "kind": "child_parent",
+                  "label": "child of : /fulfillment"
+                }
+              ]
+            },
+            "id": "edge:hierarchy:/fulfillment/packaging=>/fulfillment"
+          },
+          {
+            "from": "/fulfillment/shipping",
+            "to": "/fulfillment",
+            "toPosition": "bottom",
+            "toIndex": 0,
+            "fromPosition": "top",
+            "fromIndex": 0,
+            "data": {
+              "kind": "child_parent",
+              "label": "child of : /fulfillment",
+              "fromState": "/fulfillment/shipping",
+              "toState": "/fulfillment",
+              "transitions": [
+                {
+                  "id": "edge:hierarchy:/fulfillment/shipping=>/fulfillment",
+                  "kind": "child_parent",
+                  "label": "child of : /fulfillment"
+                }
+              ]
+            },
+            "id": "edge:hierarchy:/fulfillment/shipping=>/fulfillment"
+          },
+          {
+            "from": "/fulfillment/completed",
+            "to": "/fulfillment",
+            "toPosition": "bottom",
+            "toIndex": 0,
+            "fromPosition": "top",
+            "fromIndex": 0,
+            "data": {
+              "kind": "child_parent",
+              "label": "child of : /fulfillment",
+              "fromState": "/fulfillment/completed",
+              "toState": "/fulfillment",
+              "transitions": [
+                {
+                  "id": "edge:hierarchy:/fulfillment/completed=>/fulfillment",
+                  "kind": "child_parent",
+                  "label": "child of : /fulfillment"
+                }
+              ]
+            },
+            "id": "edge:hierarchy:/fulfillment/completed=>/fulfillment"
+          },
+          {
+            "from": "/cart",
+            "to": "/payment",
+            "toPosition": "left",
+            "toIndex": 2,
+            "fromPosition": "right",
+            "fromIndex": 2,
+            "data": {
+              "kind": "on",
+              "label": "on: CHECKOUT",
+              "event": "CHECKOUT",
+              "fromState": "/cart",
+              "toState": "/payment",
+              "transitions": [
+                {
+                  "id": "edge:on:/cart=>/payment:CHECKOUT:0",
+                  "kind": "on",
+                  "label": "on: CHECKOUT",
+                  "event": "CHECKOUT"
+                }
+              ]
+            },
+            "id": "edge:on:/cart=>/payment"
+          },
+          {
+            "from": "/payment",
+            "to": "/cancelled",
+            "toPosition": "left",
+            "toIndex": 0,
+            "fromPosition": "right",
+            "fromIndex": 0,
+            "data": {
+              "kind": "after",
+              "label": "after: PAYMENT_TIMEOUT",
+              "delay": "PAYMENT_TIMEOUT",
+              "fromState": "/payment",
+              "toState": "/cancelled",
+              "transitions": [
+                {
+                  "id": "edge:after:/payment=>/cancelled:PAYMENT_TIMEOUT:0",
+                  "kind": "after",
+                  "label": "after: PAYMENT_TIMEOUT",
+                  "delay": "PAYMENT_TIMEOUT"
+                }
+              ]
+            },
+            "id": "edge:after:/payment=>/cancelled"
+          },
+          {
+            "from": "/payment",
+            "to": "/validation",
+            "toPosition": "left",
+            "toIndex": 2,
+            "fromPosition": "right",
+            "fromIndex": 2,
+            "data": {
+              "kind": "on",
+              "label": "on: PAY_SUCCESS",
+              "event": "PAY_SUCCESS",
+              "fromState": "/payment",
+              "toState": "/validation",
+              "transitions": [
+                {
+                  "id": "edge:on:/payment=>/validation:PAY_SUCCESS:0",
+                  "kind": "on",
+                  "label": "on: PAY_SUCCESS",
+                  "event": "PAY_SUCCESS"
+                }
+              ]
+            },
+            "id": "edge:on:/payment=>/validation"
+          },
+          {
+            "from": "/payment",
+            "to": "/cart",
+            "toPosition": "left",
+            "toIndex": 2,
+            "fromPosition": "right",
+            "fromIndex": 2,
+            "data": {
+              "kind": "on",
+              "label": "on: CANCEL",
+              "event": "CANCEL",
+              "fromState": "/payment",
+              "toState": "/cart",
+              "transitions": [
+                {
+                  "id": "edge:on:/payment=>/cart:CANCEL:0",
+                  "kind": "on",
+                  "label": "on: CANCEL",
+                  "event": "CANCEL"
+                }
+              ]
+            },
+            "id": "edge:on:/payment=>/cart"
+          },
+          {
+            "from": "/validation",
+            "to": "/fulfillment",
+            "toPosition": "left",
+            "toIndex": 1,
+            "fromPosition": "right",
+            "fromIndex": 1,
+            "data": {
+              "kind": "always",
+              "label": "always [isApproved]",
+              "guards": ["isApproved"],
+              "fromState": "/validation",
+              "toState": "/fulfillment",
+              "transitions": [
+                {
+                  "id": "edge:always:/validation=>/fulfillment:0",
+                  "kind": "always",
+                  "label": "always [isApproved]",
+                  "guards": ["isApproved"]
+                }
+              ]
+            },
+            "id": "edge:always:/validation=>/fulfillment"
+          },
+          {
+            "from": "/validation",
+            "to": "/rejected",
+            "toPosition": "left",
+            "toIndex": 1,
+            "fromPosition": "right",
+            "fromIndex": 1,
+            "data": {
+              "kind": "always",
+              "label": "always",
+              "fromState": "/validation",
+              "toState": "/rejected",
+              "transitions": [
+                {
+                  "id": "edge:always:/validation=>/rejected:1",
+                  "kind": "always",
+                  "label": "always"
+                }
+              ]
+            },
+            "id": "edge:always:/validation=>/rejected"
+          },
+          {
+            "from": "/validation",
+            "to": "/fulfillment",
+            "toPosition": "left",
+            "toIndex": 2,
+            "fromPosition": "right",
+            "fromIndex": 2,
+            "data": {
+              "kind": "on",
+              "label": "on: MANUAL_OVERRIDE",
+              "event": "MANUAL_OVERRIDE",
+              "fromState": "/validation",
+              "toState": "/fulfillment",
+              "transitions": [
+                {
+                  "id": "edge:on:/validation=>/fulfillment:MANUAL_OVERRIDE:0",
+                  "kind": "on",
+                  "label": "on: MANUAL_OVERRIDE",
+                  "event": "MANUAL_OVERRIDE"
+                }
+              ]
+            },
+            "id": "edge:on:/validation=>/fulfillment"
+          },
+          {
+            "from": "/fulfillment",
+            "to": "/refunded",
+            "toPosition": "left",
+            "toIndex": 2,
+            "fromPosition": "right",
+            "fromIndex": 2,
+            "data": {
+              "kind": "on",
+              "label": "on: REFUND",
+              "event": "REFUND",
+              "fromState": "/fulfillment",
+              "toState": "/refunded",
+              "transitions": [
+                {
+                  "id": "edge:on:/fulfillment=>/refunded:REFUND:0",
+                  "kind": "on",
+                  "label": "on: REFUND",
+                  "event": "REFUND"
+                }
+              ]
+            },
+            "id": "edge:on:/fulfillment=>/refunded"
+          },
+          {
+            "from": "/fulfillment/packaging",
+            "to": "/fulfillment/shipping",
+            "toPosition": "left",
+            "toIndex": 2,
+            "fromPosition": "right",
+            "fromIndex": 2,
+            "data": {
+              "kind": "on",
+              "label": "on: PACKED",
+              "event": "PACKED",
+              "fromState": "/fulfillment/packaging",
+              "toState": "/fulfillment/shipping",
+              "transitions": [
+                {
+                  "id": "edge:on:/fulfillment/packaging=>/fulfillment/shipping:PACKED:0",
+                  "kind": "on",
+                  "label": "on: PACKED",
+                  "event": "PACKED"
+                }
+              ]
+            },
+            "id": "edge:on:/fulfillment/packaging=>/fulfillment/shipping"
+          },
+          {
+            "from": "/fulfillment/shipping",
+            "to": "/fulfillment/completed",
+            "toPosition": "left",
+            "toIndex": 2,
+            "fromPosition": "right",
+            "fromIndex": 2,
+            "data": {
+              "kind": "on",
+              "label": "on: DELIVERED",
+              "event": "DELIVERED",
+              "fromState": "/fulfillment/shipping",
+              "toState": "/fulfillment/completed",
+              "transitions": [
+                {
+                  "id": "edge:on:/fulfillment/shipping=>/fulfillment/completed:DELIVERED:0",
+                  "kind": "on",
+                  "label": "on: DELIVERED",
+                  "event": "DELIVERED"
+                }
+              ]
+            },
+            "id": "edge:on:/fulfillment/shipping=>/fulfillment/completed"
+          },
+          {
+            "from": "/cancelled",
+            "to": "/cart",
+            "toPosition": "left",
+            "toIndex": 2,
+            "fromPosition": "right",
+            "fromIndex": 2,
+            "data": {
+              "kind": "on",
+              "label": "on: RETRY",
+              "event": "RETRY",
+              "fromState": "/cancelled",
+              "toState": "/cart",
+              "transitions": [
+                {
+                  "id": "edge:on:/cancelled=>/cart:RETRY:0",
+                  "kind": "on",
+                  "label": "on: RETRY",
+                  "event": "RETRY"
+                }
+              ]
+            },
+            "id": "edge:on:/cancelled=>/cart"
+          }
+        ]
+      },
+      "date": 1789851914077,
+      "name": "initial"
+    },
+    {
+      "diff": {
+        "nodes": {
+          "updateds": {
+            "position": { "x": 0, "y": 0 },
+            "data": {
+              "principal": { "___root": "@bemedev/mind-flow/uniquePrincipal##" },
+              "id": "/",
+              "title": "Machine",
+              "path": "/",
+              "stateType": "atomic"
+            },
+            "id": "/"
+          },
+          "removeds": [
+            "/cart",
+            "/payment",
+            "/validation",
+            "/fulfillment",
+            "/fulfillment/packaging",
+            "/fulfillment/shipping",
+            "/fulfillment/completed",
+            "/cancelled",
+            "/rejected",
+            "/refunded"
+          ]
+        },
+        "edges": {
+          "removeds": [
+            "edge:hierarchy:/fulfillment/packaging=>/fulfillment",
+            "edge:hierarchy:/fulfillment/shipping=>/fulfillment",
+            "edge:hierarchy:/fulfillment/completed=>/fulfillment",
+            "edge:on:/cart=>/payment",
+            "edge:after:/payment=>/cancelled",
+            "edge:on:/payment=>/validation",
+            "edge:on:/payment=>/cart",
+            "edge:always:/validation=>/fulfillment",
+            "edge:always:/validation=>/rejected",
+            "edge:on:/validation=>/fulfillment",
+            "edge:on:/fulfillment=>/refunded",
+            "edge:on:/fulfillment/packaging=>/fulfillment/shipping",
+            "edge:on:/fulfillment/shipping=>/fulfillment/completed",
+            "edge:on:/cancelled=>/cart"
+          ]
+        }
+      },
+      "date": 1789852036107,
+      "name": "atomic"
+    }
+  ],
+  "historyIndex": 0
+}

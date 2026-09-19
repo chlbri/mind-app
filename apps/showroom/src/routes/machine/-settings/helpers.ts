@@ -1,5 +1,5 @@
 import { expandFn } from '@bemedev/app/bemedev';
-import type { HandleConfig, HandleType, NodeHandles_T } from '@bemedev/mind-flow';
+import type { typings, HandleType, NodeHandles_T } from '@bemedev/mind-flow';
 import type { Accessor } from 'solid-js';
 
 import { EDGES_COLORS } from './constants';
@@ -54,7 +54,9 @@ export const toList = (val: string): string[] => {
 };
 
 /** Default handle configuration for top and bottom connection points. */
-const top: HandleConfig[] = [{ type: 'none', color: EDGES_COLORS.child_parent }];
+const top: typings.HandleConfig[] = [
+  { type: 'none', color: EDGES_COLORS.child_parent },
+];
 
 /** Edge color mapping list for horizontal transitions (after, always, on). */
 const HORIZONTAL_EDGES_COLRS = [
@@ -72,7 +74,9 @@ const HORIZONTAL_EDGES_COLRS = [
  *
  * @returns Array of handle configurations of type {@linkcode HandleConfig}.
  */
-const handleHelperH = (type: Exclude<HandleType, 'none'>): HandleConfig[] => {
+const handleHelperH = (
+  type: Exclude<HandleType, 'none'>,
+): typings.HandleConfig[] => {
   return HORIZONTAL_EDGES_COLRS.map(color => ({ type, color }));
 };
 
