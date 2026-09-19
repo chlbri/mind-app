@@ -13,7 +13,18 @@ export type DeepPartial<T> = T extends (...args: any[]) => any
       ? _DeepPartialObject<T>
       : T;
 
+/**
+ * Internal recursive type helper for deep partial arrays.
+ *
+ * @template T - Array element type.
+ */
 type _DeepPartialArray<T> = DeepPartial<T>[];
+
+/**
+ * Internal recursive type helper for deep partial objects.
+ *
+ * @template T - Object structure type.
+ */
 type _DeepPartialObject<T> = { [P in keyof T]?: DeepPartial<T[P]> };
 
 /**
@@ -61,6 +72,16 @@ export const deepPartial = <
   return schema as any;
 };
 
+/**
+ * Lazy schema evaluator function returning the schema produced by the given factory.
+ *
+ * @template | {@linkcode v.BaseSchema} `T` - Output schema type extending type
+ *   {@linkcode v.BaseSchema}.
+ *
+ * @param fn - Factory function producing the schema.
+ *
+ * @returns The resolved schema instance of type `T`.
+ */
 export const byFunction = <
   const T extends v.BaseSchema<any, any, v.BaseIssue<unknown>>,
 >(

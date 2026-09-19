@@ -103,7 +103,7 @@ export const nodeJSON = v.object({
 /**
  * Serialized node properties type inferred from schema {@linkcode nodeJSON}.
  *
- * @template | {@linkcode Data} `D` - Custom data properties type extending
+ * @template | {@linkcode Data} `D` - Custom data properties type extending type
  *   {@linkcode Data}.
  *
  * @see -- type {@linkcode Point}, -- type {@linkcode NodeHandles_T}
@@ -117,7 +117,7 @@ export type NodeProps<D extends Data = Data> = {
 /**
  * Serialized flowchart node entity with identifier.
  *
- * @template | {@linkcode Data} `D` - Custom data properties type extending
+ * @template | {@linkcode Data} `D` - Custom data properties type extending type
  *   {@linkcode Data}.
  *
  * @see -- type {@linkcode NodeProps}
@@ -128,15 +128,13 @@ export type Node<D extends Data = Data> = NodeProps<D> & { id: string };
  * Function predicate to determine whether an edge creation between two nodes should
  * be excluded.
  *
- * @template | {@linkcode Data} `N` - Custom node data properties type extending
+ * @template | {@linkcode Data} `N` - Custom node data properties type extending type
  *   {@linkcode Data}.
  *
  * @param from - The source node entity of type {@linkcode Node}.
  * @param to - The destination node entity of type {@linkcode Node}.
  *
  * @returns `true` if the edge creation should be excluded, `false` otherwise.
- *
- * @see -- type {@linkcode Node}
  */
 export type ExcludeEdge<N extends Data = Data> = (
   from: Node<N>,
@@ -249,6 +247,10 @@ export const flowchartData = v.object({
 /** Flowchart data structure inferred from schema {@linkcode flowchartData}. */
 export type FlowchartData = v.InferOutput<typeof flowchartData>;
 
+/**
+ * Schema definition for flowchart diffs capturing additions, updates, and removals
+ * of nodes and edges.
+ */
 export const diff = byFunction(() => {
   const nodeDiff = deepPartial(flowchartNode);
   const edgeDiff = deepPartial(flowchartEdge);
@@ -297,4 +299,5 @@ export const commitPayload = v.partial(
 /** Commit payload inferred from schema {@linkcode commitPayload}. */
 export type CommitPayload = v.InferOutput<typeof commitPayload>;
 
+/** Type alias for recursive deep partial type {@linkcode DeepPartial}. */
 export type { DeepPartial };

@@ -3,6 +3,41 @@
 <details>
 <summary>
 
+## **[1.6.0] - 19/09/2026** => _22:52_
+
+</summary>
+
+- Add Git-like time-travel history engine supporting base snapshot (index 0) and
+  incremental delta diffs (index 1..n)
+- Add `calculateDiff`, `reconstructState`, and `squashOldestCommit` utilities for
+  node and edge diff computation, commit reconstruction, and history squashing
+- Add `COMMIT`, `BUILD_HISTORY`, `UNDO`, `REDO`, `CHECKOUT`, and `RESET_HISTORY`
+  events with `canUndo`, `canRedo`, and `canCheckout` guards
+- Add `history` and `historyIndex` tracking to state machine context and export them
+  in `Context` type for inspection via `register`
+- Add Valibot schema validation suite (`flowchartData`, `flowchartNode`,
+  `flowchartEdge`, `diff`, `historyEntry`, `commitPayload`, `point`, `nodeOffset`,
+  `handlePosition`, `extremities`, `data`, `handleType`, `handleConfig`,
+  `nodeHandles`, `nodeJSON`, `edgeJSON`, `dimension`, `vector`, `newEdge`, `board`)
+- Add `deepPartial` and `byFunction` Valibot schema transformation helpers along with
+  `DeepPartial` and `DeepPartialSchema` types
+- Add `Hook` headless lifecycle atom component executing children callbacks during
+  render
+- Enhance comprehensive JSDoc documentation across history utilities, Valibot
+  helpers, typings, atom components, and state machine re-exports
+- Update `README.md` with Git-like history features, Valibot schemas, updated
+  `Context` properties, and exported utilities
+- Refactor state machine options to run `commitAction` dimension recalculation on
+  `undo`, `redo`, and `checkout` transitions directly to `/construction`
+- Refactor all schema models and inferred typings to Valibot
+
+</details>
+
+<br/>
+
+<details>
+<summary>
+
 ## **[1.5.7] - 19/09/2026** => _02:07_
 
 </summary>

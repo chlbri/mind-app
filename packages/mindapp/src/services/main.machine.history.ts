@@ -19,7 +19,7 @@ export const MAX_HISTORY_SIZE = 100;
  * @param base - Base flowchart data.
  * @param diff - Diff to apply.
  *
- * @returns Reconstructed {@linkcode FlowchartData}.
+ * @returns Reconstructed type {@linkcode FlowchartData}.
  */
 const applyDiff = (
   base?: FlowchartData,
@@ -123,7 +123,7 @@ const applyDiff = (
  * @param prev - Previous flowchart state.
  * @param next - Candidate next flowchart state.
  *
- * @returns {@linkcode FlowchartDiff} If changes exist, or `null` if identical.
+ * @returns Type {@linkcode FlowchartDiff} if changes exist, or `null` if identical.
  */
 export const calculateDiff = (
   prev?: FlowchartData,
@@ -255,7 +255,7 @@ export const calculateDiff = (
  * @param history - The history array.
  * @param targetIndex - Target commit index to reconstruct.
  *
- * @returns Reconstructed {@linkcode FlowchartData}.
+ * @returns Reconstructed type {@linkcode FlowchartData}.
  */
 export const reconstructState = (
   history: HistoryEntry[],

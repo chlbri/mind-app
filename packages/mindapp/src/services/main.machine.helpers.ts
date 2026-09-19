@@ -123,7 +123,7 @@ export const buildNodeID = (generated?: string | null) => {
  *
  * @returns Absolute 2D coordinates of type {@linkcode Point} for the handle center.
  *
- * @see {@linkcode getHandleOffsetPercent}, {@linkcode HANDLE_CENTER_X_OFFSET}, -- type {@linkcode HandlePosition}, -- type {@linkcode Point}
+ * @see {@linkcode getHandleOffsetPercent}, {@linkcode HANDLE_CENTER_X_OFFSET}
  */
 export const getHandlePosition = (
   nodePosition: Point,
@@ -171,7 +171,7 @@ export const getHandlePosition = (
  * @returns Vector coordinates of type {@linkcode Vector} or `undefined` if nodes are
  *   missing.
  *
- * @see {@linkcode getHandlePosition}, {@linkcode parseEdgeId}, -- type {@linkcode Vector}, -- type {@linkcode HandlePosition}
+ * @see {@linkcode getHandlePosition}, {@linkcode parseEdgeId}, -- type {@linkcode HandlePosition}
  */
 export const calculateEdgePosition = (
   edge: {
