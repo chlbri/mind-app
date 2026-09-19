@@ -1,11 +1,24 @@
+import type { ContextFrom } from '@bemedev/app';
 import type { NotUndefined } from '@bemedev/app/bemedev';
 import type { Component, JSX } from 'solid-js';
 
-import type { Edge, EdgeExtremeties } from '#services/main.machine.typings';
+import type { machine } from '#services/main.machine';
+import type { Edge, EdgeExtremeties, Node } from '#services/main.machine.typings';
 
 import type { EdgeProps } from './edges/types';
 import type { Data, NodeProps } from './FlowChart';
 import type { NodeComponentProps } from './nodes/Node';
+
+/**
+ * Subset of the state machine context exposed for external registration and
+ * inspection.
+ *
+ * @see {@linkcode machine}
+ */
+export type Context = Pick<
+  ContextFrom<typeof machine>,
+  'data' | 'selected' | 'zoom' | 'editing'
+>;
 
 /** Overlay panel slots positioned around the flowchart canvas. */
 export type FlowPanels = {
@@ -32,10 +45,7 @@ export type FlowProps<N extends Data = Data, E extends Data = Data> = {
   /** Optional delay in milliseconds before mounting the flowchart canvas. */
   delay?: number;
   /** Initial flowchart state configuration with nodes and edges. */
-  config?: {
-    nodes?: (NodeProps<N> & { id: string })[];
-    edges?: (Edge<E> & { id: string })[];
-  };
+  config?: { nodes?: Node<N>[]; edges?: (Edge<E> & { id: string })[] };
   /** Custom node component to render inside each flowchart node. */
   Node?: Component<N>;
 
@@ -92,6 +102,14 @@ export type FlowProps<N extends Data = Data, E extends Data = Data> = {
   onEdgeDeleted?: (edgeId: string) => void;
   /** Optional custom controls addon component of type {@linkcode Component}. */
   controlsAddons?: Component;
+  /**
+   * Callback invoked whenever the state machine context changes across working
+   * states.
+   *
+   * @param context - The current state machine context subset of type
+   *   {@linkcode Context}.
+   */
+  register?: (context: Context) => void;
 };
 
 /**

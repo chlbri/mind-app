@@ -3,6 +3,27 @@
 <details>
 <summary>
 
+## **[1.5.7] - 19/09/2026** => _02:07_
+
+</summary>
+
+- Add `register` callback prop to `FlowProps` and export `Context` type for observing
+  state machine context updates
+- Add intermediate `register` state to state machine to synchronize context across
+  working events
+- Enhance comprehensive JSDoc documentation for `Context` type and `register` prop
+- Update `README.md` with state synchronization feature, `register` usage example,
+  and `Context` export
+- Remove unused `bounds` field from state machine context schema and initial service
+  configuration
+
+</details>
+
+<br/>
+
+<details>
+<summary>
+
 ## **[1.5.6] - 19/09/2026** => _01:11_
 
 </summary>

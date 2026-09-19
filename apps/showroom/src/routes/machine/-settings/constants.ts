@@ -6,3 +6,6 @@ export const EDGES_COLORS = {
   on: '#3b82f6',
   child_parent: '#8b5cf6',
 } as const;
+
+/** LocalStorage key for persisting state machine flowchart configuration. */
+export const STORAGE_KEY = 'machine-flow-config';

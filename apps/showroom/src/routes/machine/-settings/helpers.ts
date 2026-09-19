@@ -138,10 +138,3 @@ export const dispatchArray = expandFn(
 
   { withoutTitle },
 );
-
-//TODO: Better display of Node
-// TODO: Display entry actions
-// TODO: Display exit actions
-// TODO: Display tags at the bottom under a divide
-// TODO:
-// TODO:

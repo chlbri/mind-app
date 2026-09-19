@@ -44,6 +44,7 @@ export const FlowChart = <N extends Data = Data, E extends Data = Data>(
   let activeHandle: HTMLElement | null = null;
   onCleanup(service.pause);
   const edgesAllowed = props.edgesAllowed;
+  const register = props.register;
 
   if (edgesAllowed) {
     service.addOptions(() => ({
@@ -61,6 +62,14 @@ export const FlowChart = <N extends Data = Data, E extends Data = Data>(
       },
     }));
   }
+
+  onMount(() => {
+    if (register) {
+      service.addOptions(({ action }) => ({
+        actions: { register: action(({ context }) => register(context)) },
+      }));
+    }
+  });
 
   onMount(() => {
     service.resume();

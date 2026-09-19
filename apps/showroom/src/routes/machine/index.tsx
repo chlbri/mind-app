@@ -1,15 +1,26 @@
-import { Flow } from '@bemedev/mind-flow';
+import { Flow, type ConfigFrom } from '@bemedev/mind-flow';
 import { createFileRoute } from '@tanstack/solid-router';
 
 import {
-  TransitionModal,
-  StateMachineEditPanel,
   StateMachineEdge,
+  StateMachineEditPanel,
   StateMachineNode,
   StateMachineNodeSelected,
+  TransitionModal,
 } from './-settings/components';
+import { STORAGE_KEY } from './-settings/constants';
 import { config } from './-settings/data';
 import type { StateMachineEdgeData, StateMachineNodeData } from './-settings/types';
+
+/**
+ * Function type signature for retrieving initial state machine flowchart
+ * configuration.
+ *
+ * @returns Initial flowchart configuration of type {@linkcode ConfigFrom}.
+ *
+ * @see -- type {@linkcode StateMachineNodeData}, -- type {@linkcode StateMachineEdgeData}
+ */
+type InitialConfig = () => ConfigFrom<StateMachineNodeData, StateMachineEdgeData>;
 
 /**
  * Interactive State Machine Showroom route demonstrating `@bemedev/app` graph
@@ -17,14 +28,53 @@ import type { StateMachineEdgeData, StateMachineNodeData } from './-settings/typ
  */
 export const Route = createFileRoute('/machine/')({
   component: () => {
+    /**
+     * Retrieves the stored state machine flowchart configuration from LocalStorage,
+     * falling back to the default configuration.
+     *
+     * @returns The flowchart configuration object.
+     *
+     * @see {@linkcode config}
+     */
+    const getInitialConfig: InitialConfig = () => {
+      if (typeof window === 'undefined') return config;
+
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return config;
+
+        const parsed = JSON.parse(raw);
+        if (parsed && Array.isArray(parsed.nodes) && Array.isArray(parsed.edges)) {
+          return { nodes: parsed.nodes, edges: parsed.edges };
+        }
+      } catch {
+        console.warn('Nothing is registered yet');
+      }
+
+      return config;
+    };
+
     return (
       <div class='relative h-[calc(100vh-64px)] w-[calc(100vw-32px)] overflow-hidden'>
         <Flow<StateMachineNodeData, StateMachineEdgeData>
           delay={100}
-          config={config}
+          config={getInitialConfig()}
           Node={StateMachineNode}
           NodeSelected={StateMachineNodeSelected}
           Edge={StateMachineEdge}
+          panels={{ bottomLeft: TransitionModal, topLeft: StateMachineEditPanel }}
+          controlsAddons={() => null}
+
+          register={({ data }) => {
+            if (data && typeof window !== 'undefined') {
+              try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+              } catch {
+                console.warn('Cannot access local storage');
+              }
+            }
+          }}
+
           edgesAllowed={(from, to, edge) => {
             const fromPath = from.data?.path;
             const toPath = to.data?.path;
@@ -53,11 +103,9 @@ export const Route = createFileRoute('/machine/')({
             path: '/new-state',
             stateType: 'atomic',
           }}
-
-          panels={{ bottomLeft: TransitionModal, topLeft: StateMachineEditPanel }}
-          controlsAddons={() => null}
         ></Flow>
       </div>
     );
   },
+  // ssr: 'data-only',
 });

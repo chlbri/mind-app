@@ -58,26 +58,27 @@ export const machine = createMachine(
         },
       },
 
-      construction: { always: { actions: ['buildUI'], target: '/working' } },
+      construction: { always: { actions: ['buildUI'], target: '/register' } },
+      register: { always: { actions: ['register'], target: '/working' } },
 
       working: {
         on: {
           CONFIGURE: { actions: ['configure'], target: '/construction' },
-          RESIZE: { actions: ['resize', 'buildUI'] },
+          RESIZE: { actions: ['resize', 'buildUI'], target: '/register' },
           MOVE: { actions: ['moveNode', 'buildUI'], target: '/construction' },
-          START_NEW_EDGE: { actions: ['startNewEdge'] },
-          MOVE_NEW_EDGE: { actions: ['moveNewEdge'] },
-          CLEAR_NEW_EDGE: { actions: ['clearNewEdge'] },
+          START_NEW_EDGE: { actions: ['startNewEdge'], target: '/register' },
+          MOVE_NEW_EDGE: { actions: ['moveNewEdge'], target: '/register' },
+          CLEAR_NEW_EDGE: { actions: ['clearNewEdge'], target: '/register' },
           DELETE: { actions: ['delete'], target: '/construction' },
-          SELECT: { actions: ['select'] },
-          DESELECT: { actions: ['deselect'] },
-          ZOOM: { actions: ['zoom'] },
-          TOGGLE_ZOOM: { actions: ['toggleZoom'] },
-          SET_BOARD: { actions: ['setBoard'] },
-          SET_NODE_DATA: { actions: ['setNodeData'] },
-          SET_EDGE_DATA: { actions: ['setEdgeData'] },
-          EDIT: { actions: ['edit'] },
-          STOP_EDIT: { actions: ['stopEdit'] },
+          SELECT: { actions: ['select'], target: '/register' },
+          DESELECT: { actions: ['deselect'], target: '/register' },
+          ZOOM: { actions: ['zoom'], target: '/register' },
+          TOGGLE_ZOOM: { actions: ['toggleZoom'], target: '/register' },
+          SET_BOARD: { actions: ['setBoard'], target: '/register' },
+          SET_NODE_DATA: { actions: ['setNodeData'], target: '/register' },
+          SET_EDGE_DATA: { actions: ['setEdgeData'], target: '/register' },
+          EDIT: { actions: ['edit'], target: '/register' },
+          STOP_EDIT: { actions: ['stopEdit'], target: '/register' },
 
           ADD_EDGE: {
             actions: ['addEdge'],
@@ -87,6 +88,7 @@ export const machine = createMachine(
 
           MOVE_IMMEDIATE: {
             actions: [{ name: 'buildUI', description: 'Must be in the ui' }],
+            target: '/register',
           },
 
           ADD_CHILD: {
@@ -207,19 +209,19 @@ export const machine = createMachine(
         nodes: array({ ...use(nodeJSON), id: 'string' }),
         edges: array({ ...use(edgeJSON), id: 'string' }),
       }),
-      board: optional(use(board)),
 
+      board: optional(use(board)),
       edgesPositions: record(use(vector)),
       newEdge: optional(use(newEdge)),
       selected: optional('string'),
       editing: optional('string'),
       updatingUI: optional('boolean'),
       zoom: 'number',
-      bounds: use(point),
     })),
   },
 ).provideOptions(({ assign, batch, erase, filter, action }) => ({
   actions: {
+    register: action(() => {}),
     configure: batch(
       assign('data', {
         CONFIGURE: ({ payload: { nodes, edges } }) => ({ nodes, edges }),

@@ -11,7 +11,6 @@ describe('#02 => main.machine - none handle behavior', () => {
       context: {
         zoom: 1,
         edgesPositions: {},
-        bounds: { x: 0, y: 0 },
         data: {
           nodes: [
             {
@@ -107,7 +106,6 @@ describe('#03 => main.machine - custom colored handles and object configurations
       context: {
         zoom: 1,
         edgesPositions: {},
-        bounds: { x: 0, y: 0 },
         data: {
           nodes: [
             {
@@ -233,7 +231,6 @@ describe('#04 => main.machine - ADD_PARENT and MOVE', () => {
       context: {
         zoom: 1,
         edgesPositions: {},
-        bounds: { x: 0, y: 0 },
         data: {
           nodes: [
             {

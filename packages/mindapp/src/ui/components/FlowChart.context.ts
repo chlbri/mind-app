@@ -23,7 +23,7 @@ export const [Provider, useFlow] = createContext(
   () => {
     /** Shared service for flowchart state management. */
     const service = interpret(machine, {
-      context: { zoom: 1, edgesPositions: {}, bounds: { x: 0, y: 0 } },
+      context: { zoom: 1, edgesPositions: {} },
       pContext: {
         generatedId: null,
         dimensions: {},

@@ -12,6 +12,8 @@ applications.
 - **Dynamic Edge Creation**: Interactive drag-to-connect endpoints between nodes.
 - **Edge Validation**: Guarded connection rules via `edgesAllowed` predicate.
 - **Contextual Actions**: Customizable action toolbars rendered above selected nodes.
+- **State Synchronization**: Context observation via `register` callback to track
+  data, edges, zoom, and selection.
 - **Type-Safe**: Full TypeScript definitions for nodes, edges, and configuration
   handlers.
 
@@ -125,6 +127,7 @@ export const CustomFlow = () => {
         onNodeDeleted={nodeId => console.log('Node deleted:', nodeId)}
         onEdgeAdded={edge => console.log('Edge added:', edge)}
         onEdgeDeleted={edgeId => console.log('Edge deleted:', edgeId)}
+        register={context => console.log('Context update:', context)}
       />
     </div>
   );
@@ -168,6 +171,10 @@ export const CustomFlow = () => {
 - **`EdgeExtremeties`**: Type representing edge connection endpoints with handle
   positions and indices.
 - **`FlowProps`**: Generic props configuration type for `Flow` and `FlowChart`.
+- **`Context`**: Type representing the observable flowchart context slice (`data`,
+  `selected`, `zoom`, `editing`).
+- **`ConfigFrom`**, **`NodesFrom`**, **`EdgesFrom`**: Type helpers extracting
+  inferred config, nodes, and edges structures from `FlowProps`.
 - **`EditPanelProps`**, **`EditPanelChildProps`**: Types for `EditPanel` and its
   children accessor helpers.
 - **`handlePosition`**, **`HandlePosition`**: Schema and type for node handle
