@@ -17,7 +17,7 @@ import type { NodeComponentProps } from './nodes/Node';
  */
 export type Context = Pick<
   ContextFrom<typeof machine>,
-  'data' | 'selected' | 'zoom' | 'editing'
+  'data' | 'selected' | 'zoom' | 'editing' | 'history' | 'historyIndex'
 >;
 
 /** Overlay panel slots positioned around the flowchart canvas. */

@@ -22,11 +22,19 @@ import {
   getHandlePosition,
 } from './main.machine.helpers';
 import {
+  calculateDiff,
+  MAX_HISTORY_SIZE,
+  reconstructState,
+  squashOldestCommit,
+} from './main.machine.history';
+import {
   board,
   data,
   dimension,
   edgeJSON,
   extremities,
+  flowchartData,
+  historyEntry,
   newEdge,
   nodeHandles,
   nodeJSON,
@@ -34,10 +42,15 @@ import {
   vector,
   type Board,
   type Dimension,
+  type FlowchartData,
+  type FlowchartDiff,
   type HandlePosition,
+  type HistoryEntry,
   type Point,
   type Vector,
 } from './main.machine.typings';
+
+export type { FlowchartData, FlowchartDiff, HistoryEntry };
 
 /**
  * State machine managing flowchart state transitions, nodes, edges, selection, and
@@ -118,6 +131,27 @@ export const machine = createMachine(
             ],
             target: '/construction',
           },
+
+          UNDO: {
+            actions: ['undo', 'buildUI'],
+            target: '/register',
+            guards: 'canUndo',
+          },
+
+          REDO: {
+            actions: ['redo', 'buildUI'],
+            target: '/register',
+            guards: 'canRedo',
+          },
+
+          CHECKOUT: {
+            actions: ['checkout', 'buildUI'],
+            target: '/register',
+            guards: 'canCheckout',
+          },
+
+          COMMIT: { actions: ['recordHistory'], target: '/register' },
+          RESET_HISTORY: { actions: ['resetHistory'], target: '/register' },
         },
       },
     },
@@ -129,14 +163,6 @@ export const machine = createMachine(
       MOVE: { id: 'string', x: 'number', y: 'number' },
       MOVE_IMMEDIATE: { id: 'string', x: 'number', y: 'number' },
       ADD_CHILD: 'string',
-      ADD_PARENT: optional(
-        partial({
-          id: 'string',
-          parentId: 'string',
-          data: use(data),
-          handles: use(nodeHandles),
-        }),
-      ),
       ADD_SIBLING: 'string',
       DELETE: 'string',
       SELECT: 'string',
@@ -151,6 +177,20 @@ export const machine = createMachine(
       RESIZE: { id: 'string', size: { width: 'number', height: 'number' } },
       SET_NODE_DATA: { id: 'string', data: use(data) },
       SET_EDGE_DATA: { id: 'string', data: use(data) },
+      UNDO: 'never',
+      REDO: 'never',
+      CHECKOUT: 'number',
+      COMMIT: 'never',
+      RESET_HISTORY: 'never',
+
+      ADD_PARENT: optional(
+        partial({
+          id: 'string',
+          parentId: 'string',
+          data: use(data),
+          handles: use(nodeHandles),
+        }),
+      ),
 
       START_NEW_EDGE: custom<
         string | { from: string; position: HandlePosition | string; index: number }
@@ -205,11 +245,9 @@ export const machine = createMachine(
     })),
 
     context: type(({ optional, use, array, record }) => ({
-      data: optional({
-        nodes: array({ ...use(nodeJSON), id: 'string' }),
-        edges: array({ ...use(edgeJSON), id: 'string' }),
-      }),
-
+      data: optional(use(flowchartData)),
+      history: optional(array(use(historyEntry))),
+      historyIndex: optional('number'),
       board: optional(use(board)),
       edgesPositions: record(use(vector)),
       newEdge: optional(use(newEdge)),
@@ -220,8 +258,105 @@ export const machine = createMachine(
     })),
   },
 ).provideOptions(({ assign, batch, erase, filter, action }) => ({
+  guards: {
+    canUndo: ({ context: { historyIndex } }) => {
+      return (historyIndex ?? -1) > 0;
+    },
+
+    canRedo: ({ context: { history, historyIndex } }) => {
+      if (!history || historyIndex === undefined) return false;
+      return historyIndex >= 0 && historyIndex < history.length - 1;
+    },
+
+    canCheckout: ({ context: { history } }) => !!history,
+  },
+
   actions: {
-    register: action(() => {}),
+    recordHistory: assign(
+      ['history', 'historyIndex'],
+      ({ context: { data, history = [], historyIndex = -1 } }) => {
+        if (!data) return [history, historyIndex];
+
+        // Base entry
+        if (history.length === 0) {
+          const hasContent =
+            (data.nodes?.length ?? 0) > 0 || (data.edges?.length ?? 0) > 0;
+          if (!hasContent) return [history, historyIndex];
+
+          const entry: HistoryEntry = {
+            data: structuredClone(data),
+            date: Date.now(),
+          };
+          return [[entry], 0];
+        }
+
+        // Calculate state at current historyIndex
+        const prevData = reconstructState(history, historyIndex);
+        const diff = calculateDiff(prevData, data);
+
+        // No changes observed => skip commit (no empty commit)
+        if (!diff) {
+          return [history, historyIndex];
+        }
+
+        // Prune forward history if branching from an earlier commit
+        const pruned = history.slice(0, Math.max(0, historyIndex + 1));
+        const newEntry: HistoryEntry = { diff, date: Date.now() };
+        pruned.push(newEntry);
+
+        // Cap at MAX_HISTORY_SIZE (100)
+        while (pruned.length > MAX_HISTORY_SIZE) {
+          squashOldestCommit(pruned);
+        }
+
+        return [pruned, pruned.length - 1];
+      },
+    ),
+
+    undo: batch(
+      assign('data', ({ context: { history = [], historyIndex = 0 } }) => {
+        if (historyIndex <= 0) return history[0]?.data;
+        return reconstructState(history, historyIndex - 1);
+      }),
+
+      assign('historyIndex', ({ context: { historyIndex = 0 } }) => {
+        return Math.max(0, historyIndex - 1);
+      }),
+    ),
+
+    redo: batch(
+      assign('data', ({ context: { history = [], historyIndex = 0 } }) => {
+        if (historyIndex >= history.length - 1) {
+          return reconstructState(history, history.length - 1);
+        }
+        return reconstructState(history, historyIndex + 1);
+      }),
+
+      assign('historyIndex', ({ context: { history = [], historyIndex = 0 } }) => {
+        return Math.min(history.length - 1, historyIndex + 1);
+      }),
+    ),
+
+    checkout: batch(
+      assign('data', {
+        CHECKOUT: ({ context: { history = [] }, payload }) => {
+          return reconstructState(history, payload);
+        },
+      }),
+
+      assign('historyIndex', { CHECKOUT: ({ payload }) => payload }),
+    ),
+
+    resetHistory: batch(
+      assign('history', ({ context: { data } }) => {
+        const cloned = data ? structuredClone(data) : undefined;
+        if (!cloned) return [];
+        return [{ data: cloned, date: Date.now() }];
+      }),
+
+      assign('historyIndex', () => 0),
+    ),
+
     configure: batch(
       assign('data', {
         CONFIGURE: ({ payload: { nodes, edges } }) => ({ nodes, edges }),

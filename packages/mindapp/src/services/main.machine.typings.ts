@@ -1,4 +1,4 @@
-import { type, type NOmit } from '@bemedev/app/bemedev';
+import { type, type DeepPartial, type NOmit } from '@bemedev/app/bemedev';
 import type { inferT } from '@bemedev/app/typings';
 
 /** Schema definition for 2D coordinates `(x, y)`. */
@@ -217,3 +217,45 @@ export const board = type(({ optional }) => ({
 
 /** Flowchart board layout type inferred from schema {@linkcode board}. */
 export type Board = inferT<typeof board>;
+
+/**
+ * Schema definition for flowchart data containing nodes and edges.
+ *
+ * @see {@linkcode nodeJSON}, {@linkcode edgeJSON}
+ */
+export const flowchartData = type(({ use, array }) => ({
+  nodes: array({ ...use(nodeJSON), id: 'string' }),
+  edges: array({ ...use(edgeJSON), id: 'string' }),
+}));
+
+/** Flowchart data structure inferred from schema {@linkcode flowchartData}. */
+export type FlowchartData = inferT<typeof flowchartData>;
+
+export type FlowchartNode = FlowchartData['nodes'][number];
+export type FlowchartEdge = FlowchartData['edges'][number];
+
+export const diff = type(({ array, partial, custom }) => {
+  const node = custom<DeepPartial<FlowchartNode>>();
+  const edge = custom<DeepPartial<FlowchartEdge>>();
+  const removeds = array('string');
+
+  return partial({
+    nodes: partial({ addeds: node, updateds: node, removeds }),
+    edges: partial({ addeds: edge, updateds: edge, removeds }),
+  });
+});
+
+export const historyEntry = type(({ optional, use }) => ({
+  data: optional(use(flowchartData)),
+  diff: optional(use(diff)),
+  date: 'number',
+}));
+
+/** Delta modifications for nodes and edges between commits. */
+export type FlowchartDiff = inferT<typeof diff>;
+
+/**
+ * Git-like history entry type supporting base snapshot (index 0) and delta diffs
+ * (index 1..n).
+ */
+export type HistoryEntry = inferT<typeof historyEntry>;
