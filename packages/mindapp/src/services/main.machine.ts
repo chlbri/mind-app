@@ -66,7 +66,10 @@ export const machine = createMachine(
     states: {
       idle: {
         on: {
-          CONFIGURE: { actions: ['configure'], target: '/construction' },
+          CONFIGURE: {
+            actions: ['configure', 'recordHistory'],
+            target: '/construction',
+          },
           CONFIGURE_EMPTY: '/working',
         },
       },
@@ -76,7 +79,10 @@ export const machine = createMachine(
 
       working: {
         on: {
-          CONFIGURE: { actions: ['configure'], target: '/construction' },
+          CONFIGURE: {
+            actions: ['configure', 'recordHistory'],
+            target: '/construction',
+          },
           RESIZE: { actions: ['resize', 'buildUI'], target: '/register' },
           MOVE: { actions: ['moveNode', 'buildUI'], target: '/construction' },
           START_NEW_EDGE: { actions: ['startNewEdge'], target: '/register' },
@@ -180,7 +186,7 @@ export const machine = createMachine(
       UNDO: 'never',
       REDO: 'never',
       CHECKOUT: 'number',
-      COMMIT: 'never',
+      COMMIT: custom<any>(),
       RESET_HISTORY: 'never',
 
       ADD_PARENT: optional(
@@ -272,10 +278,27 @@ export const machine = createMachine(
   },
 
   actions: {
+    register: action(() => {}),
+
     recordHistory: assign(
       ['history', 'historyIndex'],
-      ({ context: { data, history = [], historyIndex = -1 } }) => {
+      ({ context: { data, history = [], historyIndex = -1 }, ...rest }: any) => {
         if (!data) return [history, historyIndex];
+
+        let commitName: string | undefined;
+        if (rest?.event?.type === 'COMMIT') {
+          const p = rest?.event?.payload ?? rest?.payload;
+          if (typeof p === 'string' && p.trim()) {
+            commitName = p.trim();
+          } else if (
+            p &&
+            typeof p === 'object' &&
+            typeof p.name === 'string' &&
+            p.name.trim()
+          ) {
+            commitName = p.name.trim();
+          }
+        }
 
         // Base entry
         if (history.length === 0) {
@@ -286,30 +309,34 @@ export const machine = createMachine(
           const entry: HistoryEntry = {
             data: structuredClone(data),
             date: Date.now(),
+            ...(commitName ? { name: commitName } : {}),
           };
           return [[entry], 0];
         }
 
-        // Calculate state at current historyIndex
-        const prevData = reconstructState(history, historyIndex);
-        const diff = calculateDiff(prevData, data);
+        // Calculate diff from the last registered commit to the current one
+        const lastRegisteredData = reconstructState(history, history.length - 1);
+        const diff = calculateDiff(lastRegisteredData, data);
 
         // No changes observed => skip commit (no empty commit)
         if (!diff) {
           return [history, historyIndex];
         }
 
-        // Prune forward history if branching from an earlier commit
-        const pruned = history.slice(0, Math.max(0, historyIndex + 1));
-        const newEntry: HistoryEntry = { diff, date: Date.now() };
-        pruned.push(newEntry);
+        // Add the current commit at the end without rebuilding or pruning history
+        const newEntry: HistoryEntry = {
+          diff,
+          date: Date.now(),
+          ...(commitName ? { name: commitName } : {}),
+        };
+        const nextHistory = [...history, newEntry];
 
         // Cap at MAX_HISTORY_SIZE (100)
-        while (pruned.length > MAX_HISTORY_SIZE) {
-          squashOldestCommit(pruned);
+        while (nextHistory.length > MAX_HISTORY_SIZE) {
+          squashOldestCommit(nextHistory);
         }
 
-        return [pruned, pruned.length - 1];
+        return [nextHistory, nextHistory.length - 1];
       },
     ),
 

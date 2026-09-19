@@ -2,6 +2,7 @@ import { Flow, type ConfigFrom } from '@bemedev/mind-flow';
 import { createFileRoute } from '@tanstack/solid-router';
 
 import {
+  HistoryControlsAddons,
   StateMachineEdge,
   StateMachineEditPanel,
   StateMachineNode,
@@ -63,7 +64,7 @@ export const Route = createFileRoute('/machine/')({
           NodeSelected={StateMachineNodeSelected}
           Edge={StateMachineEdge}
           panels={{ bottomLeft: TransitionModal, topLeft: StateMachineEditPanel }}
-          controlsAddons={() => null}
+          controlsAddons={HistoryControlsAddons}
 
           register={({ data }) => {
             if (data && typeof window !== 'undefined') {

@@ -18,15 +18,6 @@ type Props = {
   left: number;
 };
 
-declare module 'solid-js' {
-  namespace JSX {
-    interface Directives {
-      // use:model
-      draggable: any;
-    }
-  }
-}
-
 /** Draggable box demo item component. */
 const Draggable: Component<Props> = props => {
   const draggable = createDraggable(props.id);

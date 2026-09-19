@@ -422,7 +422,7 @@ describe('#05 => main.machine - Git-like history', () => {
     expect(service.state.context.data?.nodes).toHaveLength(2);
   });
 
-  it('#03 => should prune forward history when modifying after an UNDO', () => {
+  it('#03 => should append commit to end without pruning earlier history when modifying after an UNDO', () => {
     const service = setupHistoryService();
 
     service.send('COMMIT');
@@ -434,21 +434,22 @@ describe('#05 => main.machine - Git-like history', () => {
     service.send('UNDO');
     expect(service.state.context.historyIndex).toBe(0);
 
-    // Update node data creates a new branch commit and prunes the undone child commit
+    // Update node data creates a new commit at the end (index 2) without pruning commit 1
     service.send({
       type: 'SET_NODE_DATA',
       payload: { id: 'node-root', data: { title: 'Updated Root' } },
     });
 
-    expect(service.state.context.history).toHaveLength(2);
-    expect(service.state.context.historyIndex).toBe(1);
+    expect(service.state.context.history).toHaveLength(3);
+    expect(service.state.context.historyIndex).toBe(2);
     const currentNodes = service.state.context.data?.nodes;
     expect(currentNodes).toHaveLength(1);
     expect(currentNodes?.[0].data?.title).toBe('Updated Root');
 
-    // REDO should be guarded/no-op because there is no forward history
-    service.send('REDO');
+    // Checkout back to commit 1 (the child commit) verifies it was preserved
+    service.send({ type: 'CHECKOUT', payload: 1 });
     expect(service.state.context.historyIndex).toBe(1);
+    expect(service.state.context.data?.nodes).toHaveLength(2);
   });
 
   it('#04 => should jump to specific commit via CHECKOUT', () => {
@@ -567,5 +568,25 @@ describe('#05 => main.machine - Git-like history', () => {
       n => n.id === 'node-root',
     );
     expect(restoredNode?.data?.title).toBe('Root v105');
+  });
+
+  it('#09 => should support optional commit name', () => {
+    const service = setupHistoryService();
+
+    service.send({ type: 'COMMIT', payload: { name: 'Initial Setup' } });
+    expect(service.state.context.history).toHaveLength(1);
+    expect(service.state.context.history?.[0].name).toBe('Initial Setup');
+
+    // Mutations like ADD_CHILD record commit without a name
+    service.send({ type: 'ADD_CHILD', payload: 'node-root' });
+    expect(service.state.context.history).toHaveLength(2);
+    expect(service.state.context.history?.[1].name).toBeUndefined();
+
+    // MOVE modifies position without auto-committing
+    service.send({ type: 'MOVE', payload: { id: 'node-root', x: 200, y: 300 } });
+    service.send({ type: 'COMMIT', payload: { name: 'Moved Root Node' } });
+
+    expect(service.state.context.history).toHaveLength(3);
+    expect(service.state.context.history?.[2].name).toBe('Moved Root Node');
   });
 });

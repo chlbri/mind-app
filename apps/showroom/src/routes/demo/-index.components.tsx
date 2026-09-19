@@ -1,20 +1,9 @@
-import { EditPanel, mouseOut, type MouseOutParam } from '@bemedev/mind-flow';
+import { EditPanel, mouseOut } from '@bemedev/mind-flow';
 import { clamp } from '@bemedev/mind-flow';
 import { type Component } from 'solid-js';
 
 import { BADGES } from './-index.data';
 import type { ShowroomData } from './-index.types';
-
-declare module 'solid-js' {
-  // oxlint-disable-next-line typescript/no-namespace
-  namespace JSX {
-    interface Directives {
-      clickOutside: () => void;
-      mouseOut: MouseOutParam;
-      draggable: { skipTransform?: boolean };
-    }
-  }
-}
 
 /**
  * Custom node renderer for Showroom displaying title, priority badge, and content.

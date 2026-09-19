@@ -5,3 +5,4 @@ export * from './Node';
 export * from './Node.edit';
 export * from './Node.selected';
 export * from './guards';
+export * from './HistoryControlsAddons';

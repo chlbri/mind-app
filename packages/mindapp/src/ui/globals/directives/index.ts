@@ -10,7 +10,7 @@ declare module 'solid-js' {
     interface Directives {
       clickOutside: () => void;
       mouseOut: MouseOutParam;
-      draggable: { skipTransform?: boolean };
+      draggable: { skipTransform?: boolean } | boolean;
     }
   }
 }

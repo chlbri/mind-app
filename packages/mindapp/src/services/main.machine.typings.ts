@@ -249,6 +249,7 @@ export const historyEntry = type(({ optional, use }) => ({
   data: optional(use(flowchartData)),
   diff: optional(use(diff)),
   date: 'number',
+  name: optional('string'),
 }));
 
 /** Delta modifications for nodes and edges between commits. */
