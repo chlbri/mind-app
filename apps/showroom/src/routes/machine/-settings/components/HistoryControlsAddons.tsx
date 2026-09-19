@@ -1,10 +1,4 @@
-import {
-  clickOutside,
-  cn,
-  DefaultControlsAddons,
-  useFlow,
-  type HistoryEntry,
-} from '@bemedev/mind-flow';
+import { clickOutside, cn, useFlow, type HistoryEntry } from '@bemedev/mind-flow';
 import {
   Check,
   ChevronDown,
@@ -14,6 +8,8 @@ import {
   Undo,
 } from 'lucide-solid';
 import { createSignal, For, Show, type Component } from 'solid-js';
+
+import { createHandles } from '../helpers';
 
 /**
  * Formats a single commit's delta summary or base snapshot details for display in
@@ -95,38 +91,34 @@ export const formatTime = (timestamp: number): string => {
  *
  * @returns The rendered history controls toolbar elements.
  *
- * @see {@linkcode useFlow}, {@linkcode DefaultControlsAddons}
+ * @see {@linkcode useFlow},
  */
 export const HistoryControlsAddons: Component = () => {
   void clickOutside;
   const { send, hooks } = useFlow();
   const [isOpen, setIsOpen] = createSignal(false);
   const [isCommitOpen, setIsCommitOpen] = createSignal(false);
-  const [commitName, setCommitName] = createSignal('');
-
+  const [commitName, setCommitName] = createSignal<string>();
   const history = hooks.state({ selector: s => s.context.history ?? [] });
-
+  const hasHistory = () => history().length > 0;
   const historyIndex = hooks.state({ selector: s => s.context.historyIndex ?? -1 });
-
   const canUndo = () => historyIndex() > 0;
   const canRedo = () => historyIndex() >= 0 && historyIndex() < history().length - 1;
 
   const currentCommitLabel = () => {
     const idx = historyIndex();
     const list = history();
-    if (idx < 0 || list.length === 0) {
-      return 'No commits';
-    }
+    if (idx < 0 || list.length === 0) return 'No commits';
+
     const current = list[idx];
-    if (current?.name) {
-      return `#${idx}: ${current.name}`;
-    }
+    if (current?.name) return `#${idx}: ${current.name}`;
+
     return `Commit #${idx}`;
   };
 
   const handleCommit = () => {
-    const name = commitName().trim() || undefined;
-    send({ type: 'COMMIT', payload: { name } });
+    const payload = commitName()?.trim();
+    send({ type: 'COMMIT', payload });
     setCommitName('');
     setIsCommitOpen(false);
   };
@@ -134,7 +126,19 @@ export const HistoryControlsAddons: Component = () => {
   return (
     <div class='flex items-center gap-1.5'>
       {/* Root Node Addition Action */}
-      <DefaultControlsAddons />
+      <button
+        type='button'
+        class='flex size-9 cursor-pointer items-center justify-center rounded-lg bg-blue-600 text-white shadow transition-all duration-150 hover:bg-blue-700 active:scale-95'
+        onClick={() =>
+          send({ type: 'ADD_PARENT', payload: { handles: createHandles() } })
+        }
+        title='Add parent node'
+        aria-label='Add parent node'
+      >
+        <svg class='size-5' viewBox='0 0 24 24' fill='currentColor'>
+          <path d='M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z' />
+        </svg>
+      </button>
 
       <div class='h-5 w-px bg-gray-200' />
 
@@ -245,19 +249,32 @@ export const HistoryControlsAddons: Component = () => {
             setIsOpen(prev => !prev);
             setIsCommitOpen(false);
           }}
-          class='flex h-9 cursor-pointer items-center gap-1.5 rounded-lg border border-gray-200 bg-gray-50 px-2.5 text-xs font-medium text-gray-700 shadow-sm transition-colors hover:bg-gray-100 active:scale-98'
-          title='Checkout commit'
+          class={cn(
+            'flex h-9 items-center gap-1.5 rounded-lg border px-2.5 text-xs font-medium shadow-sm transition-colors',
+            hasHistory()
+              ? 'cursor-pointer border-gray-200 bg-gray-50 text-gray-700 hover:bg-gray-100 active:scale-98'
+              : 'cursor-not-allowed border-gray-100 bg-gray-50/50 text-gray-300 shadow-none',
+          )}
+          title={hasHistory() ? 'Checkout commit' : 'No commit history'}
           aria-haspopup='listbox'
           aria-expanded={isOpen()}
+          disabled={!hasHistory()}
         >
-          <GitBranch class='size-3.5 text-indigo-600' />
-          <span class='max-w-40 truncate'>{currentCommitLabel()}</span>
-          <ChevronDown
+          <GitBranch
             class={cn(
-              'size-3 text-gray-400 transition-transform duration-200',
-              isOpen() && 'rotate-180',
+              'size-3.5',
+              hasHistory() ? 'text-indigo-600' : 'text-gray-300',
             )}
           />
+          <span class='max-w-24 truncate'>{currentCommitLabel()}</span>
+          <Show when={hasHistory()}>
+            <ChevronDown
+              class={cn(
+                'size-3 text-gray-400 transition-transform duration-200',
+                isOpen() && 'rotate-180',
+              )}
+            />
+          </Show>
         </button>
 
         <Show when={isOpen()}>

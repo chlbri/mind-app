@@ -61,15 +61,12 @@ export type { FlowchartData, FlowchartDiff, HistoryEntry };
 export const machine = createMachine(
   {
     initial: 'idle',
-
     on: { SET_BOARD: { actions: ['setBoard'] } },
+
     states: {
       idle: {
         on: {
-          CONFIGURE: {
-            actions: ['configure', 'recordHistory'],
-            target: '/construction',
-          },
+          CONFIGURE: { actions: ['configure'], target: '/construction' },
           CONFIGURE_EMPTY: '/working',
         },
       },
@@ -79,10 +76,6 @@ export const machine = createMachine(
 
       working: {
         on: {
-          CONFIGURE: {
-            actions: ['configure', 'recordHistory'],
-            target: '/construction',
-          },
           RESIZE: { actions: ['resize', 'buildUI'], target: '/register' },
           MOVE: { actions: ['moveNode', 'buildUI'], target: '/construction' },
           START_NEW_EDGE: { actions: ['startNewEdge'], target: '/register' },
@@ -98,6 +91,13 @@ export const machine = createMachine(
           SET_EDGE_DATA: { actions: ['setEdgeData'], target: '/register' },
           EDIT: { actions: ['edit'], target: '/register' },
           STOP_EDIT: { actions: ['stopEdit'], target: '/register' },
+          COMMIT: { actions: ['recordHistory'], target: '/register' },
+          RESET_HISTORY: { actions: ['resetHistory'], target: '/register' },
+
+          CONFIGURE: {
+            actions: ['configure', 'recordHistory'],
+            target: '/construction',
+          },
 
           ADD_EDGE: {
             actions: ['addEdge'],
@@ -155,9 +155,6 @@ export const machine = createMachine(
             target: '/register',
             guards: 'canCheckout',
           },
-
-          COMMIT: { actions: ['recordHistory'], target: '/register' },
-          RESET_HISTORY: { actions: ['resetHistory'], target: '/register' },
         },
       },
     },
@@ -186,7 +183,7 @@ export const machine = createMachine(
       UNDO: 'never',
       REDO: 'never',
       CHECKOUT: 'number',
-      COMMIT: custom<any>(),
+      COMMIT: optional('string'),
       RESET_HISTORY: 'never',
 
       ADD_PARENT: optional(
@@ -278,8 +275,6 @@ export const machine = createMachine(
   },
 
   actions: {
-    register: action(() => {}),
-
     recordHistory: assign(
       ['history', 'historyIndex'],
       ({ context: { data, history = [], historyIndex = -1 }, ...rest }: any) => {
@@ -287,17 +282,8 @@ export const machine = createMachine(
 
         let commitName: string | undefined;
         if (rest?.event?.type === 'COMMIT') {
-          const p = rest?.event?.payload ?? rest?.payload;
-          if (typeof p === 'string' && p.trim()) {
-            commitName = p.trim();
-          } else if (
-            p &&
-            typeof p === 'object' &&
-            typeof p.name === 'string' &&
-            p.name.trim()
-          ) {
-            commitName = p.name.trim();
-          }
+          const p: string | undefined = rest?.event?.payload;
+          commitName = p?.trim();
         }
 
         // Base entry
