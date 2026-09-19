@@ -173,6 +173,7 @@ export const FlowChart = <N extends Data = Data, E extends Data = Data>(
           Node={props.Node}
           Edge={props.Edge ?? EdgeCursive<E>}
           NodeSelected={props.NodeSelected ?? DefaultNodeSelected}
+          controlsAddons={props.controlsAddons}
         />
       </div>
     </div>

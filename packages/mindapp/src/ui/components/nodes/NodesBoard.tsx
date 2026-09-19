@@ -28,6 +28,7 @@ import { useFlow } from '../FlowChart.context';
 import type { FlowPanels } from '../FlowChart.types';
 import { Panels } from '../Panels';
 import { NodeComponent, type NodeComponentProps } from './Node';
+import { NodesBoardControls } from './NodesBoard.controls';
 
 /**
  * Properties for the {@linkcode NodesBoard} component.
@@ -46,6 +47,8 @@ export type NodesBoardProps<N extends Data = Data, E extends Data = Data> = {
   NodeSelected: NodeComponentProps<N>['Selected'];
   /** Optional custom overlay panels of type {@linkcode FlowPanels}. */
   panels?: FlowPanels;
+  /** Optional custom controls addon component. */
+  controlsAddons?: Component;
 };
 
 /**
@@ -66,10 +69,10 @@ export type NodesBoardProps<N extends Data = Data, E extends Data = Data> = {
 export const NodesBoard = <N extends Data = Data, E extends Data = Data>(
   props: NodesBoardProps<N, E>,
 ): JSX.Element => {
-  let containerRef: HTMLDivElement;
+  const [containerRef, setContainerRef] = createSignal<HTMLDivElement>();
   const [isPanning, setIsPanning] = createSignal(false);
   const [transform, setTransform] = createSignal({ x: 0, y: 0 });
-  const [ref, setRef] = createSignal<HTMLDivElement | undefined>();
+  const [ref, setRef] = createSignal<HTMLDivElement>();
   let percentX = 0;
   let percentY = 0;
   const { hooks, send } = useFlow();
@@ -116,10 +119,12 @@ export const NodesBoard = <N extends Data = Data, E extends Data = Data>(
    * preserving viewport alignment on zoom changes.
    */
   const updateScrollPercentages = () => {
-    const maxScrollX = containerRef.scrollWidth - containerRef.clientWidth;
-    const maxScrollY = containerRef.scrollHeight - containerRef.clientHeight;
-    percentX = maxScrollX > 0 ? containerRef.scrollLeft / maxScrollX : 0;
-    percentY = maxScrollY > 0 ? containerRef.scrollTop / maxScrollY : 0;
+    const el = containerRef();
+    if (!el) return;
+    const maxScrollX = el.scrollWidth - el.clientWidth;
+    const maxScrollY = el.scrollHeight - el.clientHeight;
+    percentX = maxScrollX > 0 ? el.scrollLeft / maxScrollX : 0;
+    percentY = maxScrollY > 0 ? el.scrollTop / maxScrollY : 0;
     sendBoard();
   };
 
@@ -127,10 +132,12 @@ export const NodesBoard = <N extends Data = Data, E extends Data = Data>(
     on(
       zoom,
       () => {
-        const maxScrollX = containerRef.scrollWidth - containerRef.clientWidth;
-        const maxScrollY = containerRef.scrollHeight - containerRef.clientHeight;
-        if (maxScrollX > 0) containerRef.scrollLeft = percentX * maxScrollX;
-        if (maxScrollY > 0) containerRef.scrollTop = percentY * maxScrollY;
+        const el = containerRef();
+        if (!el) return;
+        const maxScrollX = el.scrollWidth - el.clientWidth;
+        const maxScrollY = el.scrollHeight - el.clientHeight;
+        if (maxScrollX > 0) el.scrollLeft = percentX * maxScrollX;
+        if (maxScrollY > 0) el.scrollTop = percentY * maxScrollY;
       },
       { defer: true },
     ),
@@ -233,9 +240,7 @@ export const NodesBoard = <N extends Data = Data, E extends Data = Data>(
         }}
       >
         <div
-          ref={el => {
-            return (containerRef = el);
-          }}
+          ref={setContainerRef}
           onScroll={updateScrollPercentages}
           class='relative h-full w-full overflow-auto'
         >
@@ -249,21 +254,23 @@ export const NodesBoard = <N extends Data = Data, E extends Data = Data>(
 
             onMouseDown={e => {
               if (newEdge() || e.button !== 0) return;
+              const el = containerRef();
+              if (!el) return;
               send('DESELECT');
               setIsPanning(true);
 
               // #region Props
               const startX = e.clientX;
               const startY = e.clientY;
-              const startScrollLeft = containerRef.scrollLeft;
-              const startScrollTop = containerRef.scrollTop;
+              const startScrollLeft = el.scrollLeft;
+              const startScrollTop = el.scrollTop;
               // #endregion
 
               const handleMouseMove = (moveEvent: MouseEvent) => {
                 const dx = moveEvent.clientX - startX;
                 const dy = moveEvent.clientY - startY;
-                containerRef.scrollLeft = startScrollLeft - dx * SCROLL_MULTIPLIER;
-                containerRef.scrollTop = startScrollTop - dy * SCROLL_MULTIPLIER;
+                el.scrollLeft = startScrollLeft - dx * SCROLL_MULTIPLIER;
+                el.scrollTop = startScrollTop - dy * SCROLL_MULTIPLIER;
                 updateScrollPercentages();
               };
 
@@ -300,58 +307,10 @@ export const NodesBoard = <N extends Data = Data, E extends Data = Data>(
 
         <Panels {...props.panels} />
 
-        {/* Bottom-Right Panel (Main Zoom & Creation Controls) */}
-        <div class='absolute right-4 bottom-4 z-50 flex items-center gap-2 rounded-xl border border-gray-200 bg-white/90 p-2 shadow-lg backdrop-blur-md'>
-          <button
-            type='button'
-            class='flex size-9 cursor-pointer items-center justify-center rounded-lg bg-gray-100 text-lg font-bold text-gray-700 shadow-sm transition-all duration-150 hover:bg-gray-200 active:scale-95'
-            onClick={() => {
-              updateScrollPercentages();
-              send({ type: 'ZOOM', payload: -0.1 });
-            }}
-            title='Zoom out'
-            aria-label='Zoom out'
-          >
-            -
-          </button>
-          <button
-            type='button'
-            class='h-9 cursor-pointer rounded-lg px-2 text-xs font-semibold text-gray-700 transition-colors hover:bg-gray-100'
-            onClick={() => {
-              updateScrollPercentages();
-              send('TOGGLE_ZOOM');
-            }}
-            title='Reset zoom'
-            aria-label='Reset zoom'
-          >
-            {Math.round(zoom() * 100)}%
-          </button>
-          <button
-            type='button'
-            class='flex size-9 cursor-pointer items-center justify-center rounded-lg bg-gray-100 text-lg font-bold text-gray-700 shadow-sm transition-all duration-150 hover:bg-gray-200 active:scale-95'
-            onClick={() => {
-              updateScrollPercentages();
-              send({ type: 'ZOOM', payload: 0.1 });
-            }}
-            title='Zoom in'
-            aria-label='Zoom in'
-          >
-            +
-          </button>
-          <div class='h-5 w-px bg-gray-300' />
-
-          <button
-            type='button'
-            class='flex size-9 cursor-pointer items-center justify-center rounded-lg bg-blue-600 text-white shadow transition-all duration-150 hover:bg-blue-700 active:scale-95'
-            onClick={() => send({ type: 'ADD_PARENT', payload: undefined })}
-            title='Add parent node'
-            aria-label='Add parent node'
-          >
-            <svg class='size-5' viewBox='0 0 24 24' fill='currentColor'>
-              <path d='M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z' />
-            </svg>
-          </button>
-        </div>
+        <NodesBoardControls
+          updateScrollPercentages={updateScrollPercentages}
+          addons={props.controlsAddons}
+        />
         <Show when={!selectedId()}>
           <DragOverlay children='' />
         </Show>

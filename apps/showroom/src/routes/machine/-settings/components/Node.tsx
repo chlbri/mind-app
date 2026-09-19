@@ -2,41 +2,43 @@ import { useFlow } from '@bemedev/mind-flow';
 import { For, Show, type Component } from 'solid-js';
 
 import type { StateMachineNodeData } from '../types';
+import { useStateNodeHooks } from './Node.hooks';
 
 /**
  * Custom node renderer for `@bemedev/app` state machines.
  *
- * Displays state metadata, hierarchy path, entry/exit actions, and an interactive
- * bubble at the top-right corner if the state has actors attached.
+ * Displays state metadata, hierarchy path, entry/activity/exit actions, tags, and an
+ * interactive bubble at the bottom-right corner if the state has actors attached.
  */
 export const StateMachineNode: Component<StateMachineNodeData> = props => {
   const { send } = useFlow();
-  const actorCount = () => props.actors?.length ?? 0;
-  const hasActors = () => actorCount() > 0;
-
-  const badgeColor = () => {
-    switch (props.stateType) {
-      case 'compound':
-        return 'bg-purple-100 text-purple-700 border-purple-300';
-      case 'parallel':
-        return 'bg-amber-100 text-amber-700 border-amber-300';
-      case 'final':
-        return 'bg-slate-100 text-slate-700 border-slate-300';
-      default:
-        return 'bg-sky-100 text-sky-700 border-sky-300';
-    }
-  };
+  const {
+    hasActors,
+    actorCount,
+    entries,
+    hasEntry,
+    entriesTile,
+    exits,
+    hasExit,
+    exitsTitle,
+    activities,
+    hasActivities,
+    hasActions,
+    tags,
+    hasTags,
+    badgeColor,
+  } = useStateNodeHooks(props);
 
   return (
     <div class='relative flex max-w-72 min-w-64 flex-col rounded-md p-3 select-none'>
-      {/* Top-Right Actor Bubble:
+      {/* Bottom-Right Actor Bubble:
           "Actors will be show inside a bubble at the top-right corner of the node,
            and on click, a window will detail it." */}
       <Show when={hasActors()}>
         <button
           type='button'
           title={`${actorCount()} actor(s) attached — Click to inspect details`}
-          class='absolute -top-3.5 -left-3.5 z-30 flex h-7 w-7 cursor-pointer items-center justify-center rounded-full bg-linear-to-tr from-purple-600 via-indigo-600 to-pink-500 text-white shadow-md ring-2 ring-white transition-transform duration-200 hover:scale-115'
+          class='absolute -right-3.5 -bottom-3.5 z-30 flex h-7 w-7 cursor-pointer items-center justify-center rounded-full bg-linear-to-tr from-purple-600 via-indigo-600 to-pink-500 text-white shadow-md ring-2 ring-white transition-transform duration-200 hover:scale-115'
           onMouseDown={e => e.stopPropagation()}
           onClick={e => {
             e.stopPropagation();
@@ -92,31 +94,51 @@ export const StateMachineNode: Component<StateMachineNodeData> = props => {
         <p class='mt-1 line-clamp-2 text-xs text-gray-600'>{props.content}</p>
       </Show>
 
-      {/* Entry / Exit Actions */}
-      <div class='mt-2 flex flex-wrap gap-1'>
-        <Show when={props.entry && props.entry.length > 0}>
-          <span class='rounded bg-blue-50 px-1.5 py-0.5 font-mono text-[10px] text-blue-700'>
-            entry: {props.entry?.join(', ')}
-          </span>
-        </Show>
-        <Show when={props.exit && props.exit.length > 0}>
-          <span class='rounded bg-amber-50 px-1.5 py-0.5 font-mono text-[10px] text-amber-700'>
-            exit: {props.exit?.join(', ')}
-          </span>
-        </Show>
-        <Show when={props.activities && props.activities.length > 0}>
-          <For each={props.activities}>
-            {act => (
-              <span
-                class='rounded bg-purple-50 px-1.5 py-0.5 font-mono text-[10px] text-purple-700'
-                title={`Activity '${act.delay}': ${act.actions.join(', ')}${act.description ? ` (${act.description})` : ''}`}
-              >
-                ⏱️ {act.delay}: {act.actions.join(', ')}
+      {/* Actions: (entry, activities (same UI, do not change), exit) */}
+      <Show when={hasActions()}>
+        <div class='mt-2 flex flex-wrap gap-1 text-[10px]'>
+          <Show when={hasEntry()}>
+            <div class='flex gap-1 rounded bg-green-50 px-1.5 py-0.5 font-mono text-green-700'>
+              <span>{entriesTile()}</span>
+              <span>{entries()}</span>
+            </div>
+          </Show>
+
+          <Show when={hasActivities()}>
+            <For each={activities()}>
+              {act => (
+                <span
+                  class='rounded bg-purple-50 px-1.5 py-0.5 font-mono text-purple-700'
+                  title={`Activity '${act.delay}': ${act.actions.join(', ')}${act.description ? ` (${act.description})` : ''}`}
+                >
+                  ⏱️ {act.delay}: {act.actions.join(', ')}
+                </span>
+              )}
+            </For>
+          </Show>
+
+          <Show when={hasExit()}>
+            <div class='flex gap-1 rounded bg-red-50 px-1.5 py-0.5 font-mono text-red-700'>
+              <span>{exitsTitle()}</span>
+              <span>{exits()}</span>
+            </div>
+          </Show>
+        </div>
+      </Show>
+
+      {/* Tags at the bottom under a divide */}
+      <Show when={hasTags()}>
+        <div class='mt-2 h-px w-full bg-gray-300' />
+        <div class='mt-1.5 flex flex-wrap gap-1'>
+          <For each={tags()}>
+            {tag => (
+              <span class='rounded bg-gray-100 px-1.5 py-0.5 font-mono text-[9px] text-gray-600'>
+                {tag.startsWith('#') ? tag : `#${tag}`}
               </span>
             )}
           </For>
-        </Show>
-      </div>
+        </div>
+      </Show>
     </div>
   );
 };

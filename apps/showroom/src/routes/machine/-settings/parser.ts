@@ -1,4 +1,5 @@
 import type { GuardConfig } from '@bemedev/app';
+import type { StateType } from '@bemedev/app/states';
 import type { EdgesFrom, NodeHandles_T, NodesFrom } from '@bemedev/mind-flow';
 
 import { createHandles } from './helpers';
@@ -13,7 +14,6 @@ import type {
   StateMachineNodeData,
   StateNodeKeys,
   StateNodePositions,
-  StateType,
   TransitionItem,
 } from './types';
 
@@ -362,14 +362,11 @@ export const parseMachineToGraph = <
         (Boolean(parentPath) && stateObj?.parentInitial === stateName));
 
     const isParallel = stateObj?.type === 'parallel';
-    const stateType: StateType =
-      stateObj?.type === 'final'
-        ? 'final'
-        : isParallel
-          ? 'parallel'
-          : hasChildren
-            ? 'compound'
-            : 'atomic';
+    const stateType: StateType = isParallel
+      ? 'parallel'
+      : hasChildren
+        ? 'compound'
+        : 'atomic';
 
     const actors = extractActors(stateObj?.actors);
     const entry = Array.isArray(stateObj?.entry)

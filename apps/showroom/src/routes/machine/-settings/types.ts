@@ -1,11 +1,8 @@
 import type { CommonConfig3, GuardConfig } from '@bemedev/app';
-import type { StateType as BemedevStateType } from '@bemedev/app/states';
+import type { StateType } from '@bemedev/app/states';
 import type { Point } from '@bemedev/mind-flow';
 
 import { EDGES_COLORS } from './constants';
-
-/** State classification category: atomic, compound, parallel, or final. */
-export type StateType = BemedevStateType | 'final';
 
 /** 2D coordinate position representing a node's location on the canvas. */
 export type Position = Point;

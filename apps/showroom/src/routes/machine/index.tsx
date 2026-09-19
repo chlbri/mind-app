@@ -55,6 +55,7 @@ export const Route = createFileRoute('/machine/')({
           }}
 
           panels={{ bottomLeft: TransitionModal, topLeft: StateMachineEditPanel }}
+          controlsAddons={() => null}
         ></Flow>
       </div>
     );

@@ -1,4 +1,6 @@
+import { expandFn } from '@bemedev/app/bemedev';
 import type { HandleConfig, HandleType, NodeHandles_T } from '@bemedev/mind-flow';
+import type { Accessor } from 'solid-js';
 
 import { EDGES_COLORS } from './constants';
 
@@ -71,3 +73,33 @@ export const createHandles: () => NodeHandles_T = () => ({
 });
 
 export * from './transition.validator';
+
+type PropsDispatchArray<T> = [
+  number: { multiple: string; single: string },
+  data?: Accessor<T[] | undefined>,
+];
+
+const withoutTitle = <T>(data?: Accessor<T[] | undefined>) => {
+  const _data = () => data?.() ?? [];
+  const len = () => _data().length;
+  const has = () => len() >= 1;
+  const join = () => _data().join(', ');
+  return [_data, len, has, join] as const;
+};
+
+export const dispatchArray = expandFn(
+  <T>(...[{ multiple, single }, data]: PropsDispatchArray<T>) => {
+    const [_data, len, ...rest] = withoutTitle(data);
+    const title = () => (len() === 1 ? single : multiple);
+    return [_data, len, ...rest, title] as const;
+  },
+
+  { withoutTitle },
+);
+
+//TODO: Better display of Node
+// TODO: Display entry actions
+// TODO: Display exit actions
+// TODO: Display tags at the bottom under a divide
+// TODO:
+// TODO:
