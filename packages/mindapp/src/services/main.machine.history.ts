@@ -1,3 +1,4 @@
+import { toArray } from '@bemedev/app/bemedev';
 import { deepEqual } from '@bemedev/app/utils';
 
 import type {
@@ -38,9 +39,7 @@ const applyDiff = (
       nodes = nodes.filter(n => !removedSet.has(n.id));
     }
     if (diff.nodes.updateds) {
-      const updates = Array.isArray(diff.nodes.updateds)
-        ? (diff.nodes.updateds as any[])
-        : [diff.nodes.updateds];
+      const updates = toArray.typed(diff.nodes.updateds);
       for (const updated of updates) {
         if (!updated?.id) continue;
         nodes = nodes.map(n => {
@@ -59,9 +58,7 @@ const applyDiff = (
       }
     }
     if (diff.nodes.addeds) {
-      const additions = Array.isArray(diff.nodes.addeds)
-        ? (diff.nodes.addeds as any[])
-        : [diff.nodes.addeds];
+      const additions = toArray.typed(diff.nodes.addeds);
       for (const added of additions) {
         if (!added?.id) continue;
         const existingIdx = nodes.findIndex(n => n.id === added.id);
@@ -80,9 +77,7 @@ const applyDiff = (
       edges = edges.filter(e => !removedSet.has(e.id));
     }
     if (diff.edges.updateds) {
-      const updates = Array.isArray(diff.edges.updateds)
-        ? (diff.edges.updateds as any[])
-        : [diff.edges.updateds];
+      const updates = toArray.typed(diff.edges.updateds);
       for (const updated of updates) {
         if (!updated?.id) continue;
         edges = edges.map(e => {
@@ -98,9 +93,7 @@ const applyDiff = (
       }
     }
     if (diff.edges.addeds) {
-      const additions = Array.isArray(diff.edges.addeds)
-        ? (diff.edges.addeds as any[])
-        : [diff.edges.addeds];
+      const additions = toArray.typed(diff.edges.addeds);
       for (const added of additions) {
         if (!added?.id) continue;
         const existingIdx = edges.findIndex(e => e.id === added.id);
@@ -136,12 +129,8 @@ export const calculateDiff = (
       (next.nodes?.length ?? 0) > 0 || (next.edges?.length ?? 0) > 0;
     if (!hasContent) return null;
     return {
-      nodes: {
-        addeds: (next.nodes?.length === 1 ? next.nodes[0] : next.nodes) as any,
-      },
-      edges: {
-        addeds: (next.edges?.length === 1 ? next.edges[0] : next.edges) as any,
-      },
+      nodes: { addeds: next.nodes?.length === 1 ? next.nodes[0] : next.nodes },
+      edges: { addeds: next.edges?.length === 1 ? next.edges[0] : next.edges },
     };
   }
 
@@ -217,30 +206,22 @@ export const calculateDiff = (
   if (hasNodeChanges) {
     diff.nodes = {
       ...(nodesAdded.length > 0
-        ? { addeds: (nodesAdded.length === 1 ? nodesAdded[0] : nodesAdded) as any }
+        ? { addeds: nodesAdded.length === 1 ? nodesAdded[0] : nodesAdded }
         : {}),
       ...(nodesRemoved.length > 0 ? { removeds: nodesRemoved } : {}),
       ...(nodesUpdated.length > 0
-        ? {
-            updateds: (nodesUpdated.length === 1
-              ? nodesUpdated[0]
-              : nodesUpdated) as any,
-          }
+        ? { updateds: nodesUpdated.length === 1 ? nodesUpdated[0] : nodesUpdated }
         : {}),
     };
   }
   if (hasEdgeChanges) {
     diff.edges = {
       ...(edgesAdded.length > 0
-        ? { addeds: (edgesAdded.length === 1 ? edgesAdded[0] : edgesAdded) as any }
+        ? { addeds: edgesAdded.length === 1 ? edgesAdded[0] : edgesAdded }
         : {}),
       ...(edgesRemoved.length > 0 ? { removeds: edgesRemoved } : {}),
       ...(edgesUpdated.length > 0
-        ? {
-            updateds: (edgesUpdated.length === 1
-              ? edgesUpdated[0]
-              : edgesUpdated) as any,
-          }
+        ? { updateds: edgesUpdated.length === 1 ? edgesUpdated[0] : edgesUpdated }
         : {}),
     };
   }

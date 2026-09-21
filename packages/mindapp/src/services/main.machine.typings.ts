@@ -1,6 +1,6 @@
 import * as v from 'valibot';
 
-import { byFunction, deepPartial, type DeepPartial } from '../helpers/valibot';
+import { byFunction, deepPartial, soa, type DeepPartial } from '../helpers/valibot';
 
 /** Schema definition for 2D coordinates `(x, y)`. */
 export const point = v.object({ x: v.number(), y: v.number() });
@@ -252,8 +252,8 @@ export type FlowchartData = v.InferOutput<typeof flowchartData>;
  * of nodes and edges.
  */
 export const diff = byFunction(() => {
-  const nodeDiff = deepPartial(flowchartNode);
-  const edgeDiff = deepPartial(flowchartEdge);
+  const nodeDiff = soa(deepPartial(flowchartNode));
+  const edgeDiff = soa(deepPartial(flowchartEdge));
   const removeds = v.array(v.string());
 
   return v.partial(
@@ -288,13 +288,8 @@ export type HistoryEntry = v.InferOutput<typeof historyEntry>;
 /** Schema definition for an array of history entries. */
 export const history = v.array(historyEntry);
 
-/**
- * Schema definition for commit action payload specifying optional commit name and
- * 0-based target index of a previous history entry to diff against.
- */
-export const commitPayload = v.partial(
-  v.object({ name: v.string(), previous: v.number() }),
-);
+/** Schema definition for commit action payload specifying the commit name. */
+export const commitPayload = v.string();
 
 /** Commit payload inferred from schema {@linkcode commitPayload}. */
 export type CommitPayload = v.InferOutput<typeof commitPayload>;

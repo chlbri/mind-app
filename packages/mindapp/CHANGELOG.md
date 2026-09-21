@@ -3,6 +3,30 @@
 <details>
 <summary>
 
+## **[1.6.1] - 21/09/2026** => _18:26_
+
+</summary>
+
+- Update `commitPayload` schema to `v.string()` and simplify `COMMIT` event payload
+  to a commit name string
+- Add `soa` (single-or-array) Valibot helper function allowing schemas to accept
+  either a single item or an array of items
+- Update `diff` schema to use `soa` for node and edge additions and updates
+- Enhance comprehensive JSDoc documentation for `soa` helper and `commitPayload`
+  schema
+- Update `README.md` exports with `soa` schema helper
+- Refactor history commit calculation to always diff against the last registered
+  commit
+- Refactor `applyDiff` in history service to use `toArray.typed` utility
+- Update `cn` dependency to `^0.3.2` and bump development dependencies
+
+</details>
+
+<br/>
+
+<details>
+<summary>
+
 ## **[1.6.0] - 19/09/2026** => _22:52_
 
 </summary>

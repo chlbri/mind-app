@@ -305,12 +305,10 @@ export const machine = createMachine(
           if (!data) return [history, historyIndex];
 
           let commitName: string | undefined;
-          let previousIndex: number | undefined;
           if (rest?.event?.type === 'COMMIT') {
             const p: CommitPayload | undefined = rest?.event?.payload;
-            commitName = p?.name?.trim();
-            if (typeof p?.previous === 'number') {
-              previousIndex = p.previous;
+            if (typeof p === 'string') {
+              commitName = p.trim() || undefined;
             }
           }
 
@@ -328,13 +326,9 @@ export const machine = createMachine(
             return [[entry], 0];
           }
 
-          // Calculate diff from the specified previous commit (or the last registered commit) to the current one
-          const targetPrevIndex =
-            typeof previousIndex === 'number'
-              ? Math.max(0, Math.min(previousIndex, history.length - 1))
-              : history.length - 1;
-
-          const previousData = reconstructState(history, targetPrevIndex);
+          // Calculate diff from the last registered commit to the current one
+          const previousIndex = history.length - 1;
+          const previousData = reconstructState(history, previousIndex);
           const diff = calculateDiff(previousData, data);
 
           // No changes observed => skip commit (no empty commit)
@@ -347,9 +341,6 @@ export const machine = createMachine(
             diff,
             date: Date.now(),
             ...(commitName ? { name: commitName } : {}),
-            ...(typeof previousIndex === 'number'
-              ? { previous: targetPrevIndex }
-              : {}),
           };
           const nextHistory = [...history, newEntry];
 

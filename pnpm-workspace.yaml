@@ -12,4 +12,4 @@ minimumReleaseAge: 300
 
 minimumReleaseAgeExclude:
   - '@bemedev/*'
-  - '@rolldown/binding-openharmony-arm64@1.2.8'
+  - '@oxlint/binding-linux-riscv64-gnu@1.84.0'

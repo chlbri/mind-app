@@ -311,7 +311,7 @@ describe('#01 => main.machine.helpers', () => {
       inst.start();
       inst.send('CONFIGURE_EMPTY');
 
-      inst.send({ type: 'COMMIT', payload: { name: 'initial' } });
+      inst.send({ type: 'COMMIT', payload: 'initial' });
       expect(inst.context.history).toHaveLength(1);
       expect(inst.context.history?.[0]?.name).toBe('initial');
       expect(inst.context.history?.[0]?.data).toBeDefined();
@@ -352,14 +352,14 @@ describe('#01 => main.machine.helpers', () => {
         edges: [],
       };
 
-      inst.send({ type: 'COMMIT', payload: { name: 'add checkout' } });
+      inst.send({ type: 'COMMIT', payload: 'add checkout' });
       expect(inst.context.history).toHaveLength(2);
       expect(inst.context.history?.[1]?.name).toBe('add checkout');
       expect(inst.context.history?.[1]?.diff?.nodes?.addeds).toBeDefined();
       expect(inst.context.historyIndex).toBe(1);
     });
 
-    it('#03 => should diff against a specific previous HistoryEntry when previous is provided', () => {
+    it('#03 => should diff against last commit using previous index', () => {
       const baseData = {
         nodes: [{ id: '/cart', data: {}, position: { x: 0, y: 0 } }],
         edges: [],
@@ -398,17 +398,39 @@ describe('#01 => main.machine.helpers', () => {
         edges: [],
       };
 
-      inst.send({ type: 'COMMIT', payload: { name: 'branch from 0', previous: 0 } });
+      inst.send({ type: 'COMMIT', payload: 'branch from 1' });
 
       expect(inst.context.history).toHaveLength(3);
       const entry2 = inst.context.history?.[2];
-      expect(entry2?.name).toBe('branch from 0');
-      expect(entry2?.previous).toBe(0);
+      expect(entry2?.name).toBe('branch from 1');
       expect(entry2?.diff?.nodes?.addeds).toBeDefined();
-      expect(entry2?.diff?.nodes?.removeds).toBeUndefined();
+      expect(entry2?.diff?.nodes?.removeds).toEqual(['/payment']);
 
       const reconstructed = reconstructState(inst.context.history!, 2);
       expect(reconstructed.nodes.map(n => n.id)).toEqual(['/cart', '/shipping']);
+    });
+
+    it('#04 => should allow commit without name when payload is omitted', () => {
+      const inst = interpret(machine, {
+        context: {
+          data: {
+            nodes: [{ id: '/cart', data: {}, position: { x: 0, y: 0 } }],
+            edges: [],
+          },
+          history: [],
+          historyIndex: -1,
+          edgesPositions: {},
+          zoom: 1,
+        },
+        pContext: { dimensions: {} } as any,
+      });
+      inst.start();
+      inst.send('CONFIGURE_EMPTY');
+
+      inst.send({ type: 'COMMIT', payload: undefined });
+      expect(inst.context.history).toHaveLength(1);
+      expect(inst.context.history?.[0]?.name).toBeUndefined();
+      expect(inst.context.historyIndex).toBe(0);
     });
   });
 });

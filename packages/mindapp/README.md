@@ -182,8 +182,9 @@ export const CustomFlow = () => {
 - **`calculateDiff`**, **`reconstructState`**, **`squashOldestCommit`**,
   **`MAX_HISTORY_SIZE`**: History engine utilities for computing delta diffs,
   replaying commits, and capping history depth.
-- **`deepPartial`**, **`byFunction`**, **`DeepPartial`**, **`DeepPartialSchema`**:
-  Valibot schema helpers for constructing recursive partial schemas.
+- **`deepPartial`**, **`byFunction`**, **`soa`**, **`DeepPartial`**,
+  **`DeepPartialSchema`**: Valibot schema helpers for constructing recursive partial
+  and single-or-array schemas.
 - **`Hook`**: Headless lifecycle atom component for executing callbacks during
   rendering.
 - **`typings`**: Namespace exporting all Valibot schemas and inferred types
