@@ -374,25 +374,39 @@ export const HistoryControlsAddons: Component = () => {
                 </div>
               }
             >
-              <div class='mt-1 max-h-60 space-y-1 overflow-y-auto pr-0.5'>
+              <div class='no-scrollbar flex max-h-60 w-full flex-col-reverse space-y-1 overflow-y-auto pr-0.5'>
                 <For each={history()}>
                   {(entry, idx) => {
                     const isSelected = () => idx() === historyIndex();
                     return (
                       <button
                         type='button'
+
                         class={cn(
-                          'flex w-full cursor-pointer items-center justify-between rounded-lg px-2 py-1.5 text-left text-xs transition-colors',
+                          'flex w-full cursor-pointer items-center space-x-3 rounded-lg px-2 py-1.5 text-left text-xs transition-colors',
                           isSelected()
                             ? 'border border-indigo-200/60 bg-indigo-50 font-medium text-indigo-900'
                             : 'text-gray-700 hover:bg-gray-100',
                         )}
+
                         onClick={() => {
                           send({ type: 'CHECKOUT', payload: idx() });
                           setIsOpen(false);
                         }}
+
+                        ref={el => {
+                          if (isSelected()) {
+                            queueMicrotask(() => {
+                              el.scrollIntoView({
+                                block: 'center',
+                                behavior: 'smooth',
+                                inline: 'center',
+                              });
+                            });
+                          }
+                        }}
                       >
-                        <div class='flex w-full flex-col pr-2'>
+                        <div class='flex min-w-0 grow flex-col pr-2'>
                           <div class='flex items-center gap-1.5'>
                             <span
                               class={cn(
@@ -414,7 +428,7 @@ export const HistoryControlsAddons: Component = () => {
                                 HEAD
                               </span>
                             </Show>
-                            <span class='ml-auto truncate text-[11px] text-gray-400'>
+                            <span class='ml-auto shrink-0 truncate text-[11px] text-gray-400'>
                               {formatTime(entry.date)}
                             </span>
                           </div>
@@ -423,11 +437,9 @@ export const HistoryControlsAddons: Component = () => {
                           </span>
                         </div>
 
-                        <div class='w-4.5'>
-                          <Show when={isSelected()}>
-                            <Check class='size-4 text-indigo-600' />
-                          </Show>
-                        </div>
+                        <Show when={isSelected()}>
+                          <Check class='size-6 shrink-0 text-indigo-600' />
+                        </Show>
                       </button>
                     );
                   }}

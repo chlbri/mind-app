@@ -4,3 +4,4 @@ export * from './seo';
 export * from './boolean';
 export * from './circularDirection';
 export * from './base64';
+export * from './smoothScrollTo';
