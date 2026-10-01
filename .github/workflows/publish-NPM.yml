@@ -31,6 +31,7 @@ jobs:
   mind-flow:
     uses: chlbri/node-github-actions/.github/workflows/publish.yml@main
     secrets: inherit
+    needs: [build]
     with:
       type:
         ${{ github.ref_name == 'beta' && 'beta' || github.ref_name == 'canary' &&
@@ -42,6 +43,7 @@ jobs:
   mind-machine:
     uses: chlbri/node-github-actions/.github/workflows/publish.yml@main
     secrets: inherit
+    needs: [build]
     with:
       type:
         ${{ github.ref_name == 'beta' && 'beta' || github.ref_name == 'canary' &&
