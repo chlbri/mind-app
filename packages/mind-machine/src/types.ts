@@ -1,11 +1,11 @@
 import type { CommonConfig3, GuardConfig } from '@bemedev/app';
 import type { StateType } from '@bemedev/app/states';
-import type { Point } from '@bemedev/mind-flow';
+import type { typings } from '@bemedev/mind-flow';
 
 import { EDGES_COLORS } from './constants';
 
 /** 2D coordinate position representing a node's location on the canvas. */
-export type Position = Point;
+export type Position = typings.Point;
 
 /**
  * Configuration structure for a `@bemedev/app` state machine.

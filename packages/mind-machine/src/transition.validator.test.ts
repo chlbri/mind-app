@@ -4,6 +4,9 @@ import { describe, expect, it } from 'vitest';
 import {
   areGuardsEqual,
   checkTransitionConflict,
+  formatGuard,
+  formatGuards,
+  getGuardSortKey,
   getTransitionsFromState,
   normalizeGuards,
   type TransitionCheckCandidate,
@@ -808,6 +811,113 @@ describe('#01 => transition.validator', () => {
       const result = checkTransitionConflict(candidate, existing);
       expect(result.hasConflict).toBe(true);
       expect(result.reason).toContain("unguarded 'always' transition");
+    });
+  });
+
+  describe('#13 => guard sort keys and formatting', () => {
+    it('#01 => should build deterministic sort keys', () => {
+      expect(getGuardSortKey('check')).toBe('str:check');
+      expect(getGuardSortKey({ name: 'check', description: 'desc' })).toBe(
+        'desc:check:desc',
+      );
+      expect(getGuardSortKey({ and: ['b', 'a'] })).toBe('and:[str:a,str:b]');
+      expect(getGuardSortKey({ or: ['b', 'a'] })).toBe('or:[str:a,str:b]');
+      expect(getGuardSortKey({ custom: true } as any)).toBe('{"custom":true}');
+      expect(getGuardSortKey(42 as any)).toBe('42');
+    });
+
+    it('#02 => should format guards for display', () => {
+      expect(formatGuard('check')).toBe('check');
+      expect(formatGuard({ name: 'check' } as any)).toBe('check');
+      expect(formatGuard({ and: ['a', 'b'] })).toBe('and(a, b)');
+      expect(formatGuard({ or: ['a', 'b'] })).toBe('or(a, b)');
+      expect(formatGuard({ custom: true } as any)).toBe('{"custom":true}');
+      expect(formatGuard(42 as any)).toBe('42');
+      expect(formatGuards(['a', 'b'])).toBe('a, b');
+    });
+  });
+
+  describe('#14 => normalization edge cases', () => {
+    it('#01 => should drop undefined and null entries', () => {
+      expect(normalizeGuards([undefined, null] as any)).toEqual([]);
+    });
+
+    it('#02 => should flatten nested arrays', () => {
+      expect(normalizeGuards([['b'], ['a']] as any)).toEqual(['a', 'b']);
+    });
+
+    it('#03 => should parse json encoded guards', () => {
+      expect(normalizeGuards('{"or": ["b", "a"]}')).toEqual([{ or: ['a', 'b'] }]);
+      expect(normalizeGuards('not-json-{')).toEqual(['not-json-{']);
+    });
+
+    it('#04 => should normalize guard describers', () => {
+      expect(normalizeGuards({ name: ' check ' } as any)).toEqual(['check']);
+      expect(
+        normalizeGuards({ name: 'check', description: ' desc ' } as any),
+      ).toEqual([{ name: 'check', description: 'desc' }]);
+    });
+
+    it('#05 => should drop unknown guard objects', () => {
+      expect(normalizeGuards({ custom: true } as any)).toEqual([]);
+    });
+
+    it('#06 => should drop and/or objects with non-array values', () => {
+      expect(normalizeGuards({ and: 'check' } as any)).toEqual([]);
+      expect(normalizeGuards({ or: 'check' } as any)).toEqual([]);
+    });
+
+    it('#07 => should drop primitive entries', () => {
+      expect(normalizeGuards(42 as any)).toEqual([]);
+    });
+  });
+
+  describe('#15 => conflict defaults and categories', () => {
+    it('#01 => should ignore transitions of another category', () => {
+      const candidate: TransitionCheckCandidate = {
+        from: '/payment',
+        kind: 'on',
+        event: 'NEXT',
+      };
+      const existing: TransitionCheckItem[] = [
+        { id: 't1', from: '/payment', kind: 'after', delay: '3000ms' },
+      ];
+
+      expect(checkTransitionConflict(candidate, existing).hasConflict).toBe(false);
+    });
+
+    it('#02 => should fallback to the NEXT event name', () => {
+      const candidate: TransitionCheckCandidate = { from: '/payment', kind: 'on' };
+      const existing: TransitionCheckItem[] = [
+        { id: 't1', from: '/payment', kind: 'on' },
+      ];
+
+      const result = checkTransitionConflict(candidate, existing);
+      expect(result.hasConflict).toBe(true);
+      expect(result.reason).toContain("event 'NEXT'");
+    });
+
+    it('#03 => should fallback to the 3000ms delay', () => {
+      const candidate: TransitionCheckCandidate = {
+        from: '/payment',
+        kind: 'after',
+      };
+      const existing: TransitionCheckItem[] = [
+        { id: 't1', from: '/payment', kind: 'after' },
+      ];
+
+      const result = checkTransitionConflict(candidate, existing);
+      expect(result.hasConflict).toBe(true);
+      expect(result.reason).toContain("delay '3000ms'");
+    });
+
+    it('#04 => should never report child_parent conflicts', () => {
+      const result = checkTransitionConflict(
+        { from: '/payment', kind: 'child_parent' },
+        [{ id: 't1', from: '/payment', kind: 'child_parent' }],
+      );
+
+      expect(result).toEqual({ hasConflict: false });
     });
   });
 });

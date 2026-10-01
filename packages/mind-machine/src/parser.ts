@@ -299,7 +299,7 @@ const extractActors = (rawActors?: Record<string, any>): StateActorData[] => {
  *
  * @param machineConfig - The state machine configuration object or machine instance.
  * @param positions - Optional dictionary mapping inferred state node path keys to
- *   canvas positions.
+ *   canvas positions. When omitted, nodes are auto-laid out by the parser.
  *
  * @returns An object containing the generated nodes and edges.
  *
@@ -309,7 +309,7 @@ const extractActors = (rawActors?: Record<string, any>): StateActorData[] => {
  */
 export const parseMachineToGraph = <const T extends MachineConfig = MachineConfig>(
   machineConfig: T,
-  positions: Record<StateNodeKeys<T>, Position>,
+  positions?: Record<StateNodeKeys<T>, Position>,
 ): {
   nodes: NodesFrom<StateMachineNodeData>;
   edges: EdgesFrom<StateMachineEdgeData>;

@@ -39,7 +39,7 @@
     "ci": "CIN=$(date +%s) && pnpm install && pnpm run rm:lib && pnpm run lint && pnpm run pretest && pnpm run test:only && pnpm run posttest && echo \"\n✅ CI takes $(($(date +%s) - CIN))s\n\"",
     "_ci:admin": "CI_ADMIN=$(date +%s) && pnpm run rm && pnpm run up && pnpm install && pnpm run _ci && pnpm install && echo \"\n✅ Admin CI takes $(($(date +%s) - CI_ADMIN))s\n\"",
     "ci:admin": "FULL_CI=$(date +%s) && pnpm run ci && pnpm run _ci:admin && echo \"\n✅ Full CI takes $(($(date +%s) - FULL_CI))s\n\"",
-    "dev": "pnpm --filter @bemedev/mind-flow run build && pnpm --filter mind-app-showroom run dev",
+    "dev": "pnpm run build && pnpm --filter mind-app-showroom run dev",
     "pnpm:devPreinstall": "node -e \"const fs=require('fs'); const pkg=JSON.parse(fs.readFileSync('./package.json')); const version=require('child_process').execSync('pnpm -v').toString().trim(); pkg.packageManager='pnpm@' + version; fs.writeFileSync('./package.json', JSON.stringify(pkg, null, 2) + '\\n');\"",
     "build": "pnpm -r --sort run build",
     "config": "pnpm i",

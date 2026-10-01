@@ -5,7 +5,7 @@
   "sideEffects": false,
   "type": "module",
   "scripts": {
-    "prebuild": "pnpm --filter @bemedev/mind-flow run build",
+    "prebuild": "pnpm --filter @bemedev/mind-flow run build && pnpm --filter @bemedev/mind-machine run build",
     "_build": "vite build",
     "build": "pnpm run _build",
     "pretest": "pnpm run _build",
@@ -37,6 +37,7 @@
     "@bemedev/decompose": "^2.3.0",
     "@bemedev/i18n": "^0.7.0",
     "@bemedev/mind-flow": "workspace:^",
+    "@bemedev/mind-machine": "workspace:^",
     "@bemedev/pipe": "^1.6.1",
     "@bemedev/sleep": "^0.2.2",
     "@kobalte/core": "^0.13.14",

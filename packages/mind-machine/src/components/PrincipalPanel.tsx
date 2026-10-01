@@ -51,9 +51,10 @@ export const PrincipalPanel: Component = () => {
     }
   };
 
-  const nodeData = () => {
+  const nodeData = (): StateMachineNodeData | undefined => {
     const p = principalNode();
-    if (p?.data) return p.data as StateMachineNodeData;
+    if (!p?.data) return undefined;
+    return p.data as StateMachineNodeData;
   };
 
   const stateType = () => nodeData()?.stateType ?? 'compound';
