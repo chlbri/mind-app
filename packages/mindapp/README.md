@@ -6,6 +6,8 @@ applications.
 ## Features
 
 - **Interactive Canvas**: Drag-and-drop nodes and interactive connecting edges.
+- **Isolated Contexts**: Every `createContext()` call creates a dedicated engine and
+  Solid context, so multiple flows coexist in the same application.
 - **State Machine Powered**: State management built with `@bemedev/app`.
 - **Git-Like History & Time Travel**: Built-in undo, redo, checkout, and commit
   history tracking with delta diff calculation.
@@ -29,17 +31,18 @@ pnpm add @bemedev/mind-flow
 
 # Peer dependencies
 pnpm add solid-js @bemedev/app @bemedev/app-solidjs @thisbeyond/solid-dnd
+pnpm add valibot
 ```
 
 ## Quick Start
 
-Import the `createFlowContext` factory and include the CSS stylesheet:
+Import the `createContext` factory and include the CSS stylesheet:
 
 ```tsx
-import { createFlowContext } from '@bemedev/mind-flow';
+import { createContext } from '@bemedev/mind-flow';
 import '@bemedev/mind-flow/style.css';
 
-const [, Flow] = createFlowContext();
+const [, Flow] = createContext();
 
 export const FlowDemo = () => {
   return (
@@ -50,7 +53,7 @@ export const FlowDemo = () => {
 };
 ```
 
-`createFlowContext` returns a tuple with the `useFlow` hook and the `Flow` component,
+`createContext` returns a tuple with the `useFlow` hook and the `Flow` component,
 bound to an isolated context so several flows can coexist. Every other component
 receives the hook result as a `flow` prop, while custom children read it with the
 hook.
@@ -62,7 +65,7 @@ custom node components, overlay panels, and callback handlers:
 
 ```tsx
 import {
-  createFlowContext,
+  createContext,
   EditPanel,
   type NodeProps,
   type EdgeProps,
@@ -71,7 +74,7 @@ import {
 import type { Component, ComponentProps } from 'solid-js';
 import '@bemedev/mind-flow/style.css';
 
-const [, Flow] = createFlowContext();
+const [, Flow] = createContext();
 
 type CustomData = { label?: string; content?: string; category?: string };
 
@@ -156,8 +159,8 @@ export const CustomFlow = () => {
 
 ## Exports
 
-- **`createFlowContext`**: Factory returning the `[useFlow, Flow]` tuple — an
-  isolated Solid context with its accessor hook and root `Flow` component. The `Flow`
+- **`createContext`**: Factory returning the `[useFlow, Flow]` tuple — an isolated
+  Solid context with its accessor hook and root `Flow` component. The `Flow`
   component is not exported directly.
 - **`createFlowService`**, **`FlowContext`**, **`WithFlow`**: Flow engine factory,
   its value type, and the `{ flow }` property bag injected into every flow component.

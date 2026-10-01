@@ -34,7 +34,10 @@ ready-to-use editing panels.
 pnpm add @bemedev/mind-machine
 
 # Peer dependencies
-pnpm add solid-js @bemedev/app
+pnpm add solid-js @bemedev/app valibot @bemedev/app-valibot
+
+# Styling peer dependencies
+pnpm add tailwindcss @tailwindcss/vite tailwindcss-animate tw-animate-css
 ```
 
 ## Quick Start
@@ -94,8 +97,10 @@ export const MachineDemo = () => {
 };
 ```
 
-Empty histories are never persisted, so a configured diagram is not replaced by a
-blank canvas on reload. Without `register`, nothing is persisted.
+The package never touches storage itself: without a `register` callback nothing is
+persisted, and `readHistory` / `writeHistory` above stand for your own storage layer.
+Keep the empty-history guard there so a configured diagram is never replaced by a
+blank canvas on reload.
 
 ## Custom Machine Contexts
 
@@ -111,7 +116,8 @@ export const MachineDemo = () => <FlowMachine history={machine} />;
 ```
 
 Every other component (nodes, edges, panels, inputs) receives the hook result as a
-`flow` prop, so it can also be rendered outside of the provider.
+`flow` prop, so it can also be rendered outside of the `FlowMachine` subtree, as long
+as a flow value is provided.
 
 ## Parsing Machines
 
@@ -145,6 +151,9 @@ const { nodes, edges } = parseMachineToGraph(
 - **Helpers**: `createHandles`, `toList`, `monoLength`, `dispatchArray`,
   `isDirectChildOfPrincipal`
 - **Signals**: `edgeFilters`, `activeActorNode`, `activeAddTransitionEdge`
+- **Valibot Schemas**: `valibot` namespace with `nodeData`, `edgeData`,
+  `machineNode`, `machineEdge`, `machineDiff` and `historyModel` schemas
+- **Panel Lifecycle**: `useClose`, `PanelHooks_P`
 
 ## License
 

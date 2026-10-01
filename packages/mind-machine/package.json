@@ -1,6 +1,6 @@
 {
   "name": "@bemedev/mind-machine",
-  "version": "0.1.0",
+  "version": "2.0.0",
   "description": "State machine visualization and orchestration UI library for Solid.js applications, built on top of @bemedev/mind-flow",
   "keywords": [
     "state-machine",

@@ -3,6 +3,43 @@
 <details>
 <summary>
 
+## **[2.0.0] - 01/10/2026** => _23:30_
+
+</summary>
+
+- **BREAKING**: Remove the built-in localStorage persistence — delete the `persist`
+  and `storage` modules, their exports, and the `localKeys` prop
+  (`FlowMachineStorageProps`); the `history` prop is now required and persistence is
+  delegated to the consumer through the `register` callback
+- **BREAKING**: Remove the `historyModel` and `localStorageModel` Valibot models from
+  `constants`, now owned by the consumer
+- **BREAKING**: Rename edge data fields `fromState` / `toState` to `from` / `to`,
+  make `kind` required, narrow `delay` to `string`, and remove the actor `config`
+  field and the `'service'` actor type
+- **BREAKING**: Obtain `FlowMachine`, `useFlow` and every machine component from the
+  `createContext()` tuple, and pass the flow value down through the `flow` prop
+- Add the `valibot` namespace export with `nodeData`, `edgeData`, `machineNode`,
+  `machineEdge`, `machineDiff` and `historyModel` schemas
+- Add the `children` prop to `FlowMachineProps`
+- Add the `useClose` hook and `PanelHooks_P` type managing panel auto-close, hover
+  pause, outside click and delayed closing
+- Remove the obsolete persistence, parser and rendering test suites
+- Update `README.md` with the consumer-managed persistence model, the actual peer
+  dependencies and the `valibot` namespace export
+- Enhance comprehensive JSDoc documentation across components, hooks and types
+- Add peer dependencies `@bemedev/app-valibot`, `@tailwindcss/vite`, `tailwindcss`,
+  `tailwindcss-animate` and `tw-animate-css`; add the `tailwind-merge` development
+  dependency; update `vite` to `^8.3.2`
+- <u>Test coverage **_100%_** on logic modules (transition validator, config,
+  constants, rules and helpers)</u>
+
+</details>
+
+<br/>
+
+<details>
+<summary>
+
 ## **[0.1.0] - 01/10/2026** => _12:45_
 
 </summary>
