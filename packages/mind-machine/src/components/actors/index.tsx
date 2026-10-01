@@ -1,16 +1,25 @@
 import { deepEqual } from '@bemedev/app';
-import { useFlow } from '@bemedev/mind-flow';
+import { type WithFlow } from '@bemedev/mind-flow';
 import { For, Show, type Component } from 'solid-js';
 
 import type { StateActorData, StateMachineNodeData } from '../../types';
 import { ActorItem } from './input';
 
+/** Properties for the {@linkcode ActorInputs} editor component. */
 export type ActorInputsProps = {
+  /**
+   * Updates a single data field of the edited node.
+   *
+   * @template K - Key of -- type {@linkcode StateMachineNodeData} to update.
+   *
+   * @param field - Field name to update.
+   * @param value - New value assigned to the field.
+   */
   updateField: <K extends keyof StateMachineNodeData>(
     field: K,
     value: StateMachineNodeData[K],
   ) => void;
-};
+} & WithFlow;
 
 /**
  * Dedicated editor for `@bemedev/app` actors (`ActorConfig`).
@@ -20,8 +29,9 @@ export type ActorInputsProps = {
  * invalidation.
  */
 export const ActorInputs: Component<ActorInputsProps> = props => {
-  const { hooks } = useFlow();
+  const { hooks } = props.flow;
 
+  /** Stable identifiers of the actors of the node being edited. */
   const actorIds = hooks.state({
     selector: ({ context }) => {
       const editingId = context.editing;
@@ -33,6 +43,7 @@ export const ActorInputs: Component<ActorInputsProps> = props => {
     equals: deepEqual<string[]>,
   });
 
+  /** Reactive actors list of the node being edited. */
   const actorsList = hooks.state({
     selector: ({ context }) => {
       const editingId = context.editing;
@@ -43,6 +54,11 @@ export const ActorInputs: Component<ActorInputsProps> = props => {
     equals: deepEqual<StateActorData[]>,
   });
 
+  /**
+   * Appends a new actor of the given type to the node being edited.
+   *
+   * @param type - Actor classification: `'emitter'` or `'child'`.
+   */
   const addActor = (type: 'emitter' | 'child') => {
     const current = actorsList();
     const count = current.length + 1;
@@ -83,6 +99,11 @@ export const ActorInputs: Component<ActorInputsProps> = props => {
     props.updateField('actors', [...current, newActor]);
   };
 
+  /**
+   * Removes an actor from the node being edited.
+   *
+   * @param id - Stable identifier of the actor to remove.
+   */
   const removeActor = (id: string) => {
     const current = actorsList();
     const updated = current.filter(
@@ -156,6 +177,7 @@ export const ActorInputs: Component<ActorInputsProps> = props => {
           <For each={actorIds()}>
             {id => (
               <ActorItem
+                flow={props.flow}
                 id={id}
                 updateField={props.updateField}
                 onRemove={() => removeActor(id)}

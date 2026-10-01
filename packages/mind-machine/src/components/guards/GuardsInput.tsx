@@ -514,15 +514,25 @@ export type GuardsInputProps = {
  * @see {@linkcode insertGuardAtCursor}, {@linkcode canInsertGuardAtCursor}
  */
 export const GuardsInput: Component<GuardsInputProps> = props => {
+  /** Reference to the underlying JSON textarea element. */
   let textareaRef: HTMLTextAreaElement | undefined;
+
+  /** Prevents external synchronization right after an internal text change. */
   const [isInternalChange, setIsInternalChange] = createSignal(false);
+
+  /** Current raw text displayed in the textarea. */
   const [text, setText] = createSignal(formatGuardValue(props.value));
+
+  /** Current JSON syntax error message, `null` when valid. */
   const [jsonError, setJsonError] = createSignal<string | null>(null);
+
+  /** Current textarea cursor/selection range. */
   const [cursorPos, setCursorPos] = createSignal<{ start: number; end: number }>({
     start: 0,
     end: 0,
   });
 
+  /** Captures the current textarea selection into {@linkcode cursorPos}. */
   const updateCursor = () => {
     if (textareaRef) {
       setCursorPos({
@@ -574,12 +584,18 @@ export const GuardsInput: Component<GuardsInputProps> = props => {
     }
   });
 
+  /** Tells whether a guard construct can be inserted at the current cursor. */
   const canAdd = () => {
     const t = text();
     const { start, end } = cursorPos();
     return canInsertGuardAtCursor(t, start, end);
   };
 
+  /**
+   * Cleans a parsed guard value and forwards it to the `onChange` callback.
+   *
+   * @param val - Raw parsed guard value to normalize.
+   */
   const notifyParsed = (val: GuardConfig | GuardConfig[] | undefined) => {
     const cleaned = cleanGuardConfig(val);
     if (!cleaned) {
@@ -591,6 +607,11 @@ export const GuardsInput: Component<GuardsInputProps> = props => {
     }
   };
 
+  /**
+   * Handles raw textarea input, reporting parsing errors and valid guards.
+   *
+   * @param raw - Raw text typed in the textarea.
+   */
   const handleInput = (raw: string) => {
     setText(raw);
     const trimmed = raw.trim();
@@ -623,6 +644,7 @@ export const GuardsInput: Component<GuardsInputProps> = props => {
     notifyParsed(list);
   };
 
+  /** Formats the JSON guards content and refreshes the cursor position. */
   const handlePrettify = () => {
     const trimmed = text().trim();
     if (!trimmed) return;
@@ -654,6 +676,11 @@ export const GuardsInput: Component<GuardsInputProps> = props => {
     }
   };
 
+  /**
+   * Inserts a guard construct at the current cursor or selection position.
+   *
+   * @param type - Guard construct to insert of type {@linkcode InsertGuardType}.
+   */
   const handleInsert = (type: InsertGuardType) => {
     if (!canAdd()) return;
 
@@ -694,6 +721,7 @@ export const GuardsInput: Component<GuardsInputProps> = props => {
     });
   };
 
+  /** Clears the guards content and notifies the `onChange` callback. */
   const handleClear = () => {
     setText('');
     setJsonError(null);
@@ -706,6 +734,7 @@ export const GuardsInput: Component<GuardsInputProps> = props => {
     });
   };
 
+  /** Formatted preview of the current committed guards value. */
   const preview = () => {
     if (!props.value) return '';
     try {

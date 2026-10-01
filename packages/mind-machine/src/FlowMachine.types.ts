@@ -1,23 +1,11 @@
-import type { SoA } from '@bemedev/app/bemedev';
-import type { ParentComponent } from 'solid-js';
+import type { Context } from '@bemedev/mind-flow';
+import type { JSX } from 'solid-js';
 
 /**
- * Render mode relying solely on localStorage keys to restore a previously persisted
- * machine session.
+ * Properties for the {@linkcode FlowMachine} component.
  *
- * The canvas starts empty when nothing is persisted under the derived key.
+ * @see {@linkcode createContext}
  */
-export type FlowMachineStorageProps = {
-  /**
-   * Single key or array of key parts used to derive the localStorage key.
-   *
-   * - A single string (or an array of one) is used directly as the key.
-   * - An array of strings is joined to create a composite key.
-   */
-  localKeys: SoA<string>;
-};
-
-/** Render mode accepting an initial history source, with optional persistence. */
 export type FlowMachineProps = {
   /**
    * Initial machine history, of type `any`, accepting:
@@ -30,11 +18,16 @@ export type FlowMachineProps = {
    */
   history: any;
 
+  /** Optional child elements rendered alongside the machine canvas. */
+  children?: JSX.Element;
+
   /**
-   * Optional single key or array of key parts used to derive the localStorage key.
+   * Callback invoked whenever the state machine context changes across working
+   * states, receiving the flow context of type {@linkcode Context}.
    *
-   * - A single string (or an array of one) is used directly as the key.
-   * - An array of strings is joined to create a composite key.
+   * Persistence is delegated to the consumer: read the stored history before
+   * mounting, pass it as the `history` prop, and persist the registered context
+   * here.
    */
-  localKeys?: SoA<string>;
+  register?: (context: Context) => void;
 };

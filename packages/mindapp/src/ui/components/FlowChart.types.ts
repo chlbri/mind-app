@@ -5,6 +5,7 @@ import type { Component, JSX } from 'solid-js';
 import type { machine } from '#services/main.machine';
 import type { Edge, EdgeExtremeties, Node } from '#services/main.machine.typings';
 
+import type { WithFlow } from '../Flow.context';
 import type { EdgeProps } from './edges/types';
 import type { Data, NodeProps } from './FlowChart';
 import type { NodeComponentProps } from './nodes/Node';
@@ -23,11 +24,11 @@ export type Context = Pick<
 /** Overlay panel slots positioned around the flowchart canvas. */
 export type FlowPanels = {
   /** Top-left corner overlay panel slot component of type {@linkcode Component}. */
-  topLeft?: Component;
+  topLeft?: Component<WithFlow>;
   /** Top-right corner overlay panel slot component of type {@linkcode Component}. */
-  topRight?: Component;
+  topRight?: Component<WithFlow>;
   /** Bottom-left corner overlay panel slot component of type {@linkcode Component}. */
-  bottomLeft?: Component;
+  bottomLeft?: Component<WithFlow>;
 };
 
 /**
@@ -47,7 +48,7 @@ export type FlowProps<N extends Data = Data, E extends Data = Data> = {
   /** Initial flowchart state configuration with nodes and edges. */
   config?: { nodes?: Node<N>[]; edges?: (Edge<E> & { id: string })[] };
   /** Custom node component to render inside each flowchart node. */
-  Node?: Component<N>;
+  Node?: Component<N & WithFlow>;
 
   /** Custom component rendered above the selected node for contextual actions. */
   NodeSelected?: NodeComponentProps<N>['Selected'];
@@ -101,7 +102,7 @@ export type FlowProps<N extends Data = Data, E extends Data = Data> = {
    */
   onEdgeDeleted?: (edgeId: string) => void;
   /** Optional custom controls addon component of type {@linkcode Component}. */
-  controlsAddons?: Component;
+  controlsAddons?: Component<WithFlow>;
   /**
    * Callback invoked whenever the state machine context changes across working
    * states.
@@ -123,6 +124,21 @@ export type FlowProps<N extends Data = Data, E extends Data = Data> = {
 export type ConfigFrom<N extends Data = Data, E extends Data = Data> = NotUndefined<
   FlowProps<N, E>['config']
 >;
+
+/**
+ * Configuration options and callback handlers for the {@linkcode FlowChart}
+ * component, augmented with the required flow value.
+ *
+ * @template | {@linkcode Data} `N` - Custom node data dictionary type extending type
+ *   {@linkcode Data}.
+ * @template | {@linkcode Data} `E` - Custom edge data dictionary type extending type
+ *   {@linkcode Data}.
+ */
+export type FlowChartProps<N extends Data = Data, E extends Data = Data> = FlowProps<
+  N,
+  E
+> &
+  WithFlow;
 
 /**
  * Type alias extracting the non-undefined list of nodes from flowchart

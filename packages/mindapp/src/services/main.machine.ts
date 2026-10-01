@@ -266,6 +266,7 @@ export const machine = createMachine(
     }),
   },
 ).provideOptions(({ assign, batch, erase, filter, action }) => {
+  /** Refreshes the `pContext` dimensions of every node of the current data. */
   const commitAction = action(({ context: { data }, pContext }) => {
     data?.nodes?.forEach(({ id, position }) => {
       pContext.dimensions[id] = pContext.dimensions[id]
@@ -276,25 +277,48 @@ export const machine = createMachine(
 
   return {
     guards: {
+      /**
+       * Tells whether an older commit is available.
+       *
+       * @param args - Machine guard arguments.
+       *
+       * @returns `true` when an undo target exists.
+       */
       canUndo: ({ context: { historyIndex } }) => {
         return (historyIndex ?? -1) > 0;
       },
 
+      /**
+       * Tells whether a newer commit is available.
+       *
+       * @param args - Machine guard arguments.
+       *
+       * @returns `true` when a redo target exists.
+       */
       canRedo: ({ context: { history, historyIndex } }) => {
         if (!history || historyIndex === undefined) return false;
         return historyIndex >= 0 && historyIndex < history.length - 1;
       },
 
+      /**
+       * Tells whether a history source exists for checkout.
+       *
+       * @param args - Machine guard arguments.
+       *
+       * @returns `true` when history is initialized.
+       */
       canCheckout: ({ context: { history } }) => !!history,
     },
 
     actions: {
+      /** Loads an externally provided history and its index into the context. */
       buildHistory: assign(['history', 'historyIndex'], {
         BUILD_HISTORY: ({ payload: { history, historyIndex } }) => [
           history,
           historyIndex,
         ],
       }),
+      /** Records a commit as a delta diff, creating the base snapshot when empty. */
       recordHistory: assign(
         ['history', 'historyIndex'],
         ({ context: { data, history = [], historyIndex = -1 }, ...rest }: any) => {
@@ -349,6 +373,7 @@ export const machine = createMachine(
         },
       ),
 
+      /** Reconstructs the previous commit data and decrements the history index. */
       undo: batch(
         assign('data', ({ context: { history = [], historyIndex = 0 } }) => {
           if (historyIndex <= 0) return history[0]?.data;
@@ -362,6 +387,7 @@ export const machine = createMachine(
         }),
       ),
 
+      /** Reconstructs the next commit data and increments the history index. */
       redo: batch(
         assign('data', ({ context: { history = [], historyIndex = 0 } }) => {
           if (historyIndex >= history.length - 1) {
@@ -377,6 +403,7 @@ export const machine = createMachine(
         }),
       ),
 
+      /** Reconstructs the flowchart data at the checked out commit index. */
       checkout: batch(
         assign('data', {
           CHECKOUT: ({ context: { history = [] }, payload }) => {
@@ -389,6 +416,7 @@ export const machine = createMachine(
         assign('historyIndex', { CHECKOUT: ({ payload }) => payload }),
       ),
 
+      /** Resets the history to a single base snapshot of the current data. */
       resetHistory: batch(
         assign('history', ({ context: { data } }) => {
           const cloned = data ? structuredClone(data) : undefined;
@@ -399,6 +427,7 @@ export const machine = createMachine(
         assign('historyIndex', () => 0),
       ),
 
+      /** Replaces the graph data with the configured nodes, edges and default data. */
       configure: batch(
         assign('data', {
           CONFIGURE: ({ payload: { nodes, edges } }) => ({ nodes, edges }),
@@ -423,6 +452,7 @@ export const machine = createMachine(
         }),
       ),
 
+      /** Merges partial data into the node matching the event payload id. */
       setNodeData: assign('data.nodes', {
         SET_NODE_DATA: ({ context: { data }, payload: { id, data: newData } }) => {
           return data?.nodes?.map(node => {
@@ -434,6 +464,7 @@ export const machine = createMachine(
         },
       }),
 
+      /** Merges partial data into the edge matching the event payload id. */
       setEdgeData: assign('data.edges', {
         SET_EDGE_DATA: ({ context: { data }, payload: { id, data: newData } }) => {
           return data?.edges?.map(edge => {
@@ -445,7 +476,9 @@ export const machine = createMachine(
         },
       }),
 
+      /** Stores the latest board layout and scroll measurements. */
       setBoard: assign('board', { SET_BOARD: ({ payload }) => payload }),
+      /** Generates the id of the next created node, honoring a provided custom id. */
       generateID: action({
         ADD_PARENT: ({ pContext, payload }) => {
           const customId =
@@ -456,16 +489,25 @@ export const machine = createMachine(
           pContext.generatedId = nanoid();
         },
       }),
+      /** Stores the identifier of the selected node or edge. */
       select: assign('selected', { SELECT: ({ payload }) => payload }),
+
+      /** Removes the ongoing new edge preview from the context. */
       clearNewEdge: erase('newEdge'),
+
+      /** Clears both the selected and editing identifiers. */
       deselect: batch(erase('selected'), erase('editing')),
+
+      /** Stops node edition, keeping the current selection. */
       stopEdit: erase('editing'),
 
+      /** Selects and starts editing the targeted node. */
       edit: batch(
         assign('editing', { EDIT: ({ payload }) => payload }),
         assign('selected', { EDIT: ({ payload }) => payload }),
       ),
 
+      /** Starts an outgoing connection preview from the resolved source handle. */
       startNewEdge: assign('newEdge', {
         START_NEW_EDGE: ({
           payload,
@@ -517,6 +559,7 @@ export const machine = createMachine(
         },
       }),
 
+      /** Recomputes every edge vector from the current node dimensions. */
       buildUI: batch(
         assign('edgesPositions', {
           MOVE: ({
@@ -632,6 +675,7 @@ export const machine = createMachine(
         assign('updatingUI', () => true),
       ),
 
+      /** Applies new dimensions to a resized node and updates its connection points. */
       resize: action({
         RESIZE: ({
           payload: {
@@ -668,6 +712,7 @@ export const machine = createMachine(
         },
       }),
 
+      /** Links the generated child node to its parent and selects it. */
       linkChild: batch(
         assign('data.edges', {
           ADD_CHILD: ({ context: { data }, pContext, payload: from }) => {
@@ -685,6 +730,7 @@ export const machine = createMachine(
         ),
       ),
 
+      /** Links the generated sibling node to the same parent and selects it. */
       linkSibling: batch(
         assign('data.edges', {
           ADD_SIBLING: ({ pContext, payload, context: { data } }) => {
@@ -705,6 +751,7 @@ export const machine = createMachine(
         ),
       ),
 
+      /** Links the generated parent node downward to its child. */
       linkParent: assign('data.edges', {
         ADD_PARENT: ({ context: { data }, pContext, payload }) => {
           const edges = toArray.typed(data?.edges);
@@ -737,6 +784,7 @@ export const machine = createMachine(
         },
       }),
 
+      /** Selects the newly created parent node. */
       selectParent: assign('selected', {
         ADD_PARENT: ({ pContext: { generatedId }, payload }) => {
           const customId =
@@ -746,6 +794,7 @@ export const machine = createMachine(
         else: ({ pContext: { generatedId } }) => buildNodeID(generatedId),
       }),
 
+      /** Moves the targeted node to the requested coordinates. */
       moveNode: assign('data.nodes', {
         MOVE: ({ context: { data }, payload: { id, x, y } }) => {
           return data?.nodes?.map(node => {
@@ -755,6 +804,10 @@ export const machine = createMachine(
         },
       }),
 
+      /**
+       * Deletes the targeted node and every linked edge, protecting the principal
+       * node.
+       */
       delete: batch(
         filter('data.edges', {
           DELETE: ({ id, from, to }, _, { payload }) => {
@@ -785,6 +838,7 @@ export const machine = createMachine(
         erase('editing'),
       ),
 
+      /** Adds a deduplicated edge and selects it. */
       addEdge: batch(
         assign('data.edges', {
           ADD_EDGE: ({ context, payload }) => {
@@ -845,6 +899,7 @@ export const machine = createMachine(
         erase('newEdge'),
       ),
 
+      /** Applies a clamped zoom delta to the canvas. */
       zoom: assign('zoom', {
         ZOOM: ({ context: { zoom }, payload, pContext }) => {
           const next = zoom + payload;
@@ -854,6 +909,7 @@ export const machine = createMachine(
         },
       }),
 
+      /** Toggles between the previous zoom level and the default zoom of `1`. */
       toggleZoom: assign('zoom', {
         TOGGLE_ZOOM: ({ context: { zoom }, pContext }) => {
           const previous = pContext.previousZoom;
@@ -869,6 +925,7 @@ export const machine = createMachine(
       }),
 
       // #region UI
+      /** Places a new child node to the right of the targeted parent. */
       placeChild: assign('data.nodes', {
         ADD_CHILD: ({ payload, context: { data, board }, pContext }) => {
           if (!board) return data?.nodes;
@@ -905,6 +962,10 @@ export const machine = createMachine(
         },
       }),
 
+      /**
+       * Places a new parent node below and to the right of its child, or centered on
+       * the viewport.
+       */
       placeParent: assign('data.nodes', {
         ADD_PARENT: ({ context: { data, zoom = 1, board }, pContext, payload }) => {
           const nodes = toArray.typed(data?.nodes);
@@ -980,6 +1041,7 @@ export const machine = createMachine(
         },
       }),
 
+      /** Places a new sibling node beside the targeted node. */
       placeSibling: assign('data.nodes', {
         ADD_SIBLING: ({ payload, context: { data, board }, pContext }) => {
           if (!board) return data?.nodes;
@@ -1018,6 +1080,7 @@ export const machine = createMachine(
         },
       }),
 
+      /** Updates the ongoing new edge preview endpoint from the pointer position. */
       moveNewEdge: assign('newEdge', {
         MOVE_NEW_EDGE: ({ context: { newEdge, board }, payload, pContext }) => {
           if (!board) return undefined;

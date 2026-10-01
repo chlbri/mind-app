@@ -97,7 +97,7 @@ export type StateActorData = {
   /** Identifier name of the actor. */
   name: string;
   /** Classification of the actor in `@bemedev/app`. */
-  type: 'emitter' | 'child' | 'service';
+  type: 'emitter' | 'child';
   /** Human-readable description of what this actor does. */
   description?: string;
   /** Emitter actor configuration when type is 'emitter'. */
@@ -132,8 +132,6 @@ export type StateActorData = {
    * (backward-compatibility).
    */
   contexts?: Record<string, string>;
-  /** Raw configuration or options for this actor. */
-  config?: Record<string, any>;
 };
 
 /** Flowchart node data structure representing a state in the state machine. */
@@ -181,7 +179,7 @@ export type TransitionItem = {
    * Delay duration or delay name for `after` transitions (e.g. `3000ms` or
    * `PAYMENT_TIMEOUT`).
    */
-  delay?: string | number;
+  delay?: string;
   /** Guard condition expression or array of guard conditions. */
   guards?: GuardConfig | GuardConfig[];
   /** Actions triggered during this transition. */
@@ -191,7 +189,7 @@ export type TransitionItem = {
 /** Flowchart edge data structure representing transitions and hierarchy relations. */
 export type StateMachineEdgeData = {
   /** The primary category of the edge. */
-  kind?: EdgeKind;
+  kind: EdgeKind;
   /** Display label shown on the edge midpoint tag. */
   label?: string;
   /** All transitions linking the two connected states. */
@@ -202,13 +200,13 @@ export type StateMachineEdgeData = {
    * Delay duration or delay name for `after` transitions (e.g. `3000ms` or
    * `PAYMENT_TIMEOUT`).
    */
-  delay?: string | number;
+  delay?: string;
   /** Guard condition expression or array of guard conditions. */
   guards?: GuardConfig | GuardConfig[];
   /** Actions triggered during this transition. */
   actions?: string[];
   /** Source state path. */
-  fromState?: string;
+  from?: string;
   /** Target state path. */
-  toState?: string;
+  to?: string;
 };

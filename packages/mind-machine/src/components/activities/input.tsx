@@ -1,5 +1,5 @@
 import { deepEqual } from '@bemedev/app/utils';
-import { useFlow } from '@bemedev/mind-flow';
+import { type WithFlow } from '@bemedev/mind-flow';
 import { Show, type Component } from 'solid-js';
 
 import { toList } from '../../helpers';
@@ -10,14 +10,21 @@ import { GuardsInput } from '../guards';
 export type ActivityItemProps = {
   /** Unique identifier of the activity item. */
   id: string;
-  /** Callback for updating a field on the state machine node data. */
+  /**
+   * Callback for updating a field on the state machine node data.
+   *
+   * @template K - Key of -- type {@linkcode StateMachineNodeData} to update.
+   *
+   * @param field - Field name to update.
+   * @param value - New value assigned to the field.
+   */
   updateField: <K extends keyof StateMachineNodeData>(
     field: K,
     value: StateMachineNodeData[K],
   ) => void;
   /** Callback invoked when removing the activity item. */
   onRemove: () => void;
-};
+} & WithFlow;
 
 /**
  * Child item component representing a single activity. Retrieves its state
@@ -28,8 +35,9 @@ export type ActivityItemProps = {
  * @returns The rendered Solid component.
  */
 export const ActivityItem: Component<ActivityItemProps> = props => {
-  const { hooks } = useFlow();
+  const { hooks } = props.flow;
 
+  /** Reactive activity matching the `id` prop of this item. */
   const activity = hooks.state({
     selector: ({ context }) => {
       const editingId = context.editing;
@@ -42,6 +50,7 @@ export const ActivityItem: Component<ActivityItemProps> = props => {
     equals: deepEqual<StateActivityData | undefined>,
   });
 
+  /** Reactive list of all activities of the node being edited. */
   const allActivities = hooks.state({
     selector: ({ context }) => {
       const editingId = context.editing;
@@ -52,6 +61,11 @@ export const ActivityItem: Component<ActivityItemProps> = props => {
     equals: deepEqual<StateActivityData[]>,
   });
 
+  /**
+   * Merges a partial patch into the activity matching the `id` prop.
+   *
+   * @param patch - Partial activity fields to merge.
+   */
   const updateActivity = (patch: Partial<StateActivityData>) => {
     const current = allActivities();
     const updated = current.map((item, i) => {
@@ -63,6 +77,11 @@ export const ActivityItem: Component<ActivityItemProps> = props => {
     props.updateField('activities', updated);
   };
 
+  /**
+   * Renames the delay of this activity when the new value is non-empty and unique.
+   *
+   * @param newDelay - Candidate delay key for this activity.
+   */
   const renameDelay = (newDelay: string) => {
     const delay = newDelay.trim();
     const currentDelay = activity()?.delay;

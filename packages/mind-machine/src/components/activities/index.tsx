@@ -1,16 +1,25 @@
 import { deepEqual } from '@bemedev/app';
-import { useFlow } from '@bemedev/mind-flow';
+import { type WithFlow } from '@bemedev/mind-flow';
 import { For, Show, type Component } from 'solid-js';
 
 import type { StateActivityData, StateMachineNodeData } from '../../types';
 import { ActivityItem } from './input';
 
+/** Properties for the {@linkcode ActivityInputs} editor component. */
 export type ActivityInputsProps = {
+  /**
+   * Updates a single data field of the edited node.
+   *
+   * @template K - Key of -- type {@linkcode StateMachineNodeData} to update.
+   *
+   * @param field - Field name to update.
+   * @param value - New value assigned to the field.
+   */
   updateField: <K extends keyof StateMachineNodeData>(
     field: K,
     value: StateMachineNodeData[K],
   ) => void;
-};
+} & WithFlow;
 
 /**
  * Dedicated editor for `@bemedev/app` state activities (`ActivityConfig`).
@@ -19,8 +28,9 @@ export type ActivityInputsProps = {
  * input editing without focus loss or UI invalidation.
  */
 export const ActivityInputs: Component<ActivityInputsProps> = props => {
-  const { hooks } = useFlow();
+  const { hooks } = props.flow;
 
+  /** Stable identifiers of the activities of the node being edited. */
   const activityIds = hooks.state({
     selector: ({ context }) => {
       const editingId = context.editing;
@@ -33,6 +43,7 @@ export const ActivityInputs: Component<ActivityInputsProps> = props => {
     equals: deepEqual<string[]>,
   });
 
+  /** Reactive activities list of the node being edited. */
   const activitiesList = hooks.state({
     selector: ({ context }) => {
       const editingId = context.editing;
@@ -43,6 +54,7 @@ export const ActivityInputs: Component<ActivityInputsProps> = props => {
     equals: deepEqual<StateActivityData[]>,
   });
 
+  /** Appends a new activity to the node being edited. */
   const addActivity = () => {
     const current = activitiesList();
     const count = current.length + 1;
@@ -55,6 +67,11 @@ export const ActivityInputs: Component<ActivityInputsProps> = props => {
     props.updateField('activities', [...current, newActivity]);
   };
 
+  /**
+   * Removes an activity from the node being edited.
+   *
+   * @param id - Stable identifier of the activity to remove.
+   */
   const removeActivity = (id: string) => {
     const current = activitiesList();
     const updated = current.filter(
@@ -116,6 +133,7 @@ export const ActivityInputs: Component<ActivityInputsProps> = props => {
           <For each={activityIds()}>
             {id => (
               <ActivityItem
+                flow={props.flow}
                 id={id}
                 updateField={props.updateField}
                 onRemove={() => removeActivity(id)}

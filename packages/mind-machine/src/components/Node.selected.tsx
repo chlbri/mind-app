@@ -1,4 +1,4 @@
-import { HANDLE_SIZE, useFlow } from '@bemedev/mind-flow';
+import { HANDLE_SIZE, type WithFlow } from '@bemedev/mind-flow';
 import { Show, type Component } from 'solid-js';
 
 import { isDirectChildOfPrincipal, PRINCIPAL_NODE_KEY } from '../constants';
@@ -8,7 +8,7 @@ import { createHandles } from '../helpers';
 export type StateMachineNodeSelectedProps = {
   /** Unique identifier of the selected state node. */
   id: string;
-};
+} & WithFlow;
 
 /**
  * Custom action toolbar rendered above a selected state machine node in the
@@ -23,15 +23,22 @@ export type StateMachineNodeSelectedProps = {
 export const StateMachineNodeSelected: Component<
   StateMachineNodeSelectedProps
 > = props => {
-  const { send, hooks, service } = useFlow();
+  const { send, hooks, service } = props.flow;
+
+  /** Sender bound to the `SET_NODE_DATA` event of the flow service. */
   const setData = service.sender('SET_NODE_DATA');
 
   const nodes = hooks.state({
     selector: ({ context: { data } }) => data?.nodes ?? [],
   });
 
+  /** Selected state node record from the flow context. */
   const currentNode = () => nodes().find(n => n.id === props.id);
 
+  /**
+   * Resolves the direct parent node of the selected node, falling back to the
+   * principal node for root-level states.
+   */
   const parentNode = () => {
     const current = currentNode();
     if (!current) return undefined;
@@ -53,8 +60,10 @@ export const StateMachineNodeSelected: Component<
     return undefined;
   };
 
+  /** Tells whether the parent state is a compound state. */
   const isParentCompound = () => parentNode()?.data?.stateType === 'compound';
 
+  /** Lists the sibling nodes sharing the same parent as the selected node. */
   const siblings = () => {
     const parent = parentNode();
     if (!parent) return [];

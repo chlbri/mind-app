@@ -2,13 +2,10 @@ import { Show, type Component } from 'solid-js';
 
 import { HANDLE_SIZE } from '#services/main.machine.data';
 
-import { useFlow } from '../FlowChart.context';
+import type { WithFlow } from '../../Flow.context';
 
 /** Properties for the {@linkcode DefaultNodeSelected} component. */
-export type DefaultNodeSelected_Props = {
-  /** Unique identifier of the node. */
-  id: string;
-};
+export type DefaultNodeSelected_Props = { id: string } & WithFlow;
 
 /**
  * Default floating action toolbar rendered above a selected node, providing
@@ -18,11 +15,12 @@ export type DefaultNodeSelected_Props = {
  *
  * @returns The rendered node selection toolbar element.
  *
- * @see {@linkcode useFlow}, {@linkcode HANDLE_SIZE}
+ * @see {@linkcode HANDLE_SIZE}
  */
 export const DefaultNodeSelected: Component<DefaultNodeSelected_Props> = props => {
-  const { hooks, send } = useFlow();
+  const { hooks, send } = props.flow;
 
+  /** Tells whether the node is the target of a parent-child edge. */
   const hasParent = hooks.state({
     selector: ({ context: { data } }) => {
       const edges = data?.edges;

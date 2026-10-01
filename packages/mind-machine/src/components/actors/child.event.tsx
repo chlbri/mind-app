@@ -1,5 +1,5 @@
 import { deepEqual } from '@bemedev/app';
-import { useFlow } from '@bemedev/mind-flow';
+import { type WithFlow } from '@bemedev/mind-flow';
 import { Show, type Component } from 'solid-js';
 
 import { toList } from '../../helpers';
@@ -16,12 +16,19 @@ export type ActorChildEventItemProps = {
   actorId: string;
   /** Event key name emitted by the child actor. */
   eventKey: string;
-  /** Callback for updating a field on the state machine node data. */
+  /**
+   * Callback for updating a field on the state machine node data.
+   *
+   * @template K - Key of -- type {@linkcode StateMachineNodeData} to update.
+   *
+   * @param field - Field name to update.
+   * @param value - New value assigned to the field.
+   */
   updateField: <K extends keyof StateMachineNodeData>(
     field: K,
     value: StateMachineNodeData[K],
   ) => void;
-};
+} & WithFlow;
 
 /**
  * Child item component representing a single handled event on a child actor
@@ -33,8 +40,9 @@ export type ActorChildEventItemProps = {
  * @returns The rendered Solid component.
  */
 export const ActorChildEventItem: Component<ActorChildEventItemProps> = props => {
-  const { hooks } = useFlow();
+  const { hooks } = props.flow;
 
+  /** Reactive list of all actors of the node being edited. */
   const allActors = hooks.state({
     selector: ({ context }) => {
       const editingId = context.editing;
@@ -45,6 +53,7 @@ export const ActorChildEventItem: Component<ActorChildEventItemProps> = props =>
     equals: deepEqual<StateActorData[]>,
   });
 
+  /** Reactive handled event configuration for the parent actor. */
   const eventHandler = hooks.state({
     selector: ({ context }) => {
       const editingId = context.editing;
@@ -59,6 +68,13 @@ export const ActorChildEventItem: Component<ActorChildEventItemProps> = props =>
     equals: deepEqual<StateActorChildEventHandler | undefined>,
   });
 
+  /**
+   * Applies an updater on the `child` configuration of the parent actor and
+   * synchronizes its backward-compatibility `events` mirror.
+   *
+   * @param updater - Function receiving the current child configuration and
+   *   returning the updated one.
+   */
   const updateChild = (
     updater: (
       currentChild: NonNullable<StateActorData['child']>,
@@ -85,12 +101,18 @@ export const ActorChildEventItem: Component<ActorChildEventItemProps> = props =>
     props.updateField('actors', updated);
   };
 
+  /** Reactive parent actor owning this event handler. */
   const currentActor = () => {
     return allActors().find(
       (a, i) => (a.id ?? a.name ?? String(i)) === props.actorId,
     );
   };
 
+  /**
+   * Merges a partial patch into this event handler.
+   *
+   * @param patch - Partial handler fields to merge.
+   */
   const updateHandler = (patch: Partial<StateActorChildEventHandler>) => {
     updateChild(child => {
       const on = child.on ?? {};
@@ -99,6 +121,11 @@ export const ActorChildEventItem: Component<ActorChildEventItemProps> = props =>
     });
   };
 
+  /**
+   * Renames the handled event key when the new value is non-empty and unique.
+   *
+   * @param newKey - Candidate event key name.
+   */
   const renameEventKey = (newKey: string) => {
     const trimmed = newKey.trim();
     if (!trimmed || trimmed === props.eventKey) return;
@@ -114,6 +141,7 @@ export const ActorChildEventItem: Component<ActorChildEventItemProps> = props =>
     });
   };
 
+  /** Removes this handled event from the parent actor. */
   const removeEvent = () => {
     updateChild(child => {
       const { [props.eventKey]: _, ...rest } = child.on ?? {};

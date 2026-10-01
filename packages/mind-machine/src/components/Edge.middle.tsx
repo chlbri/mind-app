@@ -1,11 +1,5 @@
 import { deepEqual } from '@bemedev/app/utils';
-import {
-  clamp,
-  cn,
-  TinyColor,
-  useFlow,
-  type EdgeMiddleProps,
-} from '@bemedev/mind-flow';
+import { clamp, cn, TinyColor, type EdgeMiddleProps } from '@bemedev/mind-flow';
 import { For, Show, type Component } from 'solid-js';
 
 import { EDGES_COLORS } from '../constants';
@@ -13,10 +7,24 @@ import { monoLength } from '../helpers';
 import { setActiveAddTransitionEdge } from '../signals';
 import type { EdgeKind, StateMachineEdgeData } from '../types';
 
+/**
+ * Middle renderer for state machine edges: stacks one colored badge per transition,
+ * and, when the edge is selected, offers inline `+ Add` and delete controls.
+ *
+ * Double-clicking a badge opens the Transition modal through
+ * {@linkcode setActiveAddTransitionEdge}.
+ *
+ * @param props - Edge middle component properties of type
+ *   {@linkcode EdgeMiddleProps<StateMachineEdgeData>}.
+ *
+ * @returns The rendered Solid edge middle component.
+ *
+ * @see -- class {@linkcode TinyColor}
+ */
 export const StateMachineEdgeMiddle: Component<
   EdgeMiddleProps<StateMachineEdgeData>
 > = props => {
-  const { hooks, send } = useFlow();
+  const { hooks, send } = props.flow;
 
   const edgeRecord = hooks.state({
     selector: ({ context }) => context.data?.edges?.find(e => e.id === props.id),
@@ -43,8 +51,16 @@ export const StateMachineEdgeMiddle: Component<
     return [];
   };
 
+  /** Tailwind color palette resolved for the kind of the middle button. */
   const addColors = () => getKindConfig(props.data?.kind);
 
+  /**
+   * Resolves the visual configuration (colors, icon, name) of an edge kind.
+   *
+   * @param k - Edge kind to configure of type {@linkcode EdgeKind}.
+   *
+   * @returns Color classes, fill/stroke values, icon and display name.
+   */
   const getKindConfig = (k?: EdgeKind) => {
     const fill = EDGES_COLORS[k ?? 'on'];
     const stroke = new TinyColor(fill).lighten(70).toHex8String();
@@ -101,6 +117,10 @@ export const StateMachineEdgeMiddle: Component<
     }
   };
 
+  /**
+   * Computes the badge width from the longest transition label, clamped between
+   * sensible bounds.
+   */
   const badgeWidth = () => {
     const added = selected() ? 30 : 12;
     const min = selected() ? 130 : 100;
@@ -115,16 +135,28 @@ export const StateMachineEdgeMiddle: Component<
     return clamp(monoLength(text) + added, min, 210);
   };
 
+  /** Height in pixels of a single transition badge row. */
   const ITEM_HEIGHT = 22;
+
+  /** Vertical gap in pixels between two transition badge rows. */
   const GAP = 4;
+
+  /** Number of transitions currently stacked on the edge. */
   const count = () => Math.max(0, transitions().length);
 
+  /** Total height in pixels of the stacked badges, including the add button. */
   const totalHeight = () => {
     const itemsH = count() * ITEM_HEIGHT + (count() - 1) * GAP;
     const addH = showAdd() ? ITEM_HEIGHT + GAP : 0;
     return itemsH + addH + 4;
   };
 
+  /**
+   * Deletes a transition from the edge, removing the whole edge when it is the last
+   * one and dispatching a `SET_EDGE_DATA` event otherwise.
+   *
+   * @param transitionId - Identifier of the transition to delete.
+   */
   const deleteTransition = (transitionId: string) => {
     const current = transitions();
 
@@ -149,6 +181,10 @@ export const StateMachineEdgeMiddle: Component<
     }
   };
 
+  /**
+   * Tells whether the `+ Add` control must be displayed, hiding it for single
+   * `child_parent` edges.
+   */
   const showAdd = () => {
     const _transitions = transitions();
 
@@ -161,6 +197,7 @@ export const StateMachineEdgeMiddle: Component<
     return selected();
   };
 
+  /** Selection ring classes applied to the middle badge. */
   const ring = () => {
     const kind = getKindConfig(props.data?.kind);
     return kind.ring;
@@ -207,8 +244,8 @@ export const StateMachineEdgeMiddle: Component<
                   const edge = edgeRecord();
                   setActiveAddTransitionEdge({
                     edgeId: props.id,
-                    from: edgeData()?.fromState || edge?.from || '',
-                    to: edgeData()?.toState || edge?.to || '',
+                    from: edgeData()?.from || edge?.from || '',
+                    to: edgeData()?.to || edge?.to || '',
                     kind: t.kind,
                     mode: 'edit',
                     transitionId: t.id,
@@ -263,8 +300,8 @@ export const StateMachineEdgeMiddle: Component<
               onMouseDown={e => {
                 e.stopPropagation();
                 const edge = edgeRecord();
-                const from = edgeData()?.fromState || edge?.from || '';
-                const to = edgeData()?.toState || edge?.to || '';
+                const from = edgeData()?.from || edge?.from || '';
+                const to = edgeData()?.to || edge?.to || '';
                 const fromIdx = edge?.fromIndex ?? edge?.toIndex;
                 const inferredKind: EdgeKind =
                   edgeData()?.kind ??

@@ -1,4 +1,4 @@
-import { clickOutside, cn, typings, useFlow } from '@bemedev/mind-flow';
+import { clickOutside, cn, typings, type WithFlow } from '@bemedev/mind-flow';
 import {
   Check,
   ChevronDown,
@@ -95,21 +95,36 @@ export const formatTime = (timestamp: number): string => {
  * Checkout commit select dropdown menu.
  *
  * @returns The rendered history controls toolbar elements.
- *
- * @see {@linkcode useFlow},
  */
-export const HistoryControlsAddons: Component = () => {
+export const HistoryControlsAddons: Component<WithFlow> = props => {
   void clickOutside;
-  const { send, hooks } = useFlow();
+  const { send, hooks } = props.flow;
+
+  /** Signal controlling visibility of the checkout history dropdown. */
   const [isOpen, setIsOpen] = createSignal(false);
+
+  /** Signal controlling visibility of the commit name popover. */
   const [isCommitOpen, setIsCommitOpen] = createSignal(false);
+
+  /** Signal storing the name typed for the next commit. */
   const [commitName, setCommitName] = createSignal<string>();
+
+  /** Reactive commit history list from the flow context. */
   const history = hooks.state({ selector: s => s.context.history ?? [] });
+
+  /** Tells whether at least one commit exists. */
   const hasHistory = () => history().length > 0;
+
+  /** Reactive index of the currently checked out commit. */
   const historyIndex = hooks.state({ selector: s => s.context.historyIndex ?? -1 });
+
+  /** Tells whether an undo is possible. */
   const canUndo = () => historyIndex() > 0;
+
+  /** Tells whether a redo is possible. */
   const canRedo = () => historyIndex() >= 0 && historyIndex() < history().length - 1;
 
+  /** Display label of the currently checked out commit. */
   const currentCommitLabel = () => {
     const idx = historyIndex();
     const list = history();
@@ -121,6 +136,7 @@ export const HistoryControlsAddons: Component = () => {
     return `Commit #${idx}`;
   };
 
+  /** Commits the current graph state under the typed name and closes the popover. */
   const handleCommit = () => {
     const name = commitName()?.trim();
     send({ type: 'COMMIT', payload: name });
@@ -128,10 +144,15 @@ export const HistoryControlsAddons: Component = () => {
     setIsCommitOpen(false);
   };
 
+  /** Reactive list of all flowchart nodes. */
   const allNodes = hooks.state({
     selector: ({ context: { data } }) => data?.nodes ?? [],
   });
 
+  /**
+   * Adds a new root-level state node, switching the principal node to compound when
+   * needed.
+   */
   const handleAddRootNode = () => {
     const nodesList = allNodes();
     const principal = nodesList.find(

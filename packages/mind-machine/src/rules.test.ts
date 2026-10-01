@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { PRINCIPAL_NODE_KEY } from './constants';
 import { Principal } from './parser';
 import {
-  canDeleteGuard,
+  canDelete,
   DEFAULT_NODE_DATA,
   machineEdgesAllowed,
   type EdgesAllowed,
@@ -49,7 +49,7 @@ describe('#01 => rules', () => {
   describe('#02 => canDeleteGuard', () => {
     it('#01 => should reject the unique principal node', () => {
       const payload = PRINCIPAL_NODE_KEY;
-      const result = canDeleteGuard({
+      const result = canDelete({
         context: {
           data: { nodes: [{ id: payload, data: { principal: Principal.unique } }] },
         },
@@ -60,7 +60,7 @@ describe('#01 => rules', () => {
     });
 
     it('#02 => should allow any other node', () => {
-      const result = canDeleteGuard({
+      const result = canDelete({
         context: { data: { nodes: [{ id: '/cart', data: { path: '/cart' } }] } },
         payload: '/cart',
       });
@@ -69,7 +69,7 @@ describe('#01 => rules', () => {
     });
 
     it('#03 => should allow an unknown node', () => {
-      const result = canDeleteGuard({
+      const result = canDelete({
         context: { data: { nodes: [] } },
         payload: '/unknown',
       });

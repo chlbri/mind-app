@@ -20,17 +20,39 @@ import type {
 
 export type { MachineConfig, Position, StateNodeKeys, StateNodePositions };
 
-/** Standard spacing parameters for node layout positioning. */
+/** Horizontal spacing in pixels between node rank columns. */
 const HORIZONTAL_SPACING = 360;
+
+/** Vertical spacing in pixels between nodes of the same column. */
 const VERTICAL_SPACING = 170;
+
+/** Default X position in pixels of the first node column. */
 const INITIAL_X = 80;
+
+/** Default Y position in pixels of the first node row. */
 const INITIAL_Y = 100;
 
+/**
+ * Unique sentinel class identifying the principal (root) machine node.
+ *
+ * The {@linkcode Principal.unique} instance is stored in the principal node data so
+ * that node can never be deleted through the canvas.
+ */
 export class Principal {
+  /** Unique marker value attached to the principal node data. */
   ___root = '@bemedev/mind-flow/uniquePrincipal##';
 
+  /** Lazily created singleton instance. */
   private static _instance: Principal;
+
+  /** Initializes the private singleton instance holder. */
   private constructor() {}
+
+  /**
+   * Returns the unique {@linkcode Principal} instance, creating it on first access.
+   *
+   * @returns The shared {@linkcode Principal} singleton.
+   */
   static get unique() {
     if (!this._instance) {
       this._instance = new Principal();
@@ -157,15 +179,11 @@ const extractActors = (rawActors?: Record<string, any>): StateActorData[] => {
     const isEmitter =
       config &&
       (Boolean(config.next) || Boolean(config.error) || Boolean(config.complete));
-    const isChild =
-      config &&
-      (Boolean(config.on) || Boolean(config.contexts) || Boolean(config.src));
+    // const isChild =
+    //   config &&
+    //   (Boolean(config.on) || Boolean(config.contexts) || Boolean(config.src));
 
-    const type: StateActorData['type'] = isEmitter
-      ? 'emitter'
-      : isChild
-        ? 'child'
-        : 'service';
+    const type: StateActorData['type'] = isEmitter ? 'emitter' : 'child';
 
     const emissions: StateActorData['emissions'] = {};
     const nextActions = Array.isArray(config?.next?.actions)
@@ -347,7 +365,7 @@ export const parseMachineToGraph = <const T extends MachineConfig = MachineConfi
     kind: EdgeKind;
     label: string;
     event?: string;
-    delay?: string | number;
+    delay?: string;
     guards?: GuardConfig[];
     actions?: string[];
   }> = [];

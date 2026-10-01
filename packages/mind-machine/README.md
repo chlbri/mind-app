@@ -6,8 +6,8 @@ State machine visualization and orchestration UI library for
 
 `@bemedev/mind-machine` turns a
 [`@bemedev/app`](https://www.npmjs.com/package/@bemedev/app) state machine (or an
-existing flow history) into an interactive diagram, with git-like history,
-localStorage persistence, and ready-to-use editing panels.
+existing flow history) into an interactive diagram, with git-like history and
+ready-to-use editing panels.
 
 ## Features
 
@@ -18,8 +18,8 @@ localStorage persistence, and ready-to-use editing panels.
   actions, activities, and actors into flowchart nodes and edges.
 - **History Sources**: Render from a `@bemedev/app` machine, a flowchart history
   array, a persisted payload, or a raw `{ nodes, edges }` configuration.
-- **localStorage Persistence**: Pass a single key or an array of key parts (composite
-  key) to automatically restore and persist the flow history.
+- **Consumer-managed Persistence**: Read the stored history yourself, pass it as the
+  required `history` prop, and persist each commit through the `register` callback.
 - **Transition Tooling**: Guard formatting, normalization, equality checks, and
   conflict detection helpers.
 - **Ready-to-use Panels**: Transition modal, state editor, principal node panel,
@@ -39,11 +39,13 @@ pnpm add solid-js @bemedev/app
 
 ## Quick Start
 
-Import the `FlowMachine` component and include the stylesheet:
+Import the context factory and include the stylesheet:
 
 ```tsx
-import { FlowMachine } from '@bemedev/mind-machine';
+import { createContext } from '@bemedev/mind-machine';
 import '@bemedev/mind-machine/style.css';
+
+const [, FlowMachine] = createContext();
 
 const machine = {
   initial: 'idle',
@@ -57,35 +59,59 @@ export const MachineDemo = () => {
   return (
     <div style={{ width: '100vw', height: '100vh' }}>
       {/* A machine configuration provides the default nodes and edges */}
-      <FlowMachine history={machine} localKeys='machine-flow-config' />
+      <FlowMachine history={machine} />
     </div>
   );
 };
 ```
 
-## Storage Keys
+`createContext` returns a tuple with the `useFlow` hook and the `FlowMachine`
+component. The component is not exported directly: obtain it from the factory. All
+other machine components receive the hook result as a `flow` prop.
 
-The `localKeys` prop accepts a single key or an array of key parts:
+## Persistence
 
-```tsx
-// Single key: used directly
-<FlowMachine history={machine} localKeys='machine-flow-config' />
-
-// Composite key: parts are joined with '-'
-<FlowMachine history={machine} localKeys={['order', 'payment']} />
-```
-
-The canvas restores the persisted history when a value exists under the derived key,
-otherwise it falls back to the `history` prop. Without `localKeys`, nothing is
-persisted. Empty histories are never persisted, so a configured diagram is not
-replaced by a blank canvas on reload.
-
-You can also rely on storage only:
+The `history` prop is required, and persistence is delegated to the consumer. Read
+the stored payload before mounting, pass it as `history`, and persist each commit
+through the `register` callback:
 
 ```tsx
-// Restore mode: no default configuration, localStorage only
-<FlowMachine localKeys='machine-flow-config' />
+import { createContext } from '@bemedev/mind-machine';
+
+const [, FlowMachine] = createContext();
+
+export const MachineDemo = () => {
+  const stored = readHistory();
+
+  return (
+    <FlowMachine
+      history={stored ?? machine}
+      register={({ history, historyIndex }) =>
+        writeHistory({ history, historyIndex })
+      }
+    />
+  );
+};
 ```
+
+Empty histories are never persisted, so a configured diagram is not replaced by a
+blank canvas on reload. Without `register`, nothing is persisted.
+
+## Custom Machine Contexts
+
+Call `createContext` to get a fresh, isolated pair — useful to manage several
+independent machine diagrams in the same application:
+
+```tsx
+import { createContext } from '@bemedev/mind-machine';
+
+const [, FlowMachine] = createContext();
+
+export const MachineDemo = () => <FlowMachine history={machine} />;
+```
+
+Every other component (nodes, edges, panels, inputs) receives the hook result as a
+`flow` prop, so it can also be rendered outside of the provider.
 
 ## Parsing Machines
 
@@ -106,14 +132,13 @@ const { nodes, edges } = parseMachineToGraph(
 
 ## Main Exports
 
-- **Components**: `FlowMachine`, `StateMachineNode`, `StateMachineNodeSelected`,
+- **Context**: `createContext` (returns `[useFlow, FlowMachine]`)
+- **Components**: `StateMachineNode`, `StateMachineNodeSelected`,
   `StateMachineEditPanel`, `StateMachineEdge`, `StateMachineEdgeMiddle`,
   `TransitionModal`, `PrincipalPanel`, `HistoryControlsAddons`, `AtomicFiligrane`,
-  `ActorInputs`, `ActivityInputs`, `GuardsInput`
+  `ActorInputs`, `ActivityInputs`, `GuardsInput` — all requiring the `flow` prop
 - **Parsing**: `parseMachineToGraph`, `Principal`, `Principal.unique`
 - **Configuration**: `configFromHistory`, `MachineConfigFrom`
-- **Storage**: `getStorageKey`, `readHistory`, `writeHistory`,
-  `createHistoryPersister`
 - **Rules**: `machineEdgesAllowed`, `canDeleteGuard`, `DEFAULT_NODE_DATA`
 - **Transitions**: `normalizeGuards`, `formatGuard`, `formatGuards`,
   `areGuardsEqual`, `checkTransitionConflict`, `getTransitionsFromState`

@@ -1,6 +1,6 @@
 @import 'tailwindcss';
 @import 'tw-animate-css';
-@import '@bemedev/mind-flow/style.css';
+@import '@bemedev/mind-machine/style.css';
 
 @plugin 'tailwindcss-animate';
 

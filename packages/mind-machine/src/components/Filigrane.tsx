@@ -1,4 +1,4 @@
-import { useFlow } from '@bemedev/mind-flow';
+import { type WithFlow } from '@bemedev/mind-flow';
 import { Show, type Component } from 'solid-js';
 
 import { PRINCIPAL_NODE_KEY } from '../constants';
@@ -10,8 +10,8 @@ import { PRINCIPAL_NODE_KEY } from '../constants';
  *
  * Displays the text "atomic machine" in an italic and oblique repeating pattern.
  */
-export const AtomicFiligrane: Component = () => {
-  const { hooks } = useFlow();
+export const AtomicFiligrane: Component<WithFlow> = props => {
+  const { hooks } = props.flow;
 
   const isAtomic = hooks.state({
     selector: ({ context: { data } }) => {

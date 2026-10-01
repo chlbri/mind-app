@@ -1,4 +1,4 @@
-import { useFlow } from '@bemedev/mind-flow';
+import { type WithFlow } from '@bemedev/mind-flow';
 import { For, Show, type Component } from 'solid-js';
 
 import { PRINCIPAL_NODE_KEY } from '../constants';
@@ -11,11 +11,13 @@ import { useStateNodeHooks } from './Node.hooks';
  * Displays state metadata, hierarchy path, entry/activity/exit actions, tags, and an
  * interactive bubble at the bottom-right corner if the state has actors attached.
  */
-export const StateMachineNode: Component<StateMachineNodeData> = props => {
+export const StateMachineNode: Component<
+  StateMachineNodeData & WithFlow
+> = props => {
   if (props.id === PRINCIPAL_NODE_KEY || (props as any).principal) {
     return null;
   }
-  const { send } = useFlow();
+  const { send } = props.flow;
   const {
     hasActors,
     actorCount,

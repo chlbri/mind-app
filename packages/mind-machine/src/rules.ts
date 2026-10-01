@@ -24,7 +24,7 @@ export const DEFAULT_NODE_DATA: StateMachineNodeData = {
  * @returns `false` when the target node is the unique principal node, `true`
  *   otherwise.
  */
-export const canDeleteGuard = ({ context: { data }, payload }: any): boolean => {
+export const canDelete = ({ context: { data }, payload }: any): boolean => {
   const node = data?.nodes?.find((n: any) => n.id === payload);
   return (node?.data as any)?.principal !== Principal.unique;
 };

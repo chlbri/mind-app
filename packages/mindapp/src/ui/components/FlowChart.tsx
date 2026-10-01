@@ -10,8 +10,7 @@ import type {
 } from '#services/main.machine.typings';
 
 import { EdgeCursive } from './edges';
-import { useFlow } from './FlowChart.context';
-import type { FlowProps } from './FlowChart.types';
+import type { FlowChartProps } from './FlowChart.types';
 import { DefaultNodeSelected, NodesBoard } from './nodes';
 
 export type { Data, HandlePosition, HandleType, NodeHandles_T, NodeProps };
@@ -27,21 +26,28 @@ export type { Data, HandlePosition, HandleType, NodeHandles_T, NodeProps };
  * @template | {@linkcode Data} `E` - Custom edge data dictionary type extending
  *   {@linkcode Data}.
  *
- * @param props - Flowchart configuration and event handlers of type
- *   {@linkcode FlowProps}.
+ * @param props - Flowchart configuration, event handlers, and flow value of type
+ *   {@linkcode FlowChartProps}.
  *
  * @returns The rendered Solid component.
  *
- * @see {@linkcode NodesBoard}, {@linkcode useFlow}, {@linkcode DEFAULT_NODES}
+ * @see {@linkcode NodesBoard}, {@linkcode DEFAULT_NODES}
  */
 export const FlowChart = <N extends Data = Data, E extends Data = Data>(
-  props: FlowProps<N, E>,
+  props: FlowChartProps<N, E>,
 ): JSX.Element => {
-  const { service, hooks, send } = useFlow();
+  const { service, hooks, send } = props.flow;
+
+  /** Guards against registering the pointer handlers more than once per drag. */
   let added = false;
+
+  /** Reactive source node id of the ongoing new edge preview. */
   const fromNew = hooks.state({ selector: s => s.context.newEdge?.from });
+
   // Track the currently enlarged handle during edge drag
+  /** Currently enlarged target handle during an edge drag. */
   let activeHandle: HTMLElement | null = null;
+
   onCleanup(service.pause);
   const edgesAllowed = props.edgesAllowed;
   const register = props.register;
@@ -84,6 +90,7 @@ export const FlowChart = <N extends Data = Data, E extends Data = Data>(
     });
   });
 
+  /** Restores the scaling of the active target handle and resets drag state. */
   const clearActiveHandle = () => {
     if (activeHandle) {
       activeHandle.classList.remove('scale-150');
@@ -92,6 +99,12 @@ export const FlowChart = <N extends Data = Data, E extends Data = Data>(
     }
   };
 
+  /**
+   * Tracks the pointer during an edge drag, previewing the new edge and enlarging
+   * the hovered input handle.
+   *
+   * @param e - Pointer or mouse move event.
+   */
   const handlePointerMove = (e: MouseEvent | PointerEvent) => {
     send({ type: 'MOVE_NEW_EDGE', payload: { x: e.clientX, y: e.clientY } });
 
@@ -117,6 +130,14 @@ export const FlowChart = <N extends Data = Data, E extends Data = Data>(
     }
   };
 
+  /**
+   * Builds the pointer-up handler that commits the new edge when released over an
+   * input handle.
+   *
+   * @param from - Source node id of the ongoing edge.
+   *
+   * @returns Pointer-up event handler closing the connection.
+   */
   const createHandlePointerUp = (from: string) => (e: MouseEvent | PointerEvent) => {
     const elements = document.elementsFromPoint(e.clientX, e.clientY);
     const inputHandle = elements
@@ -177,7 +198,8 @@ export const FlowChart = <N extends Data = Data, E extends Data = Data>(
         class='h-full w-full'
         style={{ cursor: fromNew() ? 'inherit' : 'crosshair' }}
       >
-        <NodesBoard
+        <NodesBoard<N, E>
+          flow={props.flow}
           panels={props.panels}
           Node={props.Node}
           Edge={props.Edge ?? EdgeCursive<E>}

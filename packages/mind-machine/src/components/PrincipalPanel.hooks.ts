@@ -5,12 +5,13 @@ import type { StateMachineNodeData } from '../types';
 
 /**
  * Custom hook computing derived reactive state, formatted labels, and display
- * properties for a state machine node.
+ * properties for the principal (root) machine node.
  *
- * @param props - State machine node data of type {@linkcode StateMachineNodeData}.
+ * @param props - Reactive accessor providing the principal node data of type
+ *   {@linkcode StateMachineNodeData}, or `undefined` when absent.
  *
- * @returns An object containing reactive accessors for node actors, entries, exits,
- *   activities, actions presence, tags, and badge colors.
+ * @returns An object containing reactive accessors for the principal node actors,
+ *   entries, exits, activities, actions presence, tags, and badge colors.
  *
  * @see {@linkcode dispatchArray}
  */

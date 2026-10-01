@@ -1,20 +1,29 @@
 import { deepEqual } from '@bemedev/app/utils';
-import {
-  EdgeCursive,
-  EdgeStraight,
-  useFlow,
-  type EdgeProps,
-} from '@bemedev/mind-flow';
+import { EdgeCursive, EdgeStraight, type EdgeProps } from '@bemedev/mind-flow';
 import { Show, splitProps, type Component } from 'solid-js';
 
 import { DASH_ARRAY, EDGES_COLORS } from '../constants';
 import type { StateMachineEdgeData } from '../types';
 import { StateMachineEdgeMiddle } from './Edge.middle';
 
+/**
+ * Custom edge renderer for `@bemedev/app` state machines.
+ *
+ * Resolves the -- type {@linkcode EdgeKind} from the edge data or its handle
+ * positions, then renders a straight line for `child_parent` hierarchy edges or a
+ * cursive line otherwise, with the category color and the transition middle label.
+ *
+ * @param props - Edge component properties of type
+ *   {@linkcode EdgeProps<StateMachineEdgeData>}.
+ *
+ * @returns The rendered Solid edge component.
+ *
+ * @see {@linkcode StateMachineEdgeMiddle}
+ */
 export const StateMachineEdge: Component<
   EdgeProps<StateMachineEdgeData>
 > = props => {
-  const { hooks } = useFlow();
+  const { hooks } = props.flow;
 
   const edgeRecord = hooks.state({
     selector: ({ context }) => context.data?.edges?.find(e => e.id === props.id),

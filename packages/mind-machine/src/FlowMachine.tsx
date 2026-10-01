@@ -1,4 +1,4 @@
-import { Flow, Hook, reconstructState, useFlow } from '@bemedev/mind-flow';
+import { createContext, Hook } from '@bemedev/mind-flow';
 import { onMount, type Component } from 'solid-js';
 
 import { StateMachineEdge } from './components/Edge';
@@ -9,86 +9,78 @@ import { StateMachineEditPanel } from './components/Node.edit';
 import { StateMachineNodeSelected } from './components/Node.selected';
 import { PrincipalPanel } from './components/PrincipalPanel';
 import { TransitionModal } from './components/TransitionModal';
-import { configFromHistory, type MachineConfigFrom } from './config';
-import type {
-  FlowMachineProps,
-  FlowMachineProps,
-  FlowMachineStorageProps,
-} from './FlowMachine.types';
-import { createHistoryPersister } from './persist';
-import { canDeleteGuard, DEFAULT_NODE_DATA, machineEdgesAllowed } from './rules';
-import { getStorageKey, readHistory } from './storage';
+import { configFromHistory } from './config';
+import type { FlowMachineProps } from './FlowMachine.types';
+import { canDelete, DEFAULT_NODE_DATA, machineEdgesAllowed } from './rules';
 import type { StateMachineEdgeData, StateMachineNodeData } from './types';
 
 /**
- * Core component orchestrating `@bemedev/app` state machine diagrams on top of the
- * `@bemedev/mind-flow` flowchart engine.
+ * Creates a machine context bound to the `@bemedev/mind-flow` engine: the `useFlow`
+ * hook reading it and the `FlowMachine` component providing it.
  *
  * It provides the default state machine rendering components (nodes, edges, panels,
- * history controls), parses a machine configuration or history source into default
- * nodes and edges, and persists the flow history into localStorage when `localKeys`
- * is provided.
+ * history controls) and parses the required `history` source into initial nodes and
+ * edges.
  *
- * @param props - Component properties of type {@linkcode FlowMachineProps}. Either a
- *   `localKeys` only configuration (restore mode) or a `history` source with
- *   optional `localKeys` (persistence mode).
+ * Persistence is delegated to the consumer through the
+ * {@linkcode FlowMachineProps.register} prop: read the stored history first, pass it
+ * as `history`, and persist the registered context.
  *
- * @returns The rendered Solid component.
+ * Every other machine component receives the same value as a `flow` prop, while
+ * custom children read it with the returned hook.
  *
- * @see {@linkcode Flow}
+ * @returns A tuple containing the accessor hook and the `FlowMachine` component of
+ *   type {@linkcode Component}.
+ *
  * @see {@linkcode configFromHistory}
- * @see {@linkcode getStorageKey}
  */
-export const FlowMachine: Component<FlowMachineProps> = props => {
-  const localKeys = (props as FlowMachineStorageProps).localKeys;
-  const history = (props as FlowMachineProps).history;
+const createFlowContext = () => {
+  const [useFlow, Flow] = createContext();
 
-  const storageKey = getStorageKey(localKeys);
-  const persisted = readHistory(storageKey);
-  /* An empty history means nothing was committed yet: keep the `history` source. */
-  const stored = persisted?.history.length ? persisted : undefined;
+  /** Bridges the flow context to the watermark atom rendered as a raw child. */
+  const Filigrane: Component = () => <AtomicFiligrane flow={useFlow()} />;
 
-  /** Resolves the restored payload first, then the `history` source. */
-  const initialConfig = (): MachineConfigFrom =>
-    stored
-      ? (reconstructState(stored.history, stored.historyIndex) as MachineConfigFrom)
-      : configFromHistory(history);
-
-  /** Persists the flow history whenever a new commit is registered. */
-  const register = createHistoryPersister(storageKey);
-
-  return (
-    <Flow<StateMachineNodeData, StateMachineEdgeData>
-      delay={100}
-      config={initialConfig()}
-      Node={StateMachineNode}
-      NodeSelected={StateMachineNodeSelected}
-      Edge={StateMachineEdge}
-      panels={{
-        bottomLeft: TransitionModal,
-        topLeft: StateMachineEditPanel,
-        topRight: PrincipalPanel,
-      }}
-      controlsAddons={HistoryControlsAddons}
-      defaultData={DEFAULT_NODE_DATA}
-      edgesAllowed={machineEdgesAllowed}
-      register={register}
-    >
-      {props.children}
-      <AtomicFiligrane />
-      <Hook>
-        {() => {
-          const { send, service } = useFlow();
-
-          onMount(() => {
-            service.addOptions(() => ({ guards: { canDelete: canDeleteGuard } }));
-
-            if (stored) {
-              send({ type: 'BUILD_HISTORY', payload: stored });
-            }
-          });
+  /**
+   * Core component orchestrating `@bemedev/app` state machine diagrams.
+   *
+   * @param props - Component properties of type {@linkcode FlowMachineProps}.
+   *
+   * @returns The rendered Solid component.
+   */
+  const FlowMachine: Component<FlowMachineProps> = props => {
+    return (
+      <Flow<StateMachineNodeData, StateMachineEdgeData>
+        delay={100}
+        config={configFromHistory(props.history)}
+        Node={StateMachineNode}
+        NodeSelected={StateMachineNodeSelected}
+        Edge={StateMachineEdge}
+        panels={{
+          bottomLeft: TransitionModal,
+          topLeft: StateMachineEditPanel,
+          topRight: PrincipalPanel,
         }}
-      </Hook>
-    </Flow>
-  );
+        controlsAddons={HistoryControlsAddons}
+        defaultData={DEFAULT_NODE_DATA}
+        edgesAllowed={machineEdgesAllowed}
+        register={props.register}
+      >
+        {props.children}
+        <Filigrane />
+        <Hook>
+          {() => {
+            const { service } = useFlow();
+
+            onMount(() => {
+              service.addOptions(() => ({ guards: { canDelete } }));
+            });
+          }}
+        </Hook>
+      </Flow>
+    );
+  };
+
+  return [useFlow, FlowMachine] as const;
 };
+
+export { createFlowContext as createContext };

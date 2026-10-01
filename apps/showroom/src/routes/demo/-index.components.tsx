@@ -1,4 +1,4 @@
-import { EditPanel, mouseOut } from '@bemedev/mind-flow';
+import { EditPanel, mouseOut, type WithFlow } from '@bemedev/mind-flow';
 import { clamp } from '@bemedev/mind-flow';
 import { type Component } from 'solid-js';
 
@@ -12,7 +12,7 @@ import type { ShowroomData } from './-index.types';
  *
  * @returns The rendered Solid component.
  */
-export const ShowroomNode: Component<ShowroomData> = props => {
+export const ShowroomNode: Component<ShowroomData & WithFlow> = props => {
   const getBadge = (p = 1) => BADGES[clamp(p - 1, 0, 4)];
   const badge = () => getBadge(props.priority);
 
@@ -43,12 +43,13 @@ export const ShowroomNode: Component<ShowroomData> = props => {
  *
  * @see type {@linkcode ShowroomData}
  */
-export const ShowroomEditPanel: Component = () => {
+export const ShowroomEditPanel: Component<WithFlow> = props => {
   const toPriority = (value: string) => Number(value) as ShowroomData['priority'];
   void mouseOut;
 
   return (
     <EditPanel<ShowroomData>
+      flow={props.flow}
       class='w-60 transition-all ease-linear'
       classList={({ closing }) => ({
         'pointer-events-none scale-95 opacity-0 duration-250': closing(),

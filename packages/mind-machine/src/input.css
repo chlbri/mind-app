@@ -1,4 +1,5 @@
 @import 'tailwindcss';
+@import '@bemedev/mind-flow/style.css';
 
 @custom-variant dark (&:is(.dark *));
 

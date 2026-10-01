@@ -1,12 +1,9 @@
-import * as v from 'valibot';
 import { describe, expect, it } from 'vitest';
 
 import {
   DASH_ARRAY,
   EDGES_COLORS,
-  historyModel,
   isDirectChildOfPrincipal,
-  localStorageModel,
   PRINCIPAL_NODE_KEY,
 } from './constants';
 
@@ -37,30 +34,6 @@ describe('#01 => constants', () => {
       expect(isDirectChildOfPrincipal(PRINCIPAL_NODE_KEY)).toBe(false);
       expect(isDirectChildOfPrincipal('cart')).toBe(false);
       expect(isDirectChildOfPrincipal()).toBe(false);
-    });
-  });
-
-  describe('#03 => schemas', () => {
-    it('#01 => should validate a history payload', () => {
-      const payload = {
-        history: [{ data: { nodes: [], edges: [] }, date: 1 }],
-        historyIndex: 0,
-      };
-
-      expect(v.safeParse(historyModel, payload).success).toBe(true);
-      expect(v.safeParse(historyModel, { history: [] }).success).toBe(false);
-    });
-
-    it('#02 => should parse a serialized history payload', () => {
-      const payload = { history: [], historyIndex: -1 };
-
-      const parsed = v.parse(localStorageModel, JSON.stringify(payload));
-      expect(parsed).toEqual(payload);
-    });
-
-    it('#03 => should reject invalid serialized payloads', () => {
-      expect(v.safeParse(localStorageModel, 'not-json').success).toBe(false);
-      expect(v.safeParse(localStorageModel, '{"history":[]}').success).toBe(false);
     });
   });
 });

@@ -1,15 +1,17 @@
 import { type Component } from 'solid-js';
 import { Dynamic } from 'solid-js/web';
 
-import { useFlow } from '../FlowChart.context';
+import type { WithFlow } from '../../Flow.context';
 
 /** Properties for the {@linkcode NodesBoardControls} component. */
 export type NodesControlsProps = {
+  /** Flow engine value of type {@linkcode FlowContext}. */
+  flow: WithFlow['flow'];
   /** Callback to recalculate and update scroll percentages on the board. */
   updateScrollPercentages: () => void;
 
   /** Optional custom controls addon component of type {@linkcode Component}. */
-  addons?: Component;
+  addons?: Component<WithFlow>;
 };
 
 /**
@@ -19,15 +21,18 @@ export type NodesControlsProps = {
  * @param props - Component properties of type {@linkcode NodesControlsProps}.
  *
  * @returns The rendered controls toolbar element.
- *
- * @see {@linkcode useFlow}
  */
-export const NodesBoardControls: Component<NodesControlsProps> = ({
-  addons = DefaultControlsAddons,
-  updateScrollPercentages,
-}) => {
-  const { hooks, send } = useFlow();
+export const NodesBoardControls: Component<NodesControlsProps> = props => {
+  const { hooks, send } = props.flow;
+
+  /** Reactive zoom factor of the canvas. */
   const zoom = hooks.state({ selector: s => s.context.zoom ?? 1 });
+
+  /** Addon component rendered next to the zoom buttons. */
+  const addons = props.addons ?? DefaultControlsAddons;
+
+  /** Destructured scroll percentages updater of the board. */
+  const { updateScrollPercentages } = props;
 
   return (
     <div class='absolute right-4 bottom-4 z-50 flex items-center gap-2 rounded-xl border border-gray-200 bg-white/90 p-2 shadow-lg backdrop-blur-md'>
@@ -71,7 +76,7 @@ export const NodesBoardControls: Component<NodesControlsProps> = ({
       </button>
 
       <div class='h-5 w-px bg-gray-300' />
-      <Dynamic component={addons} />
+      <Dynamic component={addons} flow={props.flow} />
     </div>
   );
 };
@@ -79,12 +84,12 @@ export const NodesBoardControls: Component<NodesControlsProps> = ({
 /**
  * Default action addon rendering a button to add a root parent node to the board.
  *
- * @returns The rendered addon element.
+ * @param props - Component properties of type {@linkcode WithFlow}.
  *
- * @see {@linkcode useFlow}
+ * @returns The rendered addon element.
  */
-export const DefaultControlsAddons: Component = () => {
-  const { send } = useFlow();
+export const DefaultControlsAddons: Component<WithFlow> = props => {
+  const { send } = props.flow;
   return (
     <div class='flex items-center justify-center'>
       <button

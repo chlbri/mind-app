@@ -1,5 +1,5 @@
 import type { StateType } from '@bemedev/app/states';
-import { clickOutside, useFlow } from '@bemedev/mind-flow';
+import { clickOutside, type WithFlow } from '@bemedev/mind-flow';
 import { createSignal, For, Show, type Component } from 'solid-js';
 
 import { isDirectChildOfPrincipal, PRINCIPAL_NODE_KEY } from '../constants';
@@ -25,17 +25,19 @@ export const [isPrincipalOpen, setIsPrincipalOpen] = createSignal(false);
  * Supports switching the root machine type between atomic, compound, and parallel,
  * with automatic child node creation, initial state management, and canvas wiping.
  */
-export const PrincipalPanel: Component = () => {
+export const PrincipalPanel: Component<WithFlow> = props => {
   void clickOutside;
-  const { hooks, send } = useFlow();
+  const { hooks, send } = props.flow;
 
   const allNodes = hooks.state({
     selector: ({ context: { data } }) => data?.nodes ?? [],
   });
 
+  /** Principal (root) node of the flowchart. */
   const principalNode = () =>
     allNodes().find(n => n.id === PRINCIPAL_NODE_KEY || (n.data as any)?.principal)!;
 
+  /** Direct children of the principal node rendered on the canvas. */
   const directChildren = () =>
     allNodes().filter(
       n =>
@@ -45,20 +47,24 @@ export const PrincipalPanel: Component = () => {
           isDirectChildOfPrincipal(n.data?.path ?? n.id)),
     );
 
+  /** Closes the panel when a click lands outside of it. */
   const handleClickOutside = () => {
     if (isPrincipalOpen()) {
       setIsPrincipalOpen(false);
     }
   };
 
+  /** Data payload of the principal node, when available. */
   const nodeData = (): StateMachineNodeData | undefined => {
     const p = principalNode();
     if (!p?.data) return undefined;
     return p.data as StateMachineNodeData;
   };
 
+  /** State type of the principal node, defaulting to `'compound'`. */
   const stateType = () => nodeData()?.stateType ?? 'compound';
 
+  /** Badge color classes matching the principal node state type. */
   const typeBadgeColor = () => {
     switch (stateType()) {
       case 'compound':
@@ -70,6 +76,14 @@ export const PrincipalPanel: Component = () => {
     }
   };
 
+  /**
+   * Updates a single data field of the principal node.
+   *
+   * @template K - Key of -- type {@linkcode StateMachineNodeData} to update.
+   *
+   * @param field - Field name to update.
+   * @param value - New value assigned to the field.
+   */
   const updatePrincipalField = <K extends keyof StateMachineNodeData>(
     field: K,
     value: StateMachineNodeData[K],
@@ -82,6 +96,12 @@ export const PrincipalPanel: Component = () => {
     send({ type: 'SET_NODE_DATA', payload: { id: p.id, data: { [field]: value } } });
   };
 
+  /**
+   * Switches the principal node state type, creating or wiping canvas children as
+   * required by the target type.
+   *
+   * @param nextType - Target state type of type {@linkcode StateType}.
+   */
   const handleStateTypeChange = (nextType: StateType) => {
     const pNode = principalNode();
     if (!pNode) return;

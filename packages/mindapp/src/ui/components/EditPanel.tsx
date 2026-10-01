@@ -27,8 +27,9 @@ export const EditPanel = <D extends Data = Data>(
   void clickOutside;
   void mouseOut;
 
-  // const editing
-  const hooks = useHook<D>(props.timeout);
+  const hooks = useHook<D>(props.flow, props.timeout);
+
+  /** Resolved class list, evaluating the functional form when provided. */
   const classList = () =>
     props.classList instanceof Function ? props.classList(hooks) : props.classList;
 

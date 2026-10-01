@@ -2,6 +2,10 @@ import { createSignal } from 'solid-js';
 
 import type { EdgeKind, StateMachineNodeData, TransitionItem } from '../types';
 
+/**
+ * Signal storing the state node whose actors panel is currently open, `null` when
+ * closed.
+ */
 export const [activeActorNode, setActiveActorNode] =
   createSignal<StateMachineNodeData | null>(null);
 
@@ -26,6 +30,10 @@ export type ActiveAddTransition = {
   initialData?: Partial<TransitionItem>;
 };
 
+/**
+ * Signal storing the edge or transition currently being added/edited in the
+ * Transition modal, `null` when closed.
+ */
 export const [activeAddTransitionEdge, setActiveAddTransitionEdge] =
   createSignal<ActiveAddTransition | null>(null);
 

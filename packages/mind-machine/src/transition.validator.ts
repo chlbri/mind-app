@@ -386,7 +386,7 @@ export const getTransitionsFromState = (
 
   for (const edge of edges) {
     const data = (edge.data ?? {}) as StateMachineEdgeData;
-    const edgeFrom = data.fromState ?? edge.from;
+    const edgeFrom = data.from ?? edge.from;
     if (edgeFrom !== fromState) continue;
 
     const transitions: TransitionItem[] =
@@ -410,7 +410,7 @@ export const getTransitionsFromState = (
       result.push({
         id: item.id,
         from: edgeFrom,
-        to: data.toState ?? edge.to,
+        to: data.to ?? edge.to,
         kind: item.kind,
         event: item.event,
         delay: item.delay,

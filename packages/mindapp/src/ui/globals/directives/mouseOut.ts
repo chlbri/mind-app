@@ -52,9 +52,13 @@ export const mouseOut = (
   el: HTMLElement | Element,
   accessor: () => MouseOutParam,
 ) => {
+  /** Pending leave callback timer. */
   let timer: ReturnType<typeof setTimeout> | undefined;
+
+  /** Tracks whether the pointer is currently inside the element. */
   let isHovered = false;
 
+  /** Cancels the pending leave callback timer. */
   const clear = () => {
     if (timer !== undefined) {
       clearTimeout(timer);
@@ -62,11 +66,18 @@ export const mouseOut = (
     }
   };
 
+  /** Tells whether the element or one of its descendants currently has focus. */
   const isFocused = () => {
     const active = el.ownerDocument?.activeElement ?? document.activeElement;
     return !!active && el.contains(active);
   };
 
+  /**
+   * Resolves the accessor parameters and invokes the leave callback, possibly after
+   * the configured delay.
+   *
+   * @param event - Mouse or focus event that triggered the leave.
+   */
   const triggerLeave = (event?: MouseEvent | FocusEvent) => {
     clear();
 
@@ -98,17 +109,28 @@ export const mouseOut = (
     }
   };
 
+  /** Marks the element as hovered and cancels any pending leave. */
   const onMouseEnter = () => {
     isHovered = true;
     clear();
   };
 
+  /**
+   * Schedules the leave callback when the pointer exits without focus inside.
+   *
+   * @param event - Mouse leave event.
+   */
   const onMouseLeave = (event: MouseEvent) => {
     isHovered = false;
     if (isFocused()) return;
     triggerLeave(event);
   };
 
+  /**
+   * Schedules the leave callback when focus exits the element without hover.
+   *
+   * @param event - Focus out event.
+   */
   const onFocusOut = (event: FocusEvent) => {
     const nextTarget = event.relatedTarget as Node | null;
     const stillHasFocus = !!nextTarget && el.contains(nextTarget);

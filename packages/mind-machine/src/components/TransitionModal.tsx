@@ -4,8 +4,8 @@ import {
   cn,
   mouseOut,
   useClose,
-  useFlow,
   type MouseOutParam,
+  type WithFlow,
 } from '@bemedev/mind-flow';
 import { nanoid } from 'nanoid';
 import {
@@ -44,11 +44,11 @@ declare module 'solid-js' {
  *
  * @returns The rendered Solid component or `null` when no transition is active.
  */
-export const TransitionModal: Component = () => {
+export const TransitionModal: Component<WithFlow> = props => {
   void clickOutside;
   void mouseOut;
 
-  const { send, hooks } = useFlow();
+  const { send, hooks } = props.flow;
   const activeEdge = activeAddTransitionEdge;
 
   const {
@@ -71,6 +71,7 @@ export const TransitionModal: Component = () => {
   const [guards, setGuards] = createSignal<GuardConfig[] | undefined>(undefined);
   const [actionsInput, setActionsInput] = createSignal('');
 
+  /** Tells whether the modal edits an existing transition instead of adding one. */
   const isEdit = () =>
     activeEdge()?.mode === 'edit' || Boolean(activeEdge()?.transitionId);
 
@@ -82,7 +83,7 @@ export const TransitionModal: Component = () => {
     if (target.mode === 'edit' || target.transitionId) {
       const init = target.initialData;
       setEventName(init?.event ?? '');
-      setDelay(init?.delay ? String(init.delay) : '3000ms');
+      setDelay(init?.delay ? init.delay : '3000ms');
       setGuards(
         init?.guards
           ? Array.isArray(init.guards)
@@ -100,6 +101,7 @@ export const TransitionModal: Component = () => {
   });
 
   // Close on Escape key
+  /** Closes the modal when the `Escape` key is pressed. */
   const handleKeyDown = (e: KeyboardEvent) => {
     if (e.key === 'Escape') close();
   };
@@ -111,26 +113,30 @@ export const TransitionModal: Component = () => {
     }
   });
 
+  /** Edge record matching the active edit target, when present. */
   const targetEdge = () => {
     const target = activeEdge();
     if (!target) return undefined;
     return allEdges().find(e => e.id === target.edgeId);
   };
 
+  /** Source state path of the active transition. */
   const fromState = () => {
     const target = activeEdge();
     const edge = targetEdge();
     const data = edge?.data as StateMachineEdgeData | undefined;
-    return target?.from || data?.fromState || edge?.from || '';
+    return target?.from || data?.from || edge?.from || '';
   };
 
+  /** Target state path of the active transition. */
   const toState = () => {
     const target = activeEdge();
     const edge = targetEdge();
     const data = edge?.data as StateMachineEdgeData | undefined;
-    return target?.to || data?.toState || edge?.to || '';
+    return target?.to || data?.to || edge?.to || '';
   };
 
+  /** Edge kind of the active transition, inferred from the edge handles when missing. */
   const edgeKind = (): EdgeKind => {
     const target = activeEdge();
     if (target?.kind) return target.kind;
@@ -148,6 +154,7 @@ export const TransitionModal: Component = () => {
     return 'on';
   };
 
+  /** Title, icon and badge classes displayed for the active edge kind. */
   const kindInfo = () => {
     const k = edgeKind();
     switch (k) {
@@ -176,6 +183,10 @@ export const TransitionModal: Component = () => {
     }
   };
 
+  /**
+   * Validates the current form values against existing transitions of the source
+   * state.
+   */
   const conflict = () => {
     const target = activeEdge();
     if (!target) return { hasConflict: false };
@@ -202,6 +213,7 @@ export const TransitionModal: Component = () => {
     );
   };
 
+  /** Builds and dispatches the transition update, then closes the modal. */
   const handleSave = () => {
     const target = activeEdge();
     if (!target) return;

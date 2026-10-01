@@ -2,8 +2,8 @@ import type { StateType } from '@bemedev/app/states';
 import {
   EditPanel,
   mouseOut,
-  useFlow,
   type MouseOutParam,
+  type WithFlow,
 } from '@bemedev/mind-flow';
 import { createEffect, Show, type Component } from 'solid-js';
 
@@ -25,14 +25,15 @@ declare module 'solid-js' {
  * upon double-click, including title, stateType, isInitial, description (content),
  * tags, entry/exit actions, and activities.
  */
-export const StateMachineEditPanel: Component = () => {
+export const StateMachineEditPanel: Component<WithFlow> = props => {
   void mouseOut;
-  const { send, hooks } = useFlow();
+  const { send, hooks } = props.flow;
 
   const allNodes = hooks.state({
     selector: ({ context: { data } }) => data?.nodes ?? [],
   });
 
+  /** Splits a comma-separated input value into a cleaned list or `undefined`. */
   const toList = (val: string): string[] | undefined => {
     const list = val
       .split(',')
@@ -43,6 +44,7 @@ export const StateMachineEditPanel: Component = () => {
 
   return (
     <EditPanel<StateMachineNodeData>
+      flow={props.flow}
       class='max-h-[85vh] w-96 overflow-y-auto transition-all ease-linear'
       classList={({ closing }) => ({
         'pointer-events-none scale-95 opacity-0 duration-250': closing(),
@@ -50,10 +52,16 @@ export const StateMachineEditPanel: Component = () => {
           !closing(),
       })}
       header={({ id, close }) => {
+        /** Node currently being edited. */
         const currentNode = () => allNodes().find(n => n.id === id);
+
+        /** State type of the edited node, defaulting to `'atomic'`. */
         const stateType = () => currentNode()?.data?.stateType ?? 'atomic';
+
+        /** Tells whether the edited node is the initial child of its parent. */
         const isInitial = () => Boolean(currentNode()?.data?.isInitial);
 
+        /** Badge color classes matching the node state type. */
         const typeBadgeColor = () => {
           switch (stateType()) {
             case 'compound':
@@ -113,6 +121,7 @@ export const StateMachineEditPanel: Component = () => {
       }}
     >
       {({ editingNode: node, updateField, close, updateNodeData }) => {
+        /** Direct children of the edited node. */
         const childNodes = () => {
           const current = node();
           const currentPath = current.data?.path ?? current.id;
@@ -133,8 +142,10 @@ export const StateMachineEditPanel: Component = () => {
           });
         };
 
+        /** Tells whether the edited node has at least one child. */
         const hasChildren = () => childNodes().length > 0;
 
+        /** Direct parent node of the edited node, when any. */
         const parentNode = () => {
           const current = node();
           if (!current) return undefined;
@@ -146,8 +157,10 @@ export const StateMachineEditPanel: Component = () => {
           );
         };
 
+        /** Tells whether the parent of the edited node is a compound state. */
         const isParentCompound = () => parentNode()?.data?.stateType === 'compound';
 
+        /** Sibling nodes sharing the same parent as the edited node. */
         const siblingNodes = () => {
           const parent = parentNode();
           if (!parent) return [];
@@ -321,10 +334,10 @@ export const StateMachineEditPanel: Component = () => {
             </div>
 
             {/* Activities */}
-            <ActivityInputs updateField={updateField} />
+            <ActivityInputs flow={props.flow} updateField={updateField} />
 
             {/* Actors */}
-            <ActorInputs updateField={updateField} />
+            <ActorInputs flow={props.flow} updateField={updateField} />
           </div>
         );
       }}

@@ -1,3 +1,4 @@
+/** Aggregates every state machine rendering component and hook of the package. */
 export * from './TransitionModal';
 export * from './Edge';
 export * from './Edge.middle';

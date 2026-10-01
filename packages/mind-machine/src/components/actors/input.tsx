@@ -1,5 +1,5 @@
 import { deepEqual } from '@bemedev/app';
-import { useFlow } from '@bemedev/mind-flow';
+import { type WithFlow } from '@bemedev/mind-flow';
 import { createSignal, For, Show, type Component } from 'solid-js';
 
 import { toList } from '../../helpers';
@@ -12,14 +12,21 @@ import { ActorChildEventItem } from './child.event';
 export type ActorItemProps = {
   /** Stable unique identifier of the actor entry. */
   id: string;
-  /** Callback for updating a field on the state machine node data. */
+  /**
+   * Callback for updating a field on the state machine node data.
+   *
+   * @template K - Key of -- type {@linkcode StateMachineNodeData} to update.
+   *
+   * @param field - Field name to update.
+   * @param value - New value assigned to the field.
+   */
   updateField: <K extends keyof StateMachineNodeData>(
     field: K,
     value: StateMachineNodeData[K],
   ) => void;
   /** Callback invoked when removing the actor item. */
   onRemove: () => void;
-};
+} & WithFlow;
 
 /**
  * Child item component representing a single actor (emitter or child state machine).
@@ -30,9 +37,12 @@ export type ActorItemProps = {
  * @returns The rendered Solid component.
  */
 export const ActorItem: Component<ActorItemProps> = props => {
-  const { hooks } = useFlow();
+  const { hooks } = props.flow;
+
+  /** Signal controlling the expanded/collapsed state of the actor details. */
   const [expanded, setExpanded] = createSignal(true);
 
+  /** Reactive list of all actors of the node being edited. */
   const allActors = hooks.state({
     selector: ({ context }) => {
       const editingId = context.editing;
@@ -43,6 +53,7 @@ export const ActorItem: Component<ActorItemProps> = props => {
     equals: deepEqual<StateActorData[]>,
   });
 
+  /** Reactive actor matching the `id` prop of this item. */
   const actor = hooks.state({
     selector: ({ context }) => {
       const editingId = context.editing;
@@ -54,6 +65,12 @@ export const ActorItem: Component<ActorItemProps> = props => {
     equals: deepEqual<StateActorData | undefined>,
   });
 
+  /**
+   * Merges a partial patch into this actor and synchronizes its
+   * backward-compatibility `emissions`/`events` mirrors.
+   *
+   * @param patch - Partial actor fields to merge.
+   */
   const updateActor = (patch: Partial<StateActorData>) => {
     const current = allActors();
     const updated = current.map((item, i) => {
@@ -83,6 +100,7 @@ export const ActorItem: Component<ActorItemProps> = props => {
     props.updateField('actors', updated);
   };
 
+  /** Reactive event keys handled by the child actor. */
   const eventKeys = hooks.state({
     selector: ({ context }) => {
       const editingId = context.editing;
@@ -97,6 +115,7 @@ export const ActorItem: Component<ActorItemProps> = props => {
     equals: deepEqual<string[]>,
   });
 
+  /** Reactive context mapping keys of the child actor. */
   const contextKeys = hooks.state({
     selector: ({ context }) => {
       const editingId = context.editing;
@@ -402,6 +421,7 @@ export const ActorItem: Component<ActorItemProps> = props => {
                     <For each={eventKeys()}>
                       {evKey => (
                         <ActorChildEventItem
+                          flow={props.flow}
                           actorId={props.id}
                           eventKey={evKey}
                           updateField={props.updateField}
@@ -446,6 +466,7 @@ export const ActorItem: Component<ActorItemProps> = props => {
                     <For each={contextKeys()}>
                       {ctxKey => (
                         <ActorChildContextItem
+                          flow={props.flow}
                           actorId={props.id}
                           contextKey={ctxKey}
                           updateField={props.updateField}

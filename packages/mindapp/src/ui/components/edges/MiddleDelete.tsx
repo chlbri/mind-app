@@ -1,7 +1,6 @@
 import { cn } from 'cn';
 import { Show, type Component } from 'solid-js';
 
-import { useFlow } from '../FlowChart.context';
 import type { EdgeMiddleProps } from './types';
 
 /**
@@ -12,11 +11,9 @@ import type { EdgeMiddleProps } from './types';
  *
  * @returns An SVG group element containing the delete button, or null when not
  *   selected.
- *
- * @see {@linkcode useFlow}
  */
 export const MiddleDelete: Component<EdgeMiddleProps> = props => {
-  const { send } = useFlow();
+  const { send } = props.flow;
 
   return (
     <Show when={props.selected()}>

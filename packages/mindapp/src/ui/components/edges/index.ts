@@ -1,3 +1,4 @@
+/** Aggregates the SVG edge components, middle overlays and edge hooks. */
 export * from './EdgeCursive';
 export * from './EdgeStraight';
 export * from './EdgesBoard';

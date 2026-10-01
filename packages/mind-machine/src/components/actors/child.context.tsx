@@ -1,5 +1,5 @@
 import { deepEqual } from '@bemedev/app';
-import { useFlow } from '@bemedev/mind-flow';
+import { type WithFlow } from '@bemedev/mind-flow';
 import { createMemo, type Component } from 'solid-js';
 
 import type { StateActorData, StateMachineNodeData } from '../../types';
@@ -10,12 +10,19 @@ export type ActorChildContextItemProps = {
   actorId: string;
   /** Context key name projected into the child machine. */
   contextKey: string;
-  /** Callback for updating a field on the state machine node data. */
+  /**
+   * Callback for updating a field on the state machine node data.
+   *
+   * @template K - Key of -- type {@linkcode StateMachineNodeData} to update.
+   *
+   * @param field - Field name to update.
+   * @param value - New value assigned to the field.
+   */
   updateField: <K extends keyof StateMachineNodeData>(
     field: K,
     value: StateMachineNodeData[K],
   ) => void;
-};
+} & WithFlow;
 
 /**
  * Child item component representing a single context projection mapping
@@ -30,8 +37,9 @@ export type ActorChildContextItemProps = {
 export const ActorChildContextItem: Component<
   ActorChildContextItemProps
 > = props => {
-  const { hooks } = useFlow();
+  const { hooks } = props.flow;
 
+  /** Reactive list of all actors of the node being edited. */
   const allActors = hooks.state({
     selector: ({ context }) => {
       const editingId = context.editing;
@@ -42,6 +50,7 @@ export const ActorChildContextItem: Component<
     equals: deepEqual<StateActorData[]>,
   });
 
+  /** Reactive parent `pContext` path mapped by this context item. */
   const contextValue = hooks.state({
     selector: ({ context }) => {
       const editingId = context.editing;
@@ -56,6 +65,12 @@ export const ActorChildContextItem: Component<
     equals: deepEqual<string | undefined>,
   });
 
+  /**
+   * Applies an updater on the `child` configuration of the parent actor.
+   *
+   * @param updater - Function receiving the current child configuration and
+   *   returning the updated one.
+   */
   const updateChild = (
     updater: (
       currentChild: NonNullable<StateActorData['child']>,
@@ -78,12 +93,18 @@ export const ActorChildContextItem: Component<
     props.updateField('actors', updated);
   };
 
+  /** Reactive parent actor owning this context mapping. */
   const currentActor = createMemo(() => {
     return allActors().find(
       (a, i) => (a.id ?? a.name ?? String(i)) === props.actorId,
     );
   });
 
+  /**
+   * Renames the child context key when the new value is non-empty and unique.
+   *
+   * @param newKey - Candidate child context key.
+   */
   const renameKey = (newKey: string) => {
     const trimmed = newKey.trim();
     if (!trimmed || trimmed === props.contextKey) return;
@@ -99,6 +120,11 @@ export const ActorChildContextItem: Component<
     });
   };
 
+  /**
+   * Updates the parent `pContext` path mapped by this context item.
+   *
+   * @param newVal - New parent `pContext` path.
+   */
   const updateValue = (newVal: string) => {
     updateChild(child => {
       const contexts = child.contexts ?? {};
@@ -106,6 +132,7 @@ export const ActorChildContextItem: Component<
     });
   };
 
+  /** Removes this context mapping from the parent actor. */
   const removeMapping = () => {
     updateChild(child => {
       const { [props.contextKey]: _, ...rest } = child.contexts ?? {};
