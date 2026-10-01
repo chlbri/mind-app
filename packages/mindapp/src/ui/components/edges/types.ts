@@ -2,6 +2,8 @@ import type { Accessor, Component } from 'solid-js';
 
 import type { Data, Vector } from '#services/main.machine.typings';
 
+import type { FlowContext } from '../../Flow.context';
+
 /**
  * Properties passed to custom edge middle overlay components.
  *
@@ -13,6 +15,8 @@ export type EdgeMiddleProps<D extends Data = Data> = {
   vector: Accessor<Vector | undefined>;
   /** Unique identifier of the edge. */
   id: string;
+  /** Flow engine value of type {@linkcode FlowContext}. */
+  flow: FlowContext;
   /** Custom data payload attached to the edge. */
   data?: D;
   /** Accessor indicating whether the edge is currently selected. */
@@ -30,6 +34,8 @@ export type EdgeMiddleProps<D extends Data = Data> = {
 export type EdgeProps<D extends Data = Data> = {
   /** Unique identifier of the edge. */
   id: string;
+  /** Flow engine value of type {@linkcode FlowContext}. */
+  flow: FlowContext;
   /** Whether this is a temporary edge currently being dragged. */
   isNew?: boolean;
   /** Custom data attached to the edge. */

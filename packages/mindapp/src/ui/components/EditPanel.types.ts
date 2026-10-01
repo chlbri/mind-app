@@ -1,5 +1,6 @@
 import type { Component, JSX } from 'solid-js';
 
+import type { FlowContext } from '../Flow.context';
 import type { ClassList } from '../globals/types';
 import { useHook } from './EditPanel.hooks';
 import type { Data } from './FlowChart';
@@ -22,6 +23,8 @@ export type EditPanelChildProps<D extends Data = Data> = ReturnType<
  *   {@linkcode Data}.
  */
 export type EditPanelProps<D extends Data = Data> = {
+  /** Flow engine value of type {@linkcode FlowContext}. */
+  flow: FlowContext;
   /** Optional additional CSS classes for the outer container card. */
   class?: string;
   /** Optional class map for conditional styling. */

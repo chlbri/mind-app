@@ -48,8 +48,10 @@ interface LoadingFallbackProps {
  * @returns Rendered full-screen loading fallback JSX element.
  */
 export const LoadingFallback: Component<LoadingFallbackProps> = props => {
+  /** Resolved loading message, defaulting to the French fallback. */
   const message = props.message ?? 'Chargement en cours...';
 
+  /** Tailwind size classes for each spinner dimension. */
   const spinnerSizes = {
     sm: 'w-8 h-8',
     md: 'w-12 h-12',
@@ -57,6 +59,7 @@ export const LoadingFallback: Component<LoadingFallbackProps> = props => {
     xl: 'w-24 h-24',
   };
 
+  /** Resolved spinner dimension key. */
   const size = props.size ?? 'lg';
 
   return (

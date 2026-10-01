@@ -21,6 +21,7 @@ export const FadingDots: Component<{
     style?: JSX.CSSProperties;
   };
 }> = ({ count: length, innerProps = {}, duration = 500 }) => {
+  /** Local class and style props extracted from `innerProps`. */
   const [local, rest] = splitProps(innerProps, ['class', 'style']);
 
   return (

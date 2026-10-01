@@ -23,6 +23,10 @@
     "/^cat /Users/bri/Documents/GitHub/mind-app/node_modules/@bemedev/app/lib/bemedev\\.js \\| head -20; echo '---PKG DEPS mindapp---'; node -e \"const p=require\\('/Users/bri/Documents/GitHub/mind-app/packages/mindapp/package\\.json'\\); console\\.log\\(JSON\\.stringify\\(\\{deps:p\\.dependencies, dev:p\\.devDependencies\\}, null, 2\\)\\)\"$/": {
       "approve": true,
       "matchCommandLine": true
+    },
+    "/^cd /Users/bri/Documents/GitHub/mind-app/packages/mind-machine && pnpm exec vitest run --coverage --coverage\\.reporter=json --passWithNoTests > /dev/null 2>&1; node -e \"\nconst c = require\\('/Users/bri/Documents/GitHub/mind-app/packages/mind-machine/coverage/coverage-final\\.json'\\);\nfor \\(const \\[f, data\\] of Object\\.entries\\(c\\)\\) \\{\n  const file = f\\.split\\('/packages/mind-machine/'\\)\\[1\\];\n  const stmts = \\[\\];\n  for \\(const \\[id, count\\] of Object\\.entries\\(data\\.s\\)\\) if \\(count === 0\\) stmts\\.push\\(data\\.statementMap\\[id\\]\\.start\\.line\\);\n  const branches = \\[\\];\n  for \\(const \\[id, counts\\] of Object\\.entries\\(data\\.b\\)\\) counts\\.forEach\\(\\(cnt, i\\) => \\{\n    if \\(cnt === 0\\) \\{ const l = data\\.branchMap\\[id\\]\\.locations\\[i\\] \\|\\| data\\.branchMap\\[id\\]\\.loc; branches\\.push\\(l\\.start\\.line\\); \\}\n  \\}\\);\n  if \\(stmts\\.length \\|\\| branches\\.length\\) \\{\n    console\\.log\\('=== ' \\+ file\\);\n    console\\.log\\('  stmts   :', \\[\\.\\.\\.new Set\\(stmts\\)\\]\\.sort\\(\\(a,b\\)=>a-b\\)\\.join\\(','\\)\\);\n    console\\.log\\('  branches:', \\[\\.\\.\\.new Set\\(branches\\)\\]\\.sort\\(\\(a,b\\)=>a-b\\)\\.join\\(','\\)\\);\n  \\}\n\\}\n\"$/": {
+      "approve": true,
+      "matchCommandLine": true
     }
   }
 }

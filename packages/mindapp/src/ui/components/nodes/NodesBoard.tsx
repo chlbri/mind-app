@@ -21,10 +21,10 @@ import {
   SCROLL_MULTIPLIER,
 } from '../../../services/main.machine.data';
 import type { Data } from '../../../services/main.machine.typings';
+import type { FlowContext, WithFlow } from '../../Flow.context';
 import { DragBounds } from '../Bounds';
 import { EdgesBoard } from '../edges/EdgesBoard';
 import type { EdgeProps } from '../edges/types';
-import { useFlow } from '../FlowChart.context';
 import type { FlowPanels } from '../FlowChart.types';
 import { Panels } from '../Panels';
 import { NodeComponent, type NodeComponentProps } from './Node';
@@ -39,8 +39,10 @@ import { NodesBoardControls } from './NodesBoard.controls';
  *   {@linkcode Data}.
  */
 export type NodesBoardProps<N extends Data = Data, E extends Data = Data> = {
+  /** Flow engine value of type {@linkcode FlowContext}. */
+  flow: FlowContext;
   /** Optional custom node component. */
-  Node?: Component<N>;
+  Node?: Component<N & WithFlow>;
   /** Optional custom edge component. */
   Edge: Component<EdgeProps<E>>;
   /** Component rendered when a node is selected, providing action buttons. */
@@ -48,7 +50,7 @@ export type NodesBoardProps<N extends Data = Data, E extends Data = Data> = {
   /** Optional custom overlay panels of type {@linkcode FlowPanels}. */
   panels?: FlowPanels;
   /** Optional custom controls addon component of type {@linkcode Component}. */
-  controlsAddons?: Component;
+  controlsAddons?: Component<WithFlow>;
 };
 
 /**
@@ -64,24 +66,38 @@ export type NodesBoardProps<N extends Data = Data, E extends Data = Data> = {
  *
  * @returns The rendered Solid component.
  *
- * @see {@linkcode DragBounds}, {@linkcode EdgesBoard}, {@linkcode NodeComponent}, {@linkcode useFlow}, {@linkcode CANVAS_FACTOR}, {@linkcode SCROLL_MULTIPLIER}
+ * @see {@linkcode DragBounds}, {@linkcode EdgesBoard}, {@linkcode NodeComponent}, {@linkcode CANVAS_FACTOR}, {@linkcode SCROLL_MULTIPLIER}
  */
 export const NodesBoard = <N extends Data = Data, E extends Data = Data>(
   props: NodesBoardProps<N, E>,
 ): JSX.Element => {
+  /** Reference to the scrollable viewport container element. */
   const [containerRef, setContainerRef] = createSignal<HTMLDivElement>();
-  const [isPanning, setIsPanning] = createSignal(false);
-  const [transform, setTransform] = createSignal({ x: 0, y: 0 });
-  const [ref, setRef] = createSignal<HTMLDivElement>();
-  let percentX = 0;
-  let percentY = 0;
-  const { hooks, send } = useFlow();
 
+  /** Tells whether the user is currently panning the board. */
+  const [isPanning, setIsPanning] = createSignal(false);
+
+  /** Drag overlay transform accumulated during a node drag. */
+  const [transform, setTransform] = createSignal({ x: 0, y: 0 });
+
+  /** Reference to the scalable board element. */
+  const [ref, setRef] = createSignal<HTMLDivElement>();
+
+  /** Normalized horizontal scroll position preserved across zoom changes. */
+  let percentX = 0;
+
+  /** Normalized vertical scroll position preserved across zoom changes. */
+  let percentY = 0;
+
+  const { hooks, send } = props.flow;
+
+  /** Reactive ongoing new edge preview, if any. */
   const newEdge = hooks.state({
     selector: s => s.context.newEdge,
     equals: deepEqual<any>,
   });
 
+  /** Reactive zoom factor of the canvas. */
   const zoom = hooks.state({ selector: s => s.context.zoom ?? 1 });
 
   /**
@@ -145,8 +161,10 @@ export const NodesBoard = <N extends Data = Data, E extends Data = Data>(
 
   onMount(sendBoard);
 
+  /** Reactive identifier of the currently selected node or edge. */
   const selectedId = hooks.state({ selector: s => s.context?.selected });
 
+  /** Reactive identifiers of every node rendered on the board. */
   const nodeIds = hooks.state({
     selector: ({ context }) => {
       const list = toArray.typed(context.data?.nodes);
@@ -155,8 +173,13 @@ export const NodesBoard = <N extends Data = Data, E extends Data = Data>(
     equals: (prev, next) => prev.length === next.length,
   });
 
+  /** Base canvas size in CSS viewport units, scaled by {@linkcode CANVAS_FACTOR}. */
   const CANVAS_SIZE = CANVAS_FACTOR * 100;
+
+  /** Horizontal margin in pixels removed from the scaled canvas width. */
   const MARGIN_X = 53 * CANVAS_FACTOR;
+
+  /** Vertical margin in pixels removed from the scaled canvas height. */
   const MARGIN_Y = 85 * CANVAS_FACTOR;
 
   /** Computes the dynamic canvas width string in CSS units adjusted for zoom. */
@@ -290,11 +313,12 @@ export const NodesBoard = <N extends Data = Data, E extends Data = Data>(
               class='relative h-full w-full'
               style={{ scale: zoom(), 'transform-origin': 'top left' }}
             >
-              <DragBounds />
-              <EdgesBoard Edge={props.Edge} />
+              <DragBounds flow={props.flow} />
+              <EdgesBoard flow={props.flow} Edge={props.Edge} />
               <For each={nodeIds()}>
                 {id => (
                   <NodeComponent
+                    flow={props.flow}
                     id={id}
                     children={props.Node}
                     Selected={props.NodeSelected}
@@ -305,9 +329,10 @@ export const NodesBoard = <N extends Data = Data, E extends Data = Data>(
           </div>
         </div>
 
-        <Panels {...props.panels} />
+        <Panels {...props.panels} flow={props.flow} />
 
         <NodesBoardControls
+          flow={props.flow}
           updateScrollPercentages={updateScrollPercentages}
           addons={props.controlsAddons}
         />

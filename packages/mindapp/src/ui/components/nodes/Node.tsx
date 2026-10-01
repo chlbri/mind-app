@@ -11,8 +11,8 @@ import type {
   NodeHandles_T,
 } from '#services/main.machine.typings';
 
+import type { FlowContext, WithFlow } from '../../Flow.context';
 import { resize } from '../../globals/directives';
-import { useFlow } from '../FlowChart.context';
 import { DEFAULT_HANDLES } from './data';
 import { NodeHandles } from './Node.handles';
 
@@ -22,10 +22,12 @@ export { getHandleOffsetPercent };
 export type NodeComponentProps<D extends Data = Data> = {
   /** Unique identifier of the node. */
   id: string;
+  /** Flow engine value of type {@linkcode FlowContext}. */
+  flow: FlowContext;
   /** Custom node component to render inside the node container. */
-  children?: Component<D>;
+  children?: Component<D & WithFlow>;
   /** Custom component rendered for node selection action controls. */
-  Selected: Component<{ id: string }>;
+  Selected: Component<{ id: string } & WithFlow>;
   /**
    * Optional handle configurations overriding default node handles of type
    * {@linkcode NodeHandles_T}.
@@ -44,16 +46,22 @@ export type NodeComponentProps<D extends Data = Data> = {
  *
  * @returns The rendered Solid component.
  *
- * @see {@linkcode useFlow}, -- type {@linkcode NodeHandles_T}, {@linkcode getHandleOffsetPercent}
+ * @see -- type {@linkcode NodeHandles_T}, {@linkcode getHandleOffsetPercent}
  */
 export const NodeComponent = <D extends Data = Data>(
   props: NodeComponentProps<D>,
 ): JSX.Element => {
-  const { hooks, send } = useFlow();
+  const { hooks, send } = props.flow;
+
+  /** Reactive ongoing new edge preview, if any. */
   const newEdge = hooks.state({ selector: s => s.context.newEdge });
+
+  /** Draggable binding of this node for the solid-dnd library. */
   const draggable = createDraggable(props.id);
+
   void draggable;
 
+  /** Reactive position, data and handles of this node. */
   const node = hooks.state({
     selector: ({ context }) => {
       const list = toArray.typed(context.data?.nodes);
@@ -68,16 +76,25 @@ export const NodeComponent = <D extends Data = Data>(
     equals: deepEqual<any>,
   });
 
+  /** Tells whether this node is currently selected. */
   const selected = hooks.state({
     selector: ({ context }) => context.selected === props.id,
   });
 
+  /** Handles of the node, falling back to the defaults. */
   const resolvedHandles = (): NodeHandles_T => {
     const custom = props.handles ?? node().handles;
     if (custom !== undefined) return custom;
     return DEFAULT_HANDLES;
   };
 
+  /**
+   * Completes an ongoing edge drag onto the given handle of this node.
+   *
+   * @param side - Container side of the target handle of type
+   *   {@linkcode HandlePosition}.
+   * @param index - Zero-based index of the target handle on that side.
+   */
   const handleAddEdge = (side: HandlePosition, index: number) => {
     const handles = resolvedHandles();
     const handle = handles[side]?.[index];
@@ -103,6 +120,13 @@ export const NodeComponent = <D extends Data = Data>(
     send('CLEAR_NEW_EDGE');
   };
 
+  /**
+   * Starts an outgoing edge drag from the given handle of this node.
+   *
+   * @param side - Container side of the source handle of type
+   *   {@linkcode HandlePosition}.
+   * @param index - Zero-based index of the source handle on that side.
+   */
   const handleStartEdge = (side: HandlePosition, index: number) => {
     const handles = resolvedHandles();
     const handle = handles[side]?.[index];
@@ -143,10 +167,10 @@ export const NodeComponent = <D extends Data = Data>(
           'w-0 -right-3 opacity-0 overflow-hidden': !selected(),
         }}
       >
-        <props.Selected id={props.id} />
+        <props.Selected id={props.id} flow={props.flow} />
       </div>
 
-      <div ref={resize(props.id)}>
+      <div ref={resize(props.id, props.flow)}>
         <Show
           when={props.children}
           fallback={
@@ -176,7 +200,7 @@ export const NodeComponent = <D extends Data = Data>(
             </div>
           }
         >
-          <Dynamic component={props.children} {...node().data} />
+          <Dynamic component={props.children} {...node().data} flow={props.flow} />
         </Show>
       </div>
 

@@ -72,6 +72,7 @@ export const FactoryEdge: FactoryEdge_F = ({ draw }) => {
                 classList={{ 'z-200': selected() }}
               >
                 <Middle
+                  flow={props.flow}
                   vector={vector}
                   id={props.id}
                   data={edgeData()}

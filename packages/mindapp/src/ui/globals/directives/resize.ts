@@ -1,17 +1,19 @@
-import { useFlow } from '../../components/FlowChart.context';
+import type { FlowContext } from '../../Flow.context';
 
 /**
  * Creates a ResizeObserver hook attached to the node content container element,
  * dispatching RESIZE events to update node dimensions and edge positioning in
  * real-time.
  *
+ * @param flow - Flow engine value of type {@linkcode FlowContext}.
  * @param id - Unique identifier of the flowchart node.
  *
  * @returns Ref callback attaching and cleaning up the observer on unmount.
  */
-export const resize = (id: string) => (el: HTMLDivElement) => {
-  const { service } = useFlow();
+export const resize = (id: string, flow: FlowContext) => (el: HTMLDivElement) => {
+  const { service } = flow;
 
+  /** Observer dispatching `RESIZE` events with the measured node size. */
   const resize = new ResizeObserver(entries => {
     const entry = entries[0].target;
     if (!entry) return;

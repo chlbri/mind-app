@@ -18,14 +18,14 @@ export type DeepPartial<T> = T extends (...args: any[]) => any
  *
  * @template T - Array element type.
  */
-type _DeepPartialArray<T> = DeepPartial<T>[];
+export type _DeepPartialArray<T> = DeepPartial<T>[];
 
 /**
  * Internal recursive type helper for deep partial objects.
  *
  * @template T - Object structure type.
  */
-type _DeepPartialObject<T> = { [P in keyof T]?: DeepPartial<T[P]> };
+export type _DeepPartialObject<T> = { [P in keyof T]?: DeepPartial<T[P]> };
 
 /**
  * Type definition for a deeply partial Valibot schema.

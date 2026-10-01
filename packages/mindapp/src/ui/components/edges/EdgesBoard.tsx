@@ -3,7 +3,7 @@ import { Component, For, Show, type JSX } from 'solid-js';
 
 import type { Data } from '#services/main.machine.typings';
 
-import { useFlow } from '../FlowChart.context';
+import type { FlowContext } from '../../Flow.context';
 import type { EdgeProps } from './types';
 
 /**
@@ -13,6 +13,8 @@ import type { EdgeProps } from './types';
  *   edges.
  */
 export type EdgesBoardProps<E extends Data = Data> = {
+  /** Flow engine value of type {@linkcode FlowContext}. */
+  flow: FlowContext;
   /** Component used to render each edge with properties of type {@linkcode EdgeProps}. */
   Edge: Component<EdgeProps<E>>;
 };
@@ -27,15 +29,16 @@ export type EdgesBoardProps<E extends Data = Data> = {
  * @param props - Component properties of type {@linkcode EdgesBoardProps}.
  *
  * @returns The rendered SVG JSX element.
- *
- * @see {@linkcode useFlow}
  */
 export const EdgesBoard = <E extends Data = Data>(
   props: EdgesBoardProps<E>,
 ): JSX.Element => {
-  const { hooks } = useFlow();
+  const { hooks } = props.flow;
+
+  /** Tells whether an edge creation preview is currently active. */
   const hasNewEdge = hooks.state({ selector: s => !!s.context.newEdge });
 
+  /** Ordered ids of the edges to render, selected edges drawn last. */
   const edgeIds = hooks.state({
     selector: ({ context: { edgesPositions, selected, data } }) => {
       const consolidated = identify(edgesPositions).map(pos => {
@@ -71,10 +74,10 @@ export const EdgesBoard = <E extends Data = Data>(
   return (
     <svg class='pointer-events-none h-full w-full overflow-visible'>
       <Show when={hasNewEdge()}>
-        <props.Edge id='__#new-edge#__TEMP' isNew />
+        <props.Edge flow={props.flow} id='__#new-edge#__TEMP' isNew />
       </Show>
 
-      <For each={edgeIds()}>{id => <props.Edge id={id} />}</For>
+      <For each={edgeIds()}>{id => <props.Edge flow={props.flow} id={id} />}</For>
     </svg>
   );
 };

@@ -12,6 +12,8 @@ export default defineConfig({
     hmr({
       paths: {
         '../../packages/mindapp/src': 'pnpm run --filter @bemedev/mind-flow build',
+        '../../packages/mind-machine/src':
+          'pnpm run --filter @bemedev/mind-machine build',
       },
       debounce: 1000,
     }),

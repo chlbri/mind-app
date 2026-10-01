@@ -1,5 +1,6 @@
 packages:
   - 'packages/mindapp'
+  - 'packages/mind-machine'
   - 'apps/showroom'
 
 allowBuilds:

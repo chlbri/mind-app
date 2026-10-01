@@ -12,14 +12,11 @@ export default defineConfig({
     typecheck: { enabled: true, ignoreSourceErrors: false },
     env: { NODE_ENV: 'test' },
 
-    coverage: {
-      enabled: true,
-      reportsDirectory: '.coverage',
-      provider: 'v8',
-    },
+    coverage: { enabled: true, reportsDirectory: '.coverage', provider: 'v8' },
 
     projects: [
       'packages/mindapp/vitest.config.ts',
+      'packages/mind-machine/vitest.config.ts',
       'apps/showroom/vitest.config.ts',
     ],
   },

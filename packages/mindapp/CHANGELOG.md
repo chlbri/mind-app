@@ -3,6 +3,41 @@
 <details>
 <summary>
 
+## **[2.0.0] - 01/10/2026** => _23:30_
+
+</summary>
+
+- **BREAKING**: Replace the `createContext` helper with the new zero-argument
+  `createContext()` factory exported by the `Flow` module; it returns the
+  `[useFlow, Flow]` tuple instead of `[Provider, useContext, context]`
+- **BREAKING**: Stop exporting `Flow`, `useFlow` and `Provider` directly — obtain the
+  hook and the component from `createContext()`
+- **BREAKING**: Remove the `FlowChart.context` module; the context is now created by
+  the `Flow` module and shared through the new `Flow.context` helpers
+- **BREAKING**: Pass the engine value to every flow component through a `flow` prop
+  (new `WithFlow` type): `resize` now takes `(id, flow)`, `useEdge` reads
+  `props.flow`, and `useHook` takes the flow as its first argument
+- Add `createFlowService`, `FlowContext` and `WithFlow` exports: the flow engine
+  factory, its value type, and the `{ flow }` property bag injected into every flow
+  component
+- Refactor `Flow` to create the flow service, provide the context, and render
+  `FlowChart` with the `flow` prop
+- Export the internal `_DeepPartialArray` and `_DeepPartialObject` type helpers
+- Add smoke tests covering `createContext`, `useFlow` and `Flow` rendering
+- Update `README.md` with the isolated `createContext` factory, its naming, and the
+  complete peer dependencies list
+- Enhance comprehensive JSDoc documentation across the flow context, service machine
+  actions and guards, components, directives, hooks and signals
+- Update development dependency `vite` to `^8.3.2`
+- <u>Test coverage **_100%_**</u>
+
+</details>
+
+<br/>
+
+<details>
+<summary>
+
 ## **[1.7.0] - 01/10/2026** => _11:45_
 
 </summary>

@@ -3,25 +3,28 @@ import { type Component } from 'solid-js';
 
 import { BOUNDS_CONSTRAINTS } from '#services/main.machine.data';
 
-import { useFlow } from './FlowChart.context';
+import type { WithFlow } from '../Flow.context';
 
 /**
  * Drag boundary transformer component that clamps draggable nodes within container
  * scroll bounds.
  *
+ * @param props - Component properties of type {@linkcode WithFlow}.
+ *
  * @returns `null` as this component performs side-effect transformer registrations
  *   only.
  *
- * @see {@linkcode useFlow}, {@linkcode BOUNDS_CONSTRAINTS}
+ * @see {@linkcode BOUNDS_CONSTRAINTS}
  */
-export const DragBounds: Component = () => {
-  const { hooks } = useFlow();
+export const DragBounds: Component<WithFlow> = props => {
+  const { hooks } = props.flow;
   const zoom = hooks.state({ selector: ({ context }) => context.zoom });
   const board = hooks.state({ selector: ({ context }) => context.board });
 
   const [state, { addTransformer, removeTransformer, onDragStart, onDragEnd }] =
     useDragDropContext()!;
 
+  /** Transformer clamping the dragged node deltas inside the board boundaries. */
   const transformer: Transformer = {
     id: 'clamp-to-container',
     order: 100,

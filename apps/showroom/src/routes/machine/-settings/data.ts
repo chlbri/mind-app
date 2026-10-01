@@ -1,7 +1,4 @@
-import type { ConfigFrom } from '@bemedev/mind-flow';
-
-import { parseMachineToGraph } from './parser';
-import type { StateMachineEdgeData, StateMachineNodeData } from './types';
+import { parseMachineToGraph, type MachineConfigFrom } from '@bemedev/mind-machine';
 
 // Custom manual layout adjustments for optimal visual appeal
 const ORDER_GRAPH = parseMachineToGraph(
@@ -104,5 +101,7 @@ const ORDER_GRAPH = parseMachineToGraph(
   },
 );
 
-export const DEFAULT_CONFIG: ConfigFrom<StateMachineNodeData, StateMachineEdgeData> =
-  { nodes: ORDER_GRAPH.nodes, edges: ORDER_GRAPH.edges };
+export const DEFAULT_CONFIG: MachineConfigFrom = {
+  nodes: ORDER_GRAPH.nodes,
+  edges: ORDER_GRAPH.edges,
+};

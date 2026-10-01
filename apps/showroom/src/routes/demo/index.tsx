@@ -1,9 +1,11 @@
-import { Flow } from '@bemedev/mind-flow';
+import { createContext } from '@bemedev/mind-flow';
 import { createFileRoute } from '@tanstack/solid-router';
 
 import { ShowroomEditPanel, ShowroomNode } from './-index.components';
 import { INITIAL_EDGES, INITIAL_NODES } from './-index.data';
 import type { ShowroomData } from './-index.types';
+
+const [, Flow] = createContext();
 
 /** Interactive Mind Flow chart demonstration route. */
 export const Route = createFileRoute('/demo/')({

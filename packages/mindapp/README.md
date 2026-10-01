@@ -6,6 +6,8 @@ applications.
 ## Features
 
 - **Interactive Canvas**: Drag-and-drop nodes and interactive connecting edges.
+- **Isolated Contexts**: Every `createContext()` call creates a dedicated engine and
+  Solid context, so multiple flows coexist in the same application.
 - **State Machine Powered**: State management built with `@bemedev/app`.
 - **Git-Like History & Time Travel**: Built-in undo, redo, checkout, and commit
   history tracking with delta diff calculation.
@@ -29,15 +31,18 @@ pnpm add @bemedev/mind-flow
 
 # Peer dependencies
 pnpm add solid-js @bemedev/app @bemedev/app-solidjs @thisbeyond/solid-dnd
+pnpm add valibot
 ```
 
 ## Quick Start
 
-Import the `Flow` component and include the CSS stylesheet:
+Import the `createContext` factory and include the CSS stylesheet:
 
 ```tsx
-import { Flow } from '@bemedev/mind-flow';
+import { createContext } from '@bemedev/mind-flow';
 import '@bemedev/mind-flow/style.css';
+
+const [, Flow] = createContext();
 
 export const FlowDemo = () => {
   return (
@@ -48,19 +53,32 @@ export const FlowDemo = () => {
 };
 ```
 
+`createContext` returns a tuple with the `useFlow` hook and the `Flow` component,
+bound to an isolated context so several flows can coexist. Every other component
+receives the hook result as a `flow` prop, while custom children read it with the
+hook.
+
 ## Custom Configuration
 
 You can provide initial node and edge configurations, generic custom node data,
 custom node components, overlay panels, and callback handlers:
 
 ```tsx
-import { Flow, EditPanel, type NodeProps, type EdgeProps } from '@bemedev/mind-flow';
+import {
+  createContext,
+  EditPanel,
+  type NodeProps,
+  type EdgeProps,
+  type WithFlow,
+} from '@bemedev/mind-flow';
 import type { Component, ComponentProps } from 'solid-js';
 import '@bemedev/mind-flow/style.css';
 
+const [, Flow] = createContext();
+
 type CustomData = { label?: string; content?: string; category?: string };
 
-const CustomNode: Component<CustomData> = props => {
+const CustomNode: Component<CustomData & WithFlow> = props => {
   return (
     <div class='p-3'>
       <div class='font-bold text-blue-600'>{props.label}</div>
@@ -104,8 +122,9 @@ export const CustomFlow = () => {
         Node={CustomNode}
         edgesAllowed={(source, target) => source.id !== target.id}
         panels={{
-          topRight: () => (
+          topRight: panel => (
             <EditPanel<CustomData>
+              flow={panel.flow}
               children={hooks => (
                 <div>
                   <input
@@ -140,12 +159,15 @@ export const CustomFlow = () => {
 
 ## Exports
 
-- **`Flow`**: Root Solid.js flowchart component wrapping context provider and canvas.
-- **`FlowChart`**: Flowchart canvas component for custom embedding inside existing
-  context.
-- **`Provider`**, **`useFlow`**: Solid context provider and hook for accessing the
-  state machine service.
-- **`EditPanel`**: Configurable overlay panel component for editing active node data.
+- **`createContext`**: Factory returning the `[useFlow, Flow]` tuple — an isolated
+  Solid context with its accessor hook and root `Flow` component. The `Flow`
+  component is not exported directly.
+- **`createFlowService`**, **`FlowContext`**, **`WithFlow`**: Flow engine factory,
+  its value type, and the `{ flow }` property bag injected into every flow component.
+- **`FlowChart`**: Flowchart canvas component for custom embedding, requiring the
+  `flow` prop.
+- **`EditPanel`**: Configurable overlay panel component for editing active node data,
+  requiring the `flow` prop.
 - **`Panels`**: Overlay container component rendering custom canvas panels.
 - **`EdgesBoard`**, **`EdgesBoardProps`**: SVG board overlay component and prop type
   rendering active connecting edges.

@@ -25,19 +25,37 @@ type Props = {
  *   setter.
  */
 export const createTyping = ({ content, min, ...props }: Props) => {
+  /** Whether the typing animation rewinds once completed. */
   const rewind = props.rewind ?? false;
+
+  /** Delay in milliseconds before rewinding or restarting. */
   const rewindDelay = (props as any).rewindDelay ?? 500;
 
+  /** Maximum delay oscillation applied to the keystroke interval. */
   const OSCILLATION = Math.min(min / 10 + content.length / 10, 10);
 
+  /** Reactive text currently displayed. */
   const [text, setText] = createSignal(VISIBLE_ESPACE);
+
+  /** Pending keystroke timer. */
   let timeoutId: number | NodeJS.Timeout;
+
+  /** Current character index in the content. */
   let index = 0;
+
+  /** Tells whether the animation is currently typing forward. */
   let isTyping = true;
+
+  /** Upper bound of the oscillating interval. */
   const max = min + OSCILLATION;
+
+  /** Current oscillating interval between keystrokes. */
   let interval = min;
+
+  /** Direction of the interval oscillation: `1` increments, `-1` decrements. */
   let intervalDirection = 1; // 1 for incrementing, -1 for decrementing
 
+  /** Advances the typing animation by one step, scheduling the next tick. */
   const type = () => {
     if (isTyping) {
       if (index < content.length) {

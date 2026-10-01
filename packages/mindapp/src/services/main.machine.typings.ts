@@ -67,12 +67,10 @@ export const handleConfig = v.object({
 /** Handle configuration object with type and optional color styling. */
 export type HandleConfig = v.InferOutput<typeof handleConfig>;
 
-/**
- * Schema definition for node handles partitioned by side.
- *
- * @see {@linkcode handleConfig}
- */
+/** Internal array schema of handle configurations per side. */
 const handleConfigArray = v.array(handleConfig);
+
+/** Schema definition for node handles partitioned by side. */
 export const nodeHandles = v.partial(
   v.object({
     top: handleConfigArray,

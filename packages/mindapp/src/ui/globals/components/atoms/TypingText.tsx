@@ -34,10 +34,19 @@ type Props = BaseProps &
  */
 export const TypingText: Component<Props> = props => {
   // #region Default values
+  /** Keystroke interval in milliseconds. */
   const min = props.interval ?? 62;
+
+  /** Whether the typing animation rewinds once completed. */
   const rewind = props.rewind ?? false;
+
+  /** Delay in milliseconds before rewinding the animation. */
   const rewindDelay = (props as any).rewindDelay ?? 500;
+
+  /** Full text to type out. */
   const content = props.children;
+
+  /** Reactive disabled state defaulting to `false`. */
   const disabled = createMemo(
     () => (props.disabled ? props.disabled() : false),
     false,
