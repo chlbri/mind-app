@@ -1,6 +1,5 @@
 /**
- * @file Auto-generated file containing all asset paths from the public
- * folder
+ * @file Auto-generated file containing all asset paths from the public folder
  *
  * @generated 2025-10-17T12:02:14.736Z
  *

@@ -3,6 +3,27 @@
 <details>
 <summary>
 
+## **[1.7.0] - 01/10/2026** => _11:45_
+
+</summary>
+
+- Remove stale `src/README.md` describing an outdated internal API
+- Remove unused `DragDropState` type alias and `useDragDropContext` import from the
+  state machine service
+- Update peer dependencies to `@bemedev/app` `^2.7.0` and `@bemedev/app-solidjs`
+  `^2.7.0`
+- Update `cn` dependency to `^0.4.0`
+- Update development dependencies (`vite`, `vitest`, `rolldown`, `oxlint`, `oxfmt`,
+  `size-limit`, `globals`, `@types/node`)
+- <u>Test coverage **_100%_**</u>
+
+</details>
+
+<br/>
+
+<details>
+<summary>
+
 ## **[1.6.1] - 21/09/2026** => _18:26_
 
 </summary>

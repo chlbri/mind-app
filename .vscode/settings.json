@@ -18,5 +18,11 @@
     "**/node_modules/**": true,
     "**/.pnpm-store/**": true,
     "**/.coverage/**": true
+  },
+  "chat.tools.terminal.autoApprove": {
+    "/^cat /Users/bri/Documents/GitHub/mind-app/node_modules/@bemedev/app/lib/bemedev\\.js \\| head -20; echo '---PKG DEPS mindapp---'; node -e \"const p=require\\('/Users/bri/Documents/GitHub/mind-app/packages/mindapp/package\\.json'\\); console\\.log\\(JSON\\.stringify\\(\\{deps:p\\.dependencies, dev:p\\.devDependencies\\}, null, 2\\)\\)\"$/": {
+      "approve": true,
+      "matchCommandLine": true
+    }
   }
 }

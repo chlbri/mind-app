@@ -1,11 +1,7 @@
 import { createMachine } from '@bemedev/app';
 import { toArray } from '@bemedev/app/bemedev';
-import type { useDragDropContext } from '@thisbeyond/solid-dnd';
 import { nanoid } from 'nanoid';
 import * as v from 'valibot';
-
-/** Type alias for drag-drop state extracted from {@linkcode useDragDropContext}. */
-export type DragDropState = Exclude<ReturnType<typeof useDragDropContext>, null>[0];
 
 import { clamp } from '..';
 import {

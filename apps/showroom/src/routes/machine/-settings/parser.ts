@@ -427,7 +427,7 @@ export const parseMachineToGraph = <const T extends MachineConfig = MachineConfi
         from: id,
         to: parentPath,
         kind: 'child_parent',
-        label: `child of : /${parentPath.split('/').pop()}`,
+        label: `: /${parentPath.split('/').pop()}`,
       });
     }
 

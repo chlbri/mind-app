@@ -251,7 +251,7 @@ export const TransitionModal: Component = () => {
     } else if (selectedKind === 'always') {
       label = `always${guardLabel}`;
     } else {
-      label = `child of ${(target.to || toState()).split('/').pop() || ''}`;
+      label = `: ${(target.to || toState()).split('/').pop() || ''}`;
     }
 
     let updatedTransitions: TransitionItem[];
