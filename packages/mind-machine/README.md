@@ -46,6 +46,7 @@ Import the context factory and include the stylesheet:
 
 ```tsx
 import { createContext } from '@bemedev/mind-machine';
+
 import '@bemedev/mind-machine/style.css';
 
 const [, FlowMachine] = createContext();

@@ -40,6 +40,7 @@ Import the `createContext` factory and include the CSS stylesheet:
 
 ```tsx
 import { createContext } from '@bemedev/mind-flow';
+
 import '@bemedev/mind-flow/style.css';
 
 const [, Flow] = createContext();
@@ -72,6 +73,7 @@ import {
   type WithFlow,
 } from '@bemedev/mind-flow';
 import type { Component, ComponentProps } from 'solid-js';
+
 import '@bemedev/mind-flow/style.css';
 
 const [, Flow] = createContext();
