@@ -414,11 +414,7 @@ export const Scene = <N extends Data = Data, E extends Data = Data>(
         group.userData.lastSelected = isSelected;
 
         if (props.Node) {
-          props.Node({
-            ...node,
-            selected: isSelected,
-            group,
-          } as any);
+          props.Node({ ...node, selected: isSelected, group } as any);
         } else if (dataChanged) {
           const previous = group.getObjectByName('label');
           if (previous) {

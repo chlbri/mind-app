@@ -124,8 +124,8 @@ export const ShowroomEdge3D: Edge3DComponent<ShowroomEdgeData> = props => {
 };
 
 /**
- * Top-left edit panel component editing the currently double-clicked node through the
- * `SET_NODE_DATA` event.
+ * Top-left edit panel component editing the currently double-clicked node through
+ * the `SET_NODE_DATA` event.
  *
  * Single-clicking a node only selects it in the scene; double-clicking opens this
  * panel. The panel falls back to a hint card when no node is being edited.

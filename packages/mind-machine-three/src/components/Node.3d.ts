@@ -66,11 +66,7 @@ export const StateMachineNode3D: Node3DComponent<StateMachineNodeData> = props =
   const height = isPrincipal ? NODE_SIZE.height * 1.3 : NODE_SIZE.height;
 
   const isSelected = props.selected;
-  const glow = isSelected
-    ? 0.9
-    : isPrincipal
-      ? 0.55
-      : 0.25;
+  const glow = isSelected ? 0.9 : isPrincipal ? 0.55 : 0.25;
 
   const existing = group.getObjectByName('state-box') as Mesh | undefined;
   if (existing) {

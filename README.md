@@ -20,12 +20,11 @@ This project is organized as a pnpm monorepo containing the following workspaces
   - `src/parser.ts` - `@bemedev/app` machine to flowchart parser
   - `src/components/` - Nodes, edges, panels, and transition tooling
 - **[`packages/mindapp-three`](packages/mindapp-three)** (`@bemedev/mind-flow-three`)
-  - Interactive 3D flow chart engine rendered with
-    [three.js](https://threejs.org/) and driven by a force-directed physics
-    simulation
+  - Interactive 3D flow chart engine rendered with [three.js](https://threejs.org/)
+    and driven by a force-directed physics simulation
   - `src/services/` - State management and business logic with `@bemedev/app`
-  - `src/ui/components/` - Solid.js components (`Flow`, `Scene`, `Panels`) with
-    the WebGL renderer, orbit controls and raycasted interactions
+  - `src/ui/components/` - Solid.js components (`Flow`, `Scene`, `Panels`) with the
+    WebGL renderer, orbit controls and raycasted interactions
   - `src/ui/globals/physics/` - `ForceSimulation3D` force-directed layout engine
   - `src/ui/globals/three/` - three.js factories (label sprites, node boxes, tube
     edges)
