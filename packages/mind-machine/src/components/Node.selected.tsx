@@ -1,14 +1,9 @@
-import { HANDLE_SIZE, type WithFlow } from '@bemedev/mind-flow';
+import { HANDLE_SIZE } from '@bemedev/mind-flow';
 import { Show, type Component } from 'solid-js';
 
-import { isDirectChildOfPrincipal, PRINCIPAL_NODE_KEY } from '../constants';
-import { createHandles } from '../helpers';
-
-/** Properties for the {@linkcode StateMachineNodeSelected} component. */
-export type StateMachineNodeSelectedProps = {
-  /** Unique identifier of the selected state node. */
-  id: string;
-} & WithFlow;
+import { PRINCIPAL_NODE_KEY } from '../constants';
+import { useNodeSelected } from './Node.selected.hooks';
+import type { StateMachineNodeSelectedProps } from './Node.selected.types';
 
 /**
  * Custom action toolbar rendered above a selected state machine node in the
@@ -23,72 +18,8 @@ export type StateMachineNodeSelectedProps = {
 export const StateMachineNodeSelected: Component<
   StateMachineNodeSelectedProps
 > = props => {
-  const { send, hooks, service } = props.flow;
-
-  /** Sender bound to the `SET_NODE_DATA` event of the flow service. */
-  const setData = service.sender('SET_NODE_DATA');
-
-  const nodes = hooks.state({
-    selector: ({ context: { data } }) => data?.nodes ?? [],
-  });
-
-  /** Selected state node record from the flow context. */
-  const currentNode = () => nodes().find(n => n.id === props.id);
-
-  /**
-   * Resolves the direct parent node of the selected node, falling back to the
-   * principal node for root-level states.
-   */
-  const parentNode = () => {
-    const current = currentNode();
-    if (!current) return undefined;
-    const parentPath = current.data?.parentPath;
-    if (parentPath && parentPath !== PRINCIPAL_NODE_KEY) {
-      const found = nodes().find(
-        n => n.id === parentPath || n.data?.path === parentPath,
-      );
-      if (found) return found;
-    }
-    if (
-      parentPath === PRINCIPAL_NODE_KEY ||
-      isDirectChildOfPrincipal(current.data?.path ?? props.id)
-    ) {
-      return nodes().find(
-        n => n.id === PRINCIPAL_NODE_KEY || (n.data as any)?.principal,
-      );
-    }
-    return undefined;
-  };
-
-  /** Tells whether the parent state is a compound state. */
-  const isParentCompound = () => parentNode()?.data?.stateType === 'compound';
-
-  /** Lists the sibling nodes sharing the same parent as the selected node. */
-  const siblings = () => {
-    const parent = parentNode();
-    if (!parent) return [];
-    const isParentPrincipal =
-      parent.id === PRINCIPAL_NODE_KEY ||
-      (parent.data as any)?.principal ||
-      parent.data?.path === PRINCIPAL_NODE_KEY;
-
-    if (isParentPrincipal) {
-      return nodes().filter(
-        n =>
-          n.id !== PRINCIPAL_NODE_KEY &&
-          !(n.data as any)?.principal &&
-          (n.data?.parentPath === PRINCIPAL_NODE_KEY ||
-            isDirectChildOfPrincipal(n.data?.path ?? n.id)),
-      );
-    }
-
-    const pPath = parent.data?.path ?? parent.id;
-    return nodes().filter(
-      n =>
-        n.id !== parent.id &&
-        (n.data?.parentPath === pPath || n.data?.parentPath === parent.id),
-    );
-  };
+  const { showInitialButton, deleteNode, setInitial, addChild } =
+    useNodeSelected(props);
 
   return (
     <div class='flex items-center gap-1.5 rounded-full bg-zinc-800/10 px-2 py-1 shadow-xl backdrop-blur-sm'>
@@ -104,53 +35,7 @@ export const StateMachineNodeSelected: Component<
         onClick={e => {
           e.stopPropagation();
           if (props.id === PRINCIPAL_NODE_KEY) return;
-          const allNodesList = nodes();
-          const currentNode = allNodesList.find(n => n.id === props.id);
-          const parentPath = currentNode?.data?.parentPath;
-          const canvasNodes = allNodesList.filter(
-            n => n.id !== PRINCIPAL_NODE_KEY && !(n.data as any)?.principal,
-          );
-          const remainingCanvasNodes = canvasNodes.filter(n => n.id !== props.id);
-
-          // If all canvas nodes are deleted, principal node is immediately atomic
-          if (remainingCanvasNodes.length === 0) {
-            const principal = allNodesList.find(
-              n => n.id === PRINCIPAL_NODE_KEY || (n.data as any)?.principal,
-            );
-            if (principal) {
-              setData({ id: principal.id, data: { stateType: 'atomic' } });
-            }
-          } else if (parentPath) {
-            const parent = allNodesList.find(
-              n => n.id === parentPath || n.data?.path === parentPath,
-            );
-            const remainingSiblings = allNodesList.filter(
-              n =>
-                n.id !== props.id &&
-                (n.data?.parentPath === parentPath ||
-                  n.data?.parentPath === parent?.id ||
-                  (parentPath === PRINCIPAL_NODE_KEY &&
-                    isDirectChildOfPrincipal(n.data?.path ?? n.id))),
-            );
-
-            if (
-              remainingSiblings.length === 0 &&
-              parent &&
-              parent.data?.stateType !== 'final'
-            ) {
-              setData({ id: parent.id, data: { stateType: 'atomic' } });
-            } else if (parent?.data?.stateType === 'compound') {
-              if (remainingSiblings.length === 1) {
-                setData({ id: remainingSiblings[0].id, data: { isInitial: true } });
-              } else if (
-                remainingSiblings.length > 1 &&
-                currentNode?.data?.isInitial
-              ) {
-                setData({ id: remainingSiblings[0].id, data: { isInitial: true } });
-              }
-            }
-          }
-          send({ type: 'DELETE', payload: props.id });
+          deleteNode();
         }}
       >
         <svg
@@ -163,7 +48,7 @@ export const StateMachineNodeSelected: Component<
       </button>
 
       {/* Set as Initial State Button */}
-      <Show when={isParentCompound() && !currentNode()?.data?.isInitial}>
+      <Show when={showInitialButton()}>
         <button
           type='button'
           class='flex cursor-pointer items-center justify-center rounded-full border border-white bg-emerald-600 text-white transition-transform hover:scale-110 active:scale-95'
@@ -176,12 +61,7 @@ export const StateMachineNodeSelected: Component<
           aria-label='Set as initial state'
           onClick={e => {
             e.stopPropagation();
-            setData({ id: props.id, data: { isInitial: true } });
-            siblings().forEach(sibling => {
-              if (sibling.id !== props.id && sibling.data?.isInitial) {
-                setData({ id: sibling.id, data: { isInitial: false } });
-              }
-            });
+            setInitial();
           }}
         >
           <svg class='size-3.5 fill-current' viewBox='0 0 24 24'>
@@ -202,84 +82,7 @@ export const StateMachineNodeSelected: Component<
         onClick={e => {
           // #region 0. Preparation
           e.stopPropagation();
-          const parentNode = nodes().find(n => n.id === props.id);
-          if (!parentNode) return;
-
-          const parentPath = parentNode.data?.path ?? parentNode.id;
-          const existingChildren = nodes().filter(
-            n =>
-              n.data?.parentPath === parentPath ||
-              n.data?.parentPath === props.id ||
-              n.id.startsWith(`${parentPath}/`),
-          );
-          const isFirstChild = existingChildren.length === 0;
-          const childName = `state-${existingChildren.length + 1}`;
-          const childId = `${parentPath}/${childName}`;
-          const parentTitle =
-            parentNode.data?.title ?? parentPath.split('/').pop() ?? 'parent';
-
-          const el =
-            typeof document !== 'undefined'
-              ? document.getElementById(props.id)
-              : null;
-          const parentHeight = el?.offsetHeight ?? 60;
-
-          // #region Target position: 250px below the bottom-left corner of the parent node
-          const targetX = parentNode.position.x;
-          const targetY = parentNode.position.y + parentHeight + 150;
-          // #endregion
-          // #endregion
-
-          // #region 1. Dispatch ADD_PARENT to add the child node and link bottom-to-top hierarchy edge
-          send({
-            type: 'ADD_PARENT',
-            payload: {
-              id: childId,
-              parentId: props.id,
-              data: {
-                id: childId,
-                title: childName,
-                path: childId,
-                parentPath,
-                stateType: 'atomic',
-                isInitial: isFirstChild,
-              },
-              handles: createHandles(),
-            },
-          });
-          // #endregion
-
-          // 2. Dispatch MOVE to position node at 250px below parent bottom-left corner
-          send({ type: 'MOVE', payload: { id: childId, x: targetX, y: targetY } });
-
-          // #region 3. If there was already 1 child without isInitial: true, ensure it is initial
-          if (
-            existingChildren.length === 1 &&
-            !existingChildren[0].data?.isInitial
-          ) {
-            setData({ id: existingChildren[0].id, data: { isInitial: true } });
-          }
-          // #endregion
-
-          // #region 4. Mark parent as compound if needed
-          if (
-            parentNode.data?.stateType !== 'compound' &&
-            parentNode.data?.stateType !== 'parallel'
-          ) {
-            setData({ id: props.id, data: { stateType: 'compound' } });
-          }
-          // #endregion
-
-          // #region 5. Set edge metadata for the child_parent relation
-          const edgeId = `edge = ${props.id} => ${childId}:top:0`;
-          send({
-            type: 'SET_EDGE_DATA',
-            payload: {
-              id: edgeId,
-              data: { kind: 'child_parent', label: `child of : /${parentTitle}` },
-            },
-          });
-          // #endregion
+          addChild();
         }}
       >
         {/* Child Substate / Tree Icon */}
