@@ -1,0 +1,52 @@
+import type { Component, JSX } from 'solid-js';
+
+import type { FlowContext } from '../Flow.context';
+import type { ClassList } from '../globals/types';
+import type { Data } from './Canvas.types';
+import { useHook } from './EditPanel.hooks';
+
+/**
+ * Render properties and mutation callbacks provided to {@linkcode EditPanel} children
+ * or custom component.
+ *
+ * @template | {@linkcode Data} `D` - Custom node data dictionary type extending type
+ *   {@linkcode Data}.
+ */
+export type EditPanelChildProps<D extends Data = Data> = ReturnType<
+  typeof useHook<D>
+>;
+
+/**
+ * Configuration properties for the generic {@linkcode EditPanel} component.
+ *
+ * @template | {@linkcode Data} `D` - Custom node data dictionary type extending type
+ *   {@linkcode Data}.
+ */
+export type EditPanelProps<D extends Data = Data> = {
+  /** Flow engine value of type {@linkcode FlowContext}. */
+  flow: FlowContext;
+  /** Optional additional CSS classes for the outer container card. */
+  class?: string;
+  /** Optional class map for conditional styling. */
+  classList?: ClassList | ((hooks: EditPanelChildProps<D>) => ClassList);
+  /** Optional inline CSS styles. */
+  style?: JSX.CSSProperties | string;
+  /**
+   * Custom header renderer.
+   *
+   * @param props - Header props containing the edited node `id` and `close`
+   *   callback.
+   */
+  header?: Component<{ id: string; close: () => void }>;
+  /**
+   * Custom content renderer or static children. When provided as a function,
+   * receives {@linkcode EditPanelChildProps}.
+   */
+  children: Component<EditPanelChildProps<D>>;
+
+  /**
+   * Optional delay in milliseconds before closing the editor panel to allow exit
+   * transitions.
+   */
+  timeout?: number;
+};

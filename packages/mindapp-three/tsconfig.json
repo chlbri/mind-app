@@ -1,0 +1,33 @@
+{
+  "include": ["src/**/*"],
+  "compilerOptions": {
+    "lib": ["dom", "esnext"],
+    "importHelpers": true,
+    "target": "ESNext",
+    "declaration": true,
+    "sourceMap": true,
+    "rootDir": "./src",
+    "outDir": "./lib",
+    "resolveJsonModule": true,
+    "strict": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "moduleResolution": "Bundler",
+    "types": ["vitest/globals", "@types/node"],
+    "jsx": "preserve",
+    "jsxImportSource": "solid-js",
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "isolatedModules": true,
+    "paths": {
+      "#main-machine": ["./src/services/main.machine.ts"],
+      "#services/*": ["./src/services/*"],
+      "#helpers/*": ["./src/helpers/*"]
+    },
+    "noEmit": true,
+    "declarationMap": true
+  }
+}

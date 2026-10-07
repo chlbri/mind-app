@@ -17,6 +17,10 @@ export default defineConfig({
     projects: [
       'packages/mindapp/vitest.config.ts',
       'packages/mind-machine/vitest.config.ts',
+      'packages/mindapp-three/vitest.config.ts',
+      'packages/mind-machine-three/vitest.config.ts',
+      'packages/mindapp-fabric/vitest.config.ts',
+      'packages/mind-machine-fabric/vitest.config.ts',
       'apps/showroom/vitest.config.ts',
     ],
   },

@@ -1,10 +1,15 @@
 packages:
   - 'packages/mindapp'
   - 'packages/mind-machine'
+  - 'packages/mindapp-three'
+  - 'packages/mind-machine-three'
+  - 'packages/mindapp-fabric'
+  - 'packages/mind-machine-fabric'
   - 'apps/showroom'
 
 allowBuilds:
   '@parcel/watcher': true
+  canvas: false
   esbuild: true
 
 nodeLinker: hoisted

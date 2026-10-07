@@ -14,6 +14,14 @@ export default defineConfig({
         '../../packages/mindapp/src': 'pnpm run --filter @bemedev/mind-flow build',
         '../../packages/mind-machine/src':
           'pnpm run --filter @bemedev/mind-machine build',
+        '../../packages/mindapp-three/src':
+          'pnpm run --filter @bemedev/mind-flow-three build',
+        '../../packages/mind-machine-three/src':
+          'pnpm run --filter @bemedev/mind-machine-three build',
+        '../../packages/mindapp-fabric/src':
+          'pnpm run --filter @bemedev/mind-flow-fabric build',
+        '../../packages/mind-machine-fabric/src':
+          'pnpm run --filter @bemedev/mind-machine-fabric build',
       },
       debounce: 1000,
     }),

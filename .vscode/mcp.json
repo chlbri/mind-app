@@ -1,0 +1,26 @@
+{
+  // Three.js DevTools MCP — inspect and edit live three.js scenes (objects, materials,
+  // shaders, lights, animations, performance) through a WebSocket bridge injected in
+  // the browser. Works with vanilla three.js, React Three Fiber and Solid.js.
+  // Repo: https://github.com/DmitriyGolub/threejs-devtools-mcp
+  "servers": {
+    "threejs-devtools": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "threejs-devtools-mcp"]
+    }
+
+    // Kiln — local MCP server + CLI for building procedural 3D assets with headless
+    // CPU/GPU renders and editable source. Use it to author GLB models consumed by
+    // `mind-flow-three` / `mind-machine-three`.
+    // Repo: https://github.com/instruktlabs/kiln
+    // Install: follow https://github.com/instruktlabs/kiln#install-and-start-an-asset-workspace
+    // then register the workspace server:
+    //
+    // "kiln": {
+    //   "type": "stdio",
+    //   "command": "node",
+    //   "args": ["<my-assets-workspace>/kiln.mjs", "mcp"]
+    // }
+  }
+}

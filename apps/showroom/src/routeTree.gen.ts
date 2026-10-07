@@ -14,7 +14,9 @@ import { Route as CountingRouteImport } from './routes/counting'
 import { Route as ZoomRouteImport } from './routes/zoom'
 import { Route as DemoIndexRouteImport } from './routes/demo/index'
 import { Route as DemoDtagndropRouteImport } from './routes/demo/dtagndrop'
+import { Route as FabricSimpleRouteImport } from './routes/fabric/simple'
 import { Route as MachineIndexRouteImport } from './routes/machine/index'
+import { Route as ThreeSimpleRouteImport } from './routes/three/simple'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -41,9 +43,19 @@ const DemoDtagndropRoute = DemoDtagndropRouteImport.update({
   path: '/demo/dtagndrop',
   getParentRoute: () => rootRouteImport,
 } as any)
+const FabricSimpleRoute = FabricSimpleRouteImport.update({
+  id: '/fabric/simple',
+  path: '/fabric/simple',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const MachineIndexRoute = MachineIndexRouteImport.update({
   id: '/machine/',
   path: '/machine/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ThreeSimpleRoute = ThreeSimpleRouteImport.update({
+  id: '/three/simple',
+  path: '/three/simple',
   getParentRoute: () => rootRouteImport,
 } as any)
 
@@ -52,6 +64,8 @@ export interface FileRoutesByFullPath {
   '/counting': typeof CountingRoute
   '/zoom': typeof ZoomRoute
   '/demo/dtagndrop': typeof DemoDtagndropRoute
+  '/fabric/simple': typeof FabricSimpleRoute
+  '/three/simple': typeof ThreeSimpleRoute
   '/demo/': typeof DemoIndexRoute
   '/machine/': typeof MachineIndexRoute
 }
@@ -60,6 +74,8 @@ export interface FileRoutesByTo {
   '/counting': typeof CountingRoute
   '/zoom': typeof ZoomRoute
   '/demo/dtagndrop': typeof DemoDtagndropRoute
+  '/fabric/simple': typeof FabricSimpleRoute
+  '/three/simple': typeof ThreeSimpleRoute
   '/demo': typeof DemoIndexRoute
   '/machine': typeof MachineIndexRoute
 }
@@ -69,21 +85,40 @@ export interface FileRoutesById {
   '/counting': typeof CountingRoute
   '/zoom': typeof ZoomRoute
   '/demo/dtagndrop': typeof DemoDtagndropRoute
+  '/fabric/simple': typeof FabricSimpleRoute
+  '/three/simple': typeof ThreeSimpleRoute
   '/demo/': typeof DemoIndexRoute
   '/machine/': typeof MachineIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
-    '/' | '/counting' | '/zoom' | '/demo/dtagndrop' | '/demo/' | '/machine/'
+    | '/'
+    | '/counting'
+    | '/zoom'
+    | '/demo/dtagndrop'
+    | '/fabric/simple'
+    | '/three/simple'
+    | '/demo/'
+    | '/machine/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/counting' | '/zoom' | '/demo/dtagndrop' | '/demo' | '/machine'
+  to:
+    | '/'
+    | '/counting'
+    | '/zoom'
+    | '/demo/dtagndrop'
+    | '/fabric/simple'
+    | '/three/simple'
+    | '/demo'
+    | '/machine'
   id:
     | '__root__'
     | '/'
     | '/counting'
     | '/zoom'
     | '/demo/dtagndrop'
+    | '/fabric/simple'
+    | '/three/simple'
     | '/demo/'
     | '/machine/'
   fileRoutesById: FileRoutesById
@@ -93,6 +128,8 @@ export interface RootRouteChildren {
   CountingRoute: typeof CountingRoute
   ZoomRoute: typeof ZoomRoute
   DemoDtagndropRoute: typeof DemoDtagndropRoute
+  FabricSimpleRoute: typeof FabricSimpleRoute
+  ThreeSimpleRoute: typeof ThreeSimpleRoute
   DemoIndexRoute: typeof DemoIndexRoute
   MachineIndexRoute: typeof MachineIndexRoute
 }
@@ -134,11 +171,25 @@ declare module '@tanstack/solid-router' {
       preLoaderRoute: typeof DemoDtagndropRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/fabric/simple': {
+      id: '/fabric/simple'
+      path: '/fabric/simple'
+      fullPath: '/fabric/simple'
+      preLoaderRoute: typeof FabricSimpleRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/machine/': {
       id: '/machine/'
       path: '/machine'
       fullPath: '/machine/'
       preLoaderRoute: typeof MachineIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/three/simple': {
+      id: '/three/simple'
+      path: '/three/simple'
+      fullPath: '/three/simple'
+      preLoaderRoute: typeof ThreeSimpleRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
@@ -149,6 +200,8 @@ const rootRouteChildren: RootRouteChildren = {
   CountingRoute: CountingRoute,
   ZoomRoute: ZoomRoute,
   DemoDtagndropRoute: DemoDtagndropRoute,
+  FabricSimpleRoute: FabricSimpleRoute,
+  ThreeSimpleRoute: ThreeSimpleRoute,
   DemoIndexRoute: DemoIndexRoute,
   MachineIndexRoute: MachineIndexRoute,
 }
