@@ -1,4 +1,4 @@
-import type { WithFlow } from "@bemedev/mind-flow";
+import type { WithFlow } from '@bemedev/mind-flow';
 
 /** Properties for the {@linkcode StateMachineNodeSelected} component. */
 export type StateMachineNodeSelectedProps = {

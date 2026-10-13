@@ -25,5 +25,5 @@ export default defineConfig({
   sortTailwindcss: true,
   sortImports: true,
   sortPackageJson: false,
-  ignorePatterns: ['node_modules', 'publish', 'publish_npm', 'lib'],
+  ignorePatterns: ['node_modules', 'publish', 'publish_npm', 'lib', '**/*.gen.ts'],
 });
